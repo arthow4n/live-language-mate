@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2, Settings, PanelRight } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSettings } from '@/contexts/SettingsContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import ChatSettingsDialog from './ChatSettingsDialog';
 
@@ -38,10 +39,14 @@ const EnhancedChatInterface = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [chatMatePrompt, setChatMatePrompt] = useState('You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.');
-  const [editorMatePrompt, setEditorMatePrompt] = useState('You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { getChatSettings } = useSettings();
+
+  // Get current conversation settings
+  const currentSettings = conversationId ? getChatSettings(conversationId) : null;
+  const chatMatePrompt = currentSettings?.chatMatePersonality || 'You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.';
+  const editorMatePrompt = currentSettings?.editorMatePersonality || 'You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,8 +64,6 @@ const EnhancedChatInterface = ({
     } else {
       setMessages([]);
       // Reset to default prompts for new conversation
-      setChatMatePrompt('You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.');
-      setEditorMatePrompt('You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.');
     }
   }, [conversationId]);
 
@@ -106,28 +109,8 @@ const EnhancedChatInterface = ({
 
       if (error) throw error;
 
-      if (data?.chat_mate_prompt) setChatMatePrompt(data.chat_mate_prompt);
-      if (data?.editor_mate_prompt) setEditorMatePrompt(data.editor_mate_prompt);
     } catch (error) {
       console.error('Error loading prompts:', error);
-    }
-  };
-
-  const saveConversationPrompts = async (chatMate: string, editorMate: string) => {
-    if (!conversationId) return;
-
-    try {
-      const { error } = await supabase
-        .from('conversations')
-        .update({
-          chat_mate_prompt: chatMate,
-          editor_mate_prompt: editorMate
-        })
-        .eq('id', conversationId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error saving prompts:', error);
     }
   };
 
@@ -505,12 +488,6 @@ const EnhancedChatInterface = ({
     onTextSelect(text);
   };
 
-  const handlePromptsUpdate = (chatMate: string, editorMate: string) => {
-    setChatMatePrompt(chatMate);
-    setEditorMatePrompt(editorMate);
-    saveConversationPrompts(chatMate, editorMate);
-  };
-
   return (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
@@ -592,7 +569,7 @@ const EnhancedChatInterface = ({
         onOpenChange={setShowSettings}
         chatMatePrompt={chatMatePrompt}
         editorMatePrompt={editorMatePrompt}
-        onPromptsUpdate={handlePromptsUpdate}
+        onPromptsUpdate={() => {}}
         targetLanguage={targetLanguage}
       />
     </div>
