@@ -33,7 +33,7 @@ interface Conversation {
 interface ChatSidebarProps {
   user: User;
   currentConversationId: string | null;
-  onConversationSelect: (id: string) => void;
+  onConversationSelect: (id: string | null) => void;
   onNewConversation: () => void;
   targetLanguage: string;
 }
@@ -81,7 +81,7 @@ const ChatSidebar = ({
     try {
       const { error } = await supabase
         .from('conversations')
-        .update({ title: editTitle.trim(), updated_at: new Date() })
+        .update({ title: editTitle.trim(), updated_at: new Date().toISOString() })
         .eq('id', editingConversation);
 
       if (error) throw error;
