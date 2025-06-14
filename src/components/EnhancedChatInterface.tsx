@@ -565,20 +565,21 @@ const EnhancedChatInterface = ({
 
       {/* Input Area */}
       <div className="p-4 border-t bg-card flex-shrink-0">
-        <div className="flex space-x-2">
+        <div className="flex items-end space-x-2">
           <Textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={`Write in ${targetLanguage} or your native language...`}
-            className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+            className="flex-1 min-h-[40px] max-h-[120px]"
             disabled={isLoading}
+            rows={1}
           />
           <Button
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading}
             size="icon"
-            className="self-end"
+            className="h-10 w-10 flex-shrink-0"
           >
             <Send className="w-4 h-4" />
           </Button>
