@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   MessageCircle, 
   GraduationCap, 
@@ -13,7 +14,9 @@ import {
   Trash2,
   RotateCcw,
   Copy,
-  GitBranch
+  GitBranch,
+  Check,
+  X
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,7 +38,7 @@ interface EnhancedChatMessageProps {
   message: Message;
   onTextSelect: (text: string) => void;
   onRegenerateMessage?: (messageId: string) => void;
-  onEditMessage?: (messageId: string) => void;
+  onEditMessage?: (messageId: string, newContent: string) => void;
   onDeleteMessage?: (messageId: string) => void;
   onForkFrom?: (messageId: string) => void;
 }
@@ -49,6 +52,8 @@ const EnhancedChatMessage = ({
   onForkFrom
 }: EnhancedChatMessageProps) => {
   const [selectedText, setSelectedText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content);
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -57,6 +62,18 @@ const EnhancedChatMessage = ({
       setSelectedText(text);
       onTextSelect(text);
     }
+  };
+
+  const handleEditSave = () => {
+    if (onEditMessage && editContent.trim() !== message.content) {
+      onEditMessage(message.id, editContent.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleEditCancel = () => {
+    setEditContent(message.content);
+    setIsEditing(false);
   };
 
   const getMessageStyles = () => {
@@ -106,6 +123,65 @@ const EnhancedChatMessage = ({
   const copyToClipboard = () => {
     navigator.clipboard.writeText(message.content);
   };
+
+  if (isEditing) {
+    return (
+      <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
+        {message.type !== 'user' && (
+          <Avatar className="w-8 h-8 mt-1">
+            <AvatarFallback className={styles.avatar}>
+              <IconComponent className="w-4 h-4" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+        
+        <div className="flex-1 space-y-1">
+          {message.type !== 'user' && (
+            <div className="flex items-center gap-2">
+              <Badge 
+                variant="secondary" 
+                className={`text-xs ${
+                  message.type === 'chat-mate' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                }`}
+              >
+                {styles.label}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {formatTime(message.timestamp)}
+              </span>
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="min-h-[100px]"
+              placeholder="Edit your message..."
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleEditSave}>
+                <Check className="w-3 h-3 mr-1" />
+                Save
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleEditCancel}>
+                <X className="w-3 h-3 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {message.type === 'user' && (
+          <Avatar className="w-8 h-8 mt-1">
+            <AvatarFallback className={styles.avatar}>
+              <IconComponent className="w-4 h-4" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
@@ -170,7 +246,7 @@ const EnhancedChatMessage = ({
                   Copy
                 </DropdownMenuItem>
                 {onEditMessage && (
-                  <DropdownMenuItem onClick={() => onEditMessage(message.id)}>
+                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
                     <Edit3 className="w-3 h-3 mr-2" />
                     Edit
                   </DropdownMenuItem>

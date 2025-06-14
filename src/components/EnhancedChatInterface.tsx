@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedChatMessage from './EnhancedChatMessage';
 import AskInterface from './AskInterface';
+import ChatSettingsDialog from './ChatSettingsDialog';
 
 interface Message {
   id: string;
@@ -35,6 +37,7 @@ const EnhancedChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [showAskInterface, setShowAskInterface] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [chatMatePrompt, setChatMatePrompt] = useState('You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.');
   const [editorMatePrompt, setEditorMatePrompt] = useState('You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -48,12 +51,16 @@ const EnhancedChatInterface = ({
     scrollToBottom();
   }, [messages]);
 
-  // Load messages when conversation changes
+  // Load messages and prompts when conversation changes
   useEffect(() => {
     if (conversationId) {
       loadMessages();
+      loadConversationPrompts();
     } else {
       setMessages([]);
+      // Reset to default prompts for new conversation
+      setChatMatePrompt('You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.');
+      setEditorMatePrompt('You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.');
     }
   }, [conversationId]);
 
@@ -87,6 +94,43 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const loadConversationPrompts = async () => {
+    if (!conversationId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('chat_mate_prompt, editor_mate_prompt')
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+
+      if (data.chat_mate_prompt) setChatMatePrompt(data.chat_mate_prompt);
+      if (data.editor_mate_prompt) setEditorMatePrompt(data.editor_mate_prompt);
+    } catch (error) {
+      console.error('Error loading prompts:', error);
+    }
+  };
+
+  const saveConversationPrompts = async (chatMate: string, editorMate: string) => {
+    if (!conversationId) return;
+
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .update({
+          chat_mate_prompt: chatMate,
+          editor_mate_prompt: editorMate
+        })
+        .eq('id', conversationId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving prompts:', error);
+    }
+  };
+
   const saveMessage = async (message: Omit<Message, 'id' | 'timestamp'>) => {
     if (!conversationId) return null;
 
@@ -107,6 +151,177 @@ const EnhancedChatInterface = ({
     } catch (error) {
       console.error('Error saving message:', error);
       return null;
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      
+      toast({
+        title: "Success",
+        description: "Message deleted",
+      });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete message",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const editMessage = async (messageId: string, newContent: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ content: newContent })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, content: newContent } : msg
+      ));
+
+      toast({
+        title: "Success",
+        description: "Message updated",
+      });
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to edit message",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const regenerateMessage = async (messageId: string) => {
+    const messageIndex = messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) return;
+
+    const message = messages[messageIndex];
+    if (message.type === 'user') return;
+
+    setIsLoading(true);
+
+    try {
+      // Get the previous user message for context
+      let userMessage = '';
+      for (let i = messageIndex - 1; i >= 0; i--) {
+        if (messages[i].type === 'user') {
+          userMessage = messages[i].content;
+          break;
+        }
+      }
+
+      // Prepare conversation history up to this point
+      const historyMessages = messages.slice(0, messageIndex);
+      const conversationHistory = historyMessages.map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.type === 'user' ? msg.content : `[${msg.type}]: ${msg.content}`
+      }));
+
+      // Determine message type for regeneration
+      let messageType = '';
+      if (message.type === 'chat-mate') {
+        messageType = 'chat-mate-response';
+      } else if (message.type === 'editor-mate') {
+        // Check if this is a comment on user message or chat mate message
+        const isUserComment = message.parentMessageId && 
+          messages.find(m => m.id === message.parentMessageId)?.type === 'user';
+        messageType = isUserComment ? 'editor-mate-user-comment' : 'editor-mate-chatmate-comment';
+      }
+
+      const response = await callAI(userMessage, messageType, conversationHistory);
+
+      // Update the message in the database
+      const { error } = await supabase
+        .from('messages')
+        .update({ content: response })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      // Update the message in the local state
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, content: response } : msg
+      ));
+
+      toast({
+        title: "Success",
+        description: "Message regenerated",
+      });
+    } catch (error) {
+      console.error('Error regenerating message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to regenerate message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const forkFromMessage = async (messageId: string) => {
+    try {
+      // Find the message index
+      const messageIndex = messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex === -1) return;
+
+      // Create a new conversation
+      const { data: newConversation, error: convError } = await supabase
+        .from('conversations')
+        .insert({
+          user_id: user.id,
+          title: `Forked Chat - ${targetLanguage}`,
+          language: targetLanguage.toLowerCase(),
+          chat_mate_prompt: chatMatePrompt,
+          editor_mate_prompt: editorMatePrompt
+        })
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      // Copy messages up to and including the selected message
+      const messagesToCopy = messages.slice(0, messageIndex + 1);
+      
+      for (const msg of messagesToCopy) {
+        await supabase
+          .from('messages')
+          .insert({
+            conversation_id: newConversation.id,
+            user_id: user.id,
+            content: msg.content,
+            message_type: msg.type,
+          });
+      }
+
+      toast({
+        title: "Success",
+        description: "Chat forked successfully",
+      });
+
+      onConversationUpdate();
+    } catch (error) {
+      console.error('Error forking conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fork conversation",
+        variant: "destructive",
+      });
     }
   };
 
@@ -153,7 +368,7 @@ const EnhancedChatInterface = ({
       // Save user message
       await saveMessage(userMessage);
 
-      // Prepare conversation history for AI context (only Chat Mate messages for Chat Mate, full context for Editor Mate)
+      // Prepare conversation history for AI context
       const chatMateHistory = messages
         .filter(msg => msg.type === 'user' || msg.type === 'chat-mate')
         .map(msg => ({
@@ -233,6 +448,12 @@ const EnhancedChatInterface = ({
     setShowAskInterface(true);
   };
 
+  const handlePromptsUpdate = (chatMate: string, editorMate: string) => {
+    setChatMatePrompt(chatMate);
+    setEditorMatePrompt(editorMate);
+    saveConversationPrompts(chatMate, editorMate);
+  };
+
   return (
     <div className="flex h-full">
       {/* Main Chat Area */}
@@ -246,7 +467,7 @@ const EnhancedChatInterface = ({
                 Chat with your language partner and get real-time feedback
               </p>
             </div>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => setShowSettings(true)}>
               <Settings className="w-4 h-4" />
             </Button>
           </div>
@@ -268,6 +489,10 @@ const EnhancedChatInterface = ({
               key={message.id}
               message={message}
               onTextSelect={handleTextSelect}
+              onRegenerateMessage={regenerateMessage}
+              onEditMessage={editMessage}
+              onDeleteMessage={deleteMessage}
+              onForkFrom={forkFromMessage}
             />
           ))}
           
@@ -329,6 +554,16 @@ const EnhancedChatInterface = ({
           </div>
         </div>
       )}
+
+      {/* Chat Settings Dialog */}
+      <ChatSettingsDialog
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        chatMatePrompt={chatMatePrompt}
+        editorMatePrompt={editorMatePrompt}
+        onPromptsUpdate={handlePromptsUpdate}
+        targetLanguage={targetLanguage}
+      />
     </div>
   );
 };

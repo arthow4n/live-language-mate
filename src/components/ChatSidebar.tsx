@@ -4,13 +4,16 @@ import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { 
   Plus, 
   MessageCircle, 
   MoreVertical,
   Edit2,
   Trash2,
-  GitBranch
+  GitBranch,
+  Check,
+  X
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -46,6 +49,8 @@ const ChatSidebar = ({
 }: ChatSidebarProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
   const { toast } = useToast();
 
   const loadConversations = async () => {
@@ -103,6 +108,111 @@ const ChatSidebar = ({
     }
   };
 
+  const startRename = (conversation: Conversation) => {
+    setEditingId(conversation.id);
+    setEditTitle(conversation.title);
+  };
+
+  const saveRename = async (conversationId: string) => {
+    if (!editTitle.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .update({ title: editTitle.trim() })
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      setConversations(prev => prev.map(c => 
+        c.id === conversationId ? { ...c, title: editTitle.trim() } : c
+      ));
+
+      setEditingId(null);
+      setEditTitle('');
+
+      toast({
+        title: "Success",
+        description: "Conversation renamed",
+      });
+    } catch (error) {
+      console.error('Error renaming conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to rename conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const cancelRename = () => {
+    setEditingId(null);
+    setEditTitle('');
+  };
+
+  const forkConversation = async (conversationId: string) => {
+    try {
+      // Get the original conversation
+      const { data: originalConv, error: convError } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .single();
+
+      if (convError) throw convError;
+
+      // Create a new conversation
+      const { data: newConv, error: newConvError } = await supabase
+        .from('conversations')
+        .insert({
+          user_id: user.id,
+          title: `Fork of ${originalConv.title}`,
+          language: originalConv.language,
+          chat_mate_prompt: originalConv.chat_mate_prompt,
+          editor_mate_prompt: originalConv.editor_mate_prompt
+        })
+        .select()
+        .single();
+
+      if (newConvError) throw newConvError;
+
+      // Copy all messages
+      const { data: messages, error: messagesError } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (messagesError) throw messagesError;
+
+      for (const msg of messages) {
+        await supabase
+          .from('messages')
+          .insert({
+            conversation_id: newConv.id,
+            user_id: user.id,
+            content: msg.content,
+            message_type: msg.message_type,
+          });
+      }
+
+      loadConversations();
+      onConversationSelect(newConv.id);
+
+      toast({
+        title: "Success",
+        description: "Conversation forked successfully",
+      });
+    } catch (error) {
+      console.error('Error forking conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fork conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -147,54 +257,106 @@ const ChatSidebar = ({
                 className={`group relative rounded-lg p-3 hover:bg-muted cursor-pointer transition-colors ${
                   currentConversationId === conversation.id ? 'bg-muted' : ''
                 }`}
-                onClick={() => onConversationSelect(conversation.id)}
+                onClick={() => editingId !== conversation.id && onConversationSelect(conversation.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <MessageCircle className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                      <h3 className="text-sm font-medium truncate">
-                        {conversation.title}
-                      </h3>
+                      {editingId === conversation.id ? (
+                        <div className="flex items-center gap-1 flex-1">
+                          <Input
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            className="h-6 text-sm"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') saveRename(conversation.id);
+                              if (e.key === 'Escape') cancelRename();
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="w-5 h-5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              saveRename(conversation.id);
+                            }}
+                          >
+                            <Check className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="w-5 h-5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              cancelRename();
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <h3 className="text-sm font-medium truncate">
+                          {conversation.title}
+                        </h3>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(conversation.updated_at)}
-                    </p>
+                    {editingId !== conversation.id && (
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(conversation.updated_at)}
+                      </p>
+                    )}
                   </div>
                   
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="w-3 h-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Edit2 className="w-3 h-3 mr-2" />
-                        Rename
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <GitBranch className="w-3 h-3 mr-2" />
-                        Fork Chat
-                      </DropdownMenuItem>
-                      <Separator />
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteConversation(conversation.id);
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {editingId !== conversation.id && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startRename(conversation);
+                          }}
+                        >
+                          <Edit2 className="w-3 h-3 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            forkConversation(conversation.id);
+                          }}
+                        >
+                          <GitBranch className="w-3 h-3 mr-2" />
+                          Fork Chat
+                        </DropdownMenuItem>
+                        <Separator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteConversation(conversation.id);
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
             ))
