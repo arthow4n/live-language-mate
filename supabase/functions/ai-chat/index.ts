@@ -50,8 +50,9 @@ Instructions for commenting on USER messages:
 - If the message is well-written in ${targetLanguage}: Simply respond with 👍
 - Be constructive and educational
 - Keep comments concise but helpful
+- Always respond in ${targetLanguage}
 
-Comment on this user message in the context of their conversation.`;
+Comment on this user message in the context of their conversation. Respond only in ${targetLanguage}.`;
       responseType = 'editor-mate';
 
     } else if (messageType === 'editor-mate-chatmate-comment') {
@@ -63,8 +64,9 @@ Instructions for commenting on CHAT MATE messages:
 - If well-written: Simply respond with 👍
 - Focus on teaching opportunities for the user
 - Keep comments brief and educational
+- Always respond in ${targetLanguage}
 
-Comment on Chat Mate's response to help the user learn.`;
+Comment on Chat Mate's response to help the user learn. Respond only in ${targetLanguage}.`;
       responseType = 'editor-mate';
 
     } else {

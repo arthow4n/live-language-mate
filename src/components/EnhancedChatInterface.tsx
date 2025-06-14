@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -167,24 +166,11 @@ const EnhancedChatInterface = ({
         content: `[${msg.type}]: ${msg.content}`
       }));
 
-      // Get Chat Mate response
-      const chatMateResponse = await callAI(currentInput, 'chat-mate-response', chatMateHistory);
-      
-      const chatMateMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'chat-mate',
-        content: chatMateResponse,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, chatMateMessage]);
-      await saveMessage(chatMateMessage);
-
-      // Get Editor Mate comment on user message
+      // Get Editor Mate comment on user message first
       const editorUserComment = await callAI(currentInput, 'editor-mate-user-comment', fullHistory);
       
       const editorUserMessage: Message = {
-        id: (Date.now() + 2).toString(),
+        id: (Date.now() + 1).toString(),
         type: 'editor-mate',
         content: editorUserComment,
         timestamp: new Date(),
@@ -193,6 +179,19 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorUserMessage]);
       await saveMessage(editorUserMessage);
+
+      // Get Chat Mate response
+      const chatMateResponse = await callAI(currentInput, 'chat-mate-response', chatMateHistory);
+      
+      const chatMateMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        type: 'chat-mate',
+        content: chatMateResponse,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, chatMateMessage]);
+      await saveMessage(chatMateMessage);
 
       // Get Editor Mate comment on Chat Mate response
       const editorChatMateComment = await callAI(chatMateResponse, 'editor-mate-chatmate-comment', fullHistory);
