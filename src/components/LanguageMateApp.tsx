@@ -7,19 +7,25 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import AskInterface from './AskInterface';
-import SettingsDialog from './SettingsDialog';
+import UnifiedSettingsDialog from './UnifiedSettingsDialog';
+import { SettingsProvider, useSettings } from '@/contexts/SettingsContext';
 import { supabase } from "@/integrations/supabase/client";
 
 interface LanguageMateAppProps {
   user: User;
 }
 
-const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
+const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [targetLanguage, setTargetLanguage] = useState('Swedish');
+  const [mainSettingsOpen, setMainSettingsOpen] = useState(false);
+  const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
   const [refreshSidebar, setRefreshSidebar] = useState(0);
   const [selectedText, setSelectedText] = useState('');
+  
+  const { mainSettings, updateMainSettings, getChatSettings, updateChatSettings } = useSettings();
+  
+  // Get current conversation settings
+  const currentSettings = currentConversationId ? getChatSettings(currentConversationId) : mainSettings;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -30,12 +36,21 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
   };
 
   const handleNewConversation = () => {
-    setCurrentConversationId(null); // Just clear the current conversation, don't create until first message
+    setCurrentConversationId(null);
   };
 
   const handleConversationUpdate = () => {
-    // Trigger sidebar refresh by incrementing the refresh counter
     setRefreshSidebar(prev => prev + 1);
+  };
+
+  const handleMainSettingsSave = (settings: any) => {
+    updateMainSettings(settings);
+  };
+
+  const handleChatSettingsSave = (settings: any) => {
+    if (currentConversationId) {
+      updateChatSettings(currentConversationId, settings);
+    }
   };
 
   return (
@@ -47,8 +62,9 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
           currentConversationId={currentConversationId}
           onConversationSelect={handleConversationSelect}
           onNewConversation={handleNewConversation}
-          targetLanguage={targetLanguage}
+          targetLanguage={currentSettings.targetLanguage}
           refreshTrigger={refreshSidebar}
+          onChatSettingsOpen={() => setChatSettingsOpen(true)}
         />
 
         {/* Main Content */}
@@ -59,7 +75,7 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
               <SidebarTrigger />
               <h1 className="text-xl font-bold">Language Mate</h1>
               <span className="text-sm text-muted-foreground">
-                for {targetLanguage} learners
+                for {currentSettings.targetLanguage.charAt(0).toUpperCase() + currentSettings.targetLanguage.slice(1)} learners
               </span>
             </div>
 
@@ -67,7 +83,8 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setSettingsOpen(true)}
+                onClick={() => setMainSettingsOpen(true)}
+                title="Main Settings"
               >
                 <Settings className="w-4 h-4" />
               </Button>
@@ -89,7 +106,9 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
               <EnhancedChatInterface
                 user={user}
                 conversationId={currentConversationId}
-                targetLanguage={targetLanguage}
+                targetLanguage={currentSettings.targetLanguage}
+                chatMatePrompt={currentSettings.chatMatePersonality}
+                editorMatePrompt={currentSettings.editorMatePersonality}
                 onConversationUpdate={handleConversationUpdate}
                 onConversationCreated={setCurrentConversationId}
                 onTextSelect={setSelectedText}
@@ -100,16 +119,43 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
             <div className="hidden lg:flex w-80 border-l bg-card h-full">
               <AskInterface
                 selectedText={selectedText}
-                targetLanguage={targetLanguage}
+                targetLanguage={currentSettings.targetLanguage}
+                editorMatePrompt={currentSettings.editorMatePersonality}
               />
             </div>
           </div>
         </div>
 
-        {/* Settings Dialog */}
-        <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+        {/* Main Settings Dialog */}
+        <UnifiedSettingsDialog
+          open={mainSettingsOpen}
+          onOpenChange={setMainSettingsOpen}
+          mode="main"
+          initialSettings={mainSettings}
+          onSave={handleMainSettingsSave}
+        />
+
+        {/* Chat Settings Dialog */}
+        {currentConversationId && (
+          <UnifiedSettingsDialog
+            open={chatSettingsOpen}
+            onOpenChange={setChatSettingsOpen}
+            mode="chat"
+            initialSettings={currentSettings}
+            onSave={handleChatSettingsSave}
+            conversationTitle="Current Chat"
+          />
+        )}
       </div>
     </SidebarProvider>
+  );
+};
+
+const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
+  return (
+    <SettingsProvider>
+      <LanguageMateAppContent user={user} />
+    </SettingsProvider>
   );
 };
 

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,73 +40,69 @@ interface SettingsData {
   apiKey: string;
 }
 
-interface SettingsDialogProps {
+interface UnifiedSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode?: 'main' | 'chat';
+  mode: 'main' | 'chat';
   initialSettings?: Partial<SettingsData>;
-  onSave?: (settings: SettingsData) => void;
+  onSave: (settings: SettingsData) => void;
   conversationTitle?: string;
 }
 
-const SettingsDialog = ({ 
+const UnifiedSettingsDialog = ({ 
   open, 
   onOpenChange, 
-  mode = 'main',
+  mode,
   initialSettings = {},
   onSave,
   conversationTitle
-}: SettingsDialogProps) => {
-  const [apiKey, setApiKey] = useState(initialSettings.apiKey || '');
-  const [provider, setProvider] = useState(initialSettings.provider || 'openrouter');
-  const [model, setModel] = useState(initialSettings.model || 'anthropic/claude-3-haiku');
-  const [targetLanguage, setTargetLanguage] = useState(initialSettings.targetLanguage || 'swedish');
-  const [streamingEnabled, setStreamingEnabled] = useState(initialSettings.streamingEnabled ?? true);
-  
-  const [chatMatePersonality, setChatMatePersonality] = useState(
-    initialSettings.chatMatePersonality || "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society."
-  );
-  
-  const [editorMatePersonality, setEditorMatePersonality] = useState(
-    initialSettings.editorMatePersonality || "You are an experienced Swedish language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone."
-  );
+}: UnifiedSettingsDialogProps) => {
+  const [settings, setSettings] = useState<SettingsData>({
+    chatMatePersonality: initialSettings.chatMatePersonality || "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society.",
+    editorMatePersonality: initialSettings.editorMatePersonality || "You are an experienced Swedish language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+    targetLanguage: initialSettings.targetLanguage || 'swedish',
+    streamingEnabled: initialSettings.streamingEnabled ?? true,
+    provider: initialSettings.provider || 'openrouter',
+    model: initialSettings.model || 'anthropic/claude-3-5-sonnet',
+    apiKey: initialSettings.apiKey || ''
+  });
 
   const { toast } = useToast();
 
-  const handleSave = () => {
-    const settings: SettingsData = {
-      chatMatePersonality,
-      editorMatePersonality,
-      targetLanguage,
-      streamingEnabled,
-      provider,
-      model,
-      apiKey
-    };
-    
-    if (onSave) {
-      onSave(settings);
+  useEffect(() => {
+    if (open) {
+      setSettings({
+        chatMatePersonality: initialSettings.chatMatePersonality || "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society.",
+        editorMatePersonality: initialSettings.editorMatePersonality || "You are an experienced Swedish language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+        targetLanguage: initialSettings.targetLanguage || 'swedish',
+        streamingEnabled: initialSettings.streamingEnabled ?? true,
+        provider: initialSettings.provider || 'openrouter',
+        model: initialSettings.model || 'anthropic/claude-3-5-sonnet',
+        apiKey: initialSettings.apiKey || ''
+      });
     }
-    
+  }, [open, initialSettings]);
+
+  const handleSave = () => {
+    onSave(settings);
     toast({
-      title: mode === 'main' ? "Settings saved" : "Chat settings saved",
+      title: mode === 'main' ? "Settings template saved" : "Chat settings saved",
       description: mode === 'main' 
-        ? "Your language learning preferences have been updated."
+        ? "Your default settings have been updated for new conversations."
         : "Settings for this conversation have been updated."
     });
     onOpenChange(false);
   };
 
   const handleReset = () => {
-    const languageLabel = languages.find(l => l.value === targetLanguage)?.label || 'Swedish';
+    const language = settings.targetLanguage;
+    const languageLabel = languages.find(l => l.value === language)?.label || 'Swedish';
     
-    setChatMatePersonality(
-      `You are a friendly ${languageLabel} local who loves helping newcomers feel welcome. You're enthusiastic about ${languageLabel} culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into ${languageLabel} society.`
-    );
-    
-    setEditorMatePersonality(
-      `You are an experienced ${languageLabel} language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.`
-    );
+    setSettings({
+      ...settings,
+      chatMatePersonality: `You are a friendly ${languageLabel} local who loves helping newcomers feel welcome. You're enthusiastic about ${languageLabel} culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into ${languageLabel} society.`,
+      editorMatePersonality: `You are an experienced ${languageLabel} language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.`
+    });
   };
 
   const providers = [
@@ -117,23 +114,25 @@ const SettingsDialog = ({
 
   const modelsByProvider = {
     openrouter: [
-      { value: 'anthropic/claude-3-haiku', label: 'Claude 3 Haiku' },
-      { value: 'anthropic/claude-3-sonnet', label: 'Claude 3 Sonnet' },
-      { value: 'openai/gpt-4', label: 'GPT-4' },
-      { value: 'openai/gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-      { value: 'meta-llama/llama-2-70b', label: 'Llama 2 70B' }
+      { value: 'anthropic/claude-3-5-sonnet', label: 'Claude 3.5 Sonnet' },
+      { value: 'anthropic/claude-3-5-haiku', label: 'Claude 3.5 Haiku' },
+      { value: 'openai/gpt-4o', label: 'GPT-4o' },
+      { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini' },
+      { value: 'meta-llama/llama-3.1-8b-instruct', label: 'Llama 3.1 8B' }
     ],
     openai: [
+      { value: 'gpt-4o', label: 'GPT-4o' },
+      { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
       { value: 'gpt-4', label: 'GPT-4' },
       { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
     ],
     anthropic: [
-      { value: 'claude-3-haiku', label: 'Claude 3 Haiku' },
-      { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' },
-      { value: 'claude-3-opus', label: 'Claude 3 Opus' }
+      { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+      { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku' },
+      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' }
     ],
     local: [
-      { value: 'llama-2', label: 'Llama 2' },
+      { value: 'llama-3.1', label: 'Llama 3.1' },
       { value: 'mistral', label: 'Mistral' },
       { value: 'custom', label: 'Custom Model' }
     ]
@@ -147,22 +146,20 @@ const SettingsDialog = ({
     { value: 'spanish', label: 'Spanish' },
     { value: 'italian', label: 'Italian' },
     { value: 'portuguese', label: 'Portuguese' },
-    { value: 'dutch', label: 'Dutch' }
+    { value: 'dutch', label: 'Dutch' },
+    { value: 'norwegian', label: 'Norwegian' },
+    { value: 'danish', label: 'Danish' }
   ];
 
-  const currentModels = modelsByProvider[provider as keyof typeof modelsByProvider] || [];
+  const currentModels = modelsByProvider[settings.provider as keyof typeof modelsByProvider] || [];
 
-  const handleProviderChange = (newProvider: string) => {
-    setProvider(newProvider);
-    const providerModels = modelsByProvider[newProvider as keyof typeof modelsByProvider];
-    if (providerModels && providerModels.length > 0) {
-      setModel(providerModels[0].value);
-    }
-  };
-
-  const handleLanguageChange = (newLanguage: string) => {
-    setTargetLanguage(newLanguage);
-    // Optionally update the personalities based on the new language
+  const handleProviderChange = (provider: string) => {
+    const providerModels = modelsByProvider[provider as keyof typeof modelsByProvider];
+    setSettings({
+      ...settings,
+      provider,
+      model: providerModels[0]?.value || ''
+    });
   };
 
   return (
@@ -171,7 +168,7 @@ const SettingsDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            {mode === 'main' ? 'Language Mate Settings' : `Chat Settings${conversationTitle ? ` - ${conversationTitle}` : ''}`}
+            {mode === 'main' ? 'Main Settings (Template)' : `Chat Settings${conversationTitle ? ` - ${conversationTitle}` : ''}`}
           </DialogTitle>
           {mode === 'main' && (
             <p className="text-sm text-muted-foreground">
@@ -196,7 +193,7 @@ const SettingsDialog = ({
             <TabsContent value="agents" className="space-y-6 mt-4">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
-                  <MessageCircle className="w-4 h-4 text-chat-mate" />
+                  <MessageCircle className="w-4 h-4 text-blue-600" />
                   <h3 className="font-semibold">Chat Mate Configuration</h3>
                   <Badge variant="secondary">Native Speaker</Badge>
                 </div>
@@ -205,8 +202,8 @@ const SettingsDialog = ({
                   <Label htmlFor="chat-mate-personality">Personality & Background</Label>
                   <Textarea
                     id="chat-mate-personality"
-                    value={chatMatePersonality}
-                    onChange={(e) => setChatMatePersonality(e.target.value)}
+                    value={settings.chatMatePersonality}
+                    onChange={(e) => setSettings({ ...settings, chatMatePersonality: e.target.value })}
                     placeholder="Describe Chat Mate's personality, background, and conversation style..."
                     rows={4}
                   />
@@ -218,7 +215,7 @@ const SettingsDialog = ({
 
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
-                  <GraduationCap className="w-4 h-4 text-editor-mate" />
+                  <GraduationCap className="w-4 h-4 text-orange-600" />
                   <h3 className="font-semibold">Editor Mate Configuration</h3>
                   <Badge variant="secondary">Language Teacher</Badge>
                 </div>
@@ -227,8 +224,8 @@ const SettingsDialog = ({
                   <Label htmlFor="editor-mate-personality">Teaching Style & Approach</Label>
                   <Textarea
                     id="editor-mate-personality"
-                    value={editorMatePersonality}
-                    onChange={(e) => setEditorMatePersonality(e.target.value)}
+                    value={settings.editorMatePersonality}
+                    onChange={(e) => setSettings({ ...settings, editorMatePersonality: e.target.value })}
                     placeholder="Describe Editor Mate's teaching style, feedback approach, and expertise level..."
                     rows={4}
                   />
@@ -255,7 +252,7 @@ const SettingsDialog = ({
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="target-language">Target Language</Label>
-                    <Select value={targetLanguage} onValueChange={handleLanguageChange}>
+                    <Select value={settings.targetLanguage} onValueChange={(value) => setSettings({ ...settings, targetLanguage: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select language to learn" />
                       </SelectTrigger>
@@ -277,8 +274,8 @@ const SettingsDialog = ({
                       </p>
                     </div>
                     <Switch
-                      checked={streamingEnabled}
-                      onCheckedChange={setStreamingEnabled}
+                      checked={settings.streamingEnabled}
+                      onCheckedChange={(checked) => setSettings({ ...settings, streamingEnabled: checked })}
                     />
                   </div>
                 </div>
@@ -295,7 +292,7 @@ const SettingsDialog = ({
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="provider">Provider</Label>
-                    <Select value={provider} onValueChange={handleProviderChange}>
+                    <Select value={settings.provider} onValueChange={handleProviderChange}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select LLM provider" />
                       </SelectTrigger>
@@ -311,7 +308,7 @@ const SettingsDialog = ({
 
                   <div className="space-y-2">
                     <Label htmlFor="model">Model</Label>
-                    <Select value={model} onValueChange={setModel}>
+                    <Select value={settings.model} onValueChange={(value) => setSettings({ ...settings, model: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select model" />
                       </SelectTrigger>
@@ -331,8 +328,8 @@ const SettingsDialog = ({
                       <Input
                         id="api-key"
                         type="password"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
+                        value={settings.apiKey}
+                        onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
                         placeholder="Enter your API key..."
                       />
                       <Button variant="outline" size="icon">
@@ -362,4 +359,4 @@ const SettingsDialog = ({
   );
 };
 
-export default SettingsDialog;
+export default UnifiedSettingsDialog;
