@@ -9,7 +9,143 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      conversations: {
+        Row: {
+          ai_mode: string
+          created_at: string
+          id: string
+          language: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_mode?: string
+          created_at?: string
+          id?: string
+          language?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_mode?: string
+          created_at?: string
+          id?: string
+          language?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          message_type: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_type: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          learning_level: string | null
+          native_language: string | null
+          preferred_language: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          learning_level?: string | null
+          native_language?: string | null
+          preferred_language?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          learning_level?: string | null
+          native_language?: string | null
+          preferred_language?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          auto_translate: boolean | null
+          chat_mate_personality: string | null
+          created_at: string
+          editor_mate_style: string | null
+          id: string
+          theme: string | null
+          updated_at: string
+          user_id: string
+          voice_enabled: boolean | null
+        }
+        Insert: {
+          auto_translate?: boolean | null
+          chat_mate_personality?: string | null
+          created_at?: string
+          editor_mate_style?: string | null
+          id?: string
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+          voice_enabled?: boolean | null
+        }
+        Update: {
+          auto_translate?: boolean | null
+          chat_mate_personality?: string | null
+          created_at?: string
+          editor_mate_style?: string | null
+          id?: string
+          theme?: string | null
+          updated_at?: string
+          user_id?: string
+          voice_enabled?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
