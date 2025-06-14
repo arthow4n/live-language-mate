@@ -266,20 +266,21 @@ const AskInterface = ({
 
       {/* Input Area */}
       <div className="p-4 border-t">
-        <div className="flex gap-2">
+        <div className="flex items-end gap-2">
           <Textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={`Ask Editor Mate about ${targetLanguage}...`}
-            className="flex-1 text-sm min-h-[60px] max-h-[120px] resize-none"
+            className="flex-1 text-sm min-h-[40px] max-h-[120px]"
             disabled={isLoading}
+            rows={1}
           />
           <Button 
             size="icon" 
             onClick={handleSendQuestion}
             disabled={!question.trim() || isLoading}
-            className="self-end"
+            className="h-10 w-10 flex-shrink-0"
           >
             <Send className="w-4 h-4" />
           </Button>
