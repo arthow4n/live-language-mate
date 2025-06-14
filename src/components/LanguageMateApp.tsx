@@ -107,8 +107,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                 user={user}
                 conversationId={currentConversationId}
                 targetLanguage={currentSettings.targetLanguage}
-                chatMatePrompt={currentSettings.chatMatePersonality}
-                editorMatePrompt={currentSettings.editorMatePersonality}
                 onConversationUpdate={handleConversationUpdate}
                 onConversationCreated={setCurrentConversationId}
                 onTextSelect={setSelectedText}
