@@ -6,6 +6,7 @@ import { Settings, LogOut } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
+import AskInterface from './AskInterface';
 import SettingsDialog from './SettingsDialog';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,6 +19,7 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState('Swedish');
   const [refreshSidebar, setRefreshSidebar] = useState(0);
+  const [selectedText, setSelectedText] = useState('');
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -80,15 +82,27 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
             </div>
           </header>
 
-          {/* Chat Interface - grows to fill remaining space */}
-          <div className="flex-1 overflow-hidden">
-            <EnhancedChatInterface
-              user={user}
-              conversationId={currentConversationId}
-              targetLanguage={targetLanguage}
-              onConversationUpdate={handleConversationUpdate}
-              onConversationCreated={setCurrentConversationId}
-            />
+          {/* Content Area - Chat + Ask Interface */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Chat Interface */}
+            <div className="flex-1 min-w-0">
+              <EnhancedChatInterface
+                user={user}
+                conversationId={currentConversationId}
+                targetLanguage={targetLanguage}
+                onConversationUpdate={handleConversationUpdate}
+                onConversationCreated={setCurrentConversationId}
+                onTextSelect={setSelectedText}
+              />
+            </div>
+
+            {/* Ask Interface - Desktop only */}
+            <div className="hidden lg:flex w-80 border-l bg-card">
+              <AskInterface
+                selectedText={selectedText}
+                targetLanguage={targetLanguage}
+              />
+            </div>
           </div>
         </div>
 
