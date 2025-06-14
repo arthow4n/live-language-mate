@@ -24,6 +24,7 @@ interface EnhancedChatInterfaceProps {
   targetLanguage: string;
   onConversationUpdate: () => void;
   onConversationCreated: (id: string) => void;
+  onTextSelect: (text: string) => void;
 }
 
 const EnhancedChatInterface = ({ 
@@ -31,7 +32,8 @@ const EnhancedChatInterface = ({
   conversationId, 
   targetLanguage,
   onConversationUpdate,
-  onConversationCreated
+  onConversationCreated,
+  onTextSelect
 }: EnhancedChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -505,6 +507,7 @@ const EnhancedChatInterface = ({
 
   const handleTextSelect = (text: string) => {
     setSelectedText(text);
+    onTextSelect(text);
     setShowAskInterface(true);
     setAskInterfaceCollapsed(false);
   };
