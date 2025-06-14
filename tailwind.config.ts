@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				'chat-mate': {
+					DEFAULT: '#2563eb',
+					light: '#dbeafe',
+					dark: '#1d4ed8'
+				},
+				'editor-mate': {
+					DEFAULT: '#059669',
+					light: '#d1fae5',
+					dark: '#047857'
+				},
+				'user': {
+					DEFAULT: '#6366f1',
+					light: '#e0e7ff',
+					dark: '#4f46e5'
 				}
 			},
 			borderRadius: {
@@ -84,11 +100,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'slide-in': {
+					from: {
+						transform: 'translateY(10px)',
+						opacity: '0'
+					},
+					to: {
+						transform: 'translateY(0)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'slide-in': 'slide-in 0.3s ease-out'
 			}
 		}
 	},
