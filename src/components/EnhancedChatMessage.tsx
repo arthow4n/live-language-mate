@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -134,15 +135,27 @@ const EnhancedChatMessage = ({
         )}
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
-          <p 
-            className="text-sm leading-relaxed select-text"
+          <div 
+            className="text-sm leading-relaxed select-text prose prose-sm max-w-none"
             onMouseUp={handleTextSelection}
           >
-            {message.content}
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                em: ({ children }) => <em className="italic">{children}</em>,
+                code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
             {message.isStreaming && (
               <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
             )}
-          </p>
+          </div>
           
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
