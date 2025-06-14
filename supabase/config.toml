@@ -1,1 +1,21 @@
+
 project_id = "ycjruxeyboafjlnurmdp"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54320
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+anonymous_users_enabled = false
+
+[functions.ai-chat]
+verify_jwt = false

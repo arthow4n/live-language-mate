@@ -64,6 +64,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
     };
 
     createConversation();
+    setMessages([]); // Clear messages when switching modes
   }, [user.id, aiMode]);
 
   const handleSendMessage = async () => {
@@ -77,6 +78,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage.trim();
     setInputMessage('');
     setIsLoading(true);
 
@@ -89,37 +91,59 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         message_type: 'user',
       });
 
-      // Simulate AI response (replace with actual AI integration)
-      setTimeout(() => {
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          type: aiMode,
-          content: aiMode === 'chat-mate' 
-            ? `Hej! I understand you said "${userMessage.content}". That's great Swedish practice! Let me help you with that...`
-            : `I can help you improve that text. Here are some suggestions for "${userMessage.content}"...`,
-          timestamp: new Date(),
-        };
+      // Prepare conversation history for AI context
+      const conversationHistory = messages.map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
 
-        setMessages(prev => [...prev, aiResponse]);
+      console.log('Sending message to AI:', { message: currentInput, aiMode, conversationHistory });
 
-        // Save AI response to database
-        supabase.from('messages').insert({
-          conversation_id: conversationId,
-          user_id: user.id,
-          content: aiResponse.content,
-          message_type: aiMode,
-        });
+      // Call AI edge function
+      const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message: currentInput,
+          aiMode: aiMode,
+          conversationHistory: conversationHistory
+        }
+      });
 
-        setIsLoading(false);
-      }, 1500);
+      if (aiError) {
+        console.error('AI function error:', aiError);
+        throw new Error(aiError.message || 'Failed to get AI response');
+      }
+
+      if (!aiData || !aiData.response) {
+        throw new Error('No response from AI');
+      }
+
+      console.log('Received AI response:', aiData.response);
+
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: aiMode,
+        content: aiData.response,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, aiResponse]);
+
+      // Save AI response to database
+      await supabase.from('messages').insert({
+        conversation_id: conversationId,
+        user_id: user.id,
+        content: aiResponse.content,
+        message_type: aiMode,
+      });
 
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: "Failed to send message",
+        description: error.message || "Failed to send message",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -185,7 +209,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
           {isLoading && (
             <div className="flex items-center space-x-2 text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>{aiMode === 'chat-mate' ? 'Chat Mate' : 'Editor Mate'} is typing...</span>
+              <span>{aiMode === 'chat-mate' ? 'Chat Mate' : 'Editor Mate'} is thinking...</span>
             </div>
           )}
           
