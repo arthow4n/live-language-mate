@@ -6,7 +6,6 @@ import { Send, Loader2, Settings, PanelRight } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedChatMessage from './EnhancedChatMessage';
-import AskInterface from './AskInterface';
 import ChatSettingsDialog from './ChatSettingsDialog';
 
 interface Message {
@@ -38,9 +37,6 @@ const EnhancedChatInterface = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedText, setSelectedText] = useState('');
-  const [showAskInterface, setShowAskInterface] = useState(false);
-  const [askInterfaceCollapsed, setAskInterfaceCollapsed] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [chatMatePrompt, setChatMatePrompt] = useState('You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.');
   const [editorMatePrompt, setEditorMatePrompt] = useState('You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.');
@@ -506,10 +502,7 @@ const EnhancedChatInterface = ({
   };
 
   const handleTextSelect = (text: string) => {
-    setSelectedText(text);
     onTextSelect(text);
-    setShowAskInterface(true);
-    setAskInterfaceCollapsed(false);
   };
 
   const handlePromptsUpdate = (chatMate: string, editorMate: string) => {
@@ -519,117 +512,78 @@ const EnhancedChatInterface = ({
   };
 
   return (
-    <div className="flex h-full">
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Chat Header */}
-        <div className="p-4 border-b bg-card flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Learning {targetLanguage}</h2>
-              <p className="text-sm text-muted-foreground">
-                Chat with your language partner and get real-time feedback
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={() => setAskInterfaceCollapsed(!askInterfaceCollapsed)}
-                className="lg:flex hidden"
-              >
-                <PanelRight className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setShowSettings(true)}>
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
+    <div className="flex flex-col h-full">
+      {/* Chat Header */}
+      <div className="p-4 border-b bg-card flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Learning {targetLanguage}</h2>
+            <p className="text-sm text-muted-foreground">
+              Chat with your language partner and get real-time feedback
+            </p>
           </div>
-        </div>
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {messages.length === 0 && (
-            <div className="text-center text-muted-foreground py-8">
-              <p className="mb-2">Start a conversation in {targetLanguage}!</p>
-              <p className="text-sm">
-                Your Chat Mate will respond naturally, and Editor Mate will provide helpful feedback.
-              </p>
-            </div>
-          )}
-          
-          {messages.map((message) => (
-            <EnhancedChatMessage
-              key={message.id}
-              message={message}
-              onTextSelect={handleTextSelect}
-              onRegenerateMessage={regenerateMessage}
-              onEditMessage={editMessage}
-              onDeleteMessage={deleteMessage}
-              onForkFrom={forkFromMessage}
-            />
-          ))}
-          
-          {isLoading && (
-            <div className="flex items-center space-x-2 text-muted-foreground mb-4">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Getting responses...</span>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 border-t bg-card flex-shrink-0">
-          <div className="flex space-x-2">
-            <Textarea
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={`Write in ${targetLanguage} or your native language...`}
-              className="flex-1 min-h-[60px] max-h-[120px] resize-none"
-              disabled={isLoading}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading}
-              size="icon"
-              className="self-end"
-            >
-              <Send className="w-4 h-4" />
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="icon" onClick={() => setShowSettings(true)}>
+              <Settings className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Ask Interface - Desktop Collapsible */}
-      <div className={`hidden lg:block border-l transition-all duration-300 ${
-        askInterfaceCollapsed ? 'w-0 border-l-0 overflow-hidden' : 'w-80'
-      }`}>
-        {!askInterfaceCollapsed && (
-          <AskInterface 
-            selectedText={selectedText}
-            onClose={() => setAskInterfaceCollapsed(true)}
-            targetLanguage={targetLanguage}
-            editorMatePrompt={editorMatePrompt}
-          />
+      {/* Messages Area - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 min-h-0">
+        {messages.length === 0 && (
+          <div className="text-center text-muted-foreground py-8">
+            <p className="mb-2">Start a conversation in {targetLanguage}!</p>
+            <p className="text-sm">
+              Your Chat Mate will respond naturally, and Editor Mate will provide helpful feedback.
+            </p>
+          </div>
         )}
+        
+        {messages.map((message) => (
+          <EnhancedChatMessage
+            key={message.id}
+            message={message}
+            onTextSelect={handleTextSelect}
+            onRegenerateMessage={regenerateMessage}
+            onEditMessage={editMessage}
+            onDeleteMessage={deleteMessage}
+            onForkFrom={forkFromMessage}
+          />
+        ))}
+        
+        {isLoading && (
+          <div className="flex items-center space-x-2 text-muted-foreground mb-4">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Getting responses...</span>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Ask Interface - Mobile Modal */}
-      {showAskInterface && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white">
-            <AskInterface 
-              selectedText={selectedText}
-              onClose={() => setShowAskInterface(false)}
-              targetLanguage={targetLanguage}
-              editorMatePrompt={editorMatePrompt}
-            />
-          </div>
+      {/* Input Area */}
+      <div className="p-4 border-t bg-card flex-shrink-0">
+        <div className="flex space-x-2">
+          <Textarea
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={`Write in ${targetLanguage} or your native language...`}
+            className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+            disabled={isLoading}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!inputMessage.trim() || isLoading}
+            size="icon"
+            className="self-end"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
-      )}
+      </div>
 
       {/* Chat Settings Dialog */}
       <ChatSettingsDialog

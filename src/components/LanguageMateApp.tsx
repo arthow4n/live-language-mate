@@ -40,7 +40,7 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="h-screen flex w-full bg-background overflow-hidden">
         {/* Chat Sidebar */}
         <ChatSidebar
           user={user}
@@ -52,9 +52,9 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Header */}
-          <header className="border-b bg-card h-14 flex items-center justify-between px-4">
+          <header className="border-b bg-card h-14 flex items-center justify-between px-4 flex-shrink-0">
             <div className="flex items-center space-x-3">
               <SidebarTrigger />
               <h1 className="text-xl font-bold">Language Mate</h1>
@@ -83,9 +83,9 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
           </header>
 
           {/* Content Area - Chat + Ask Interface */}
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex overflow-hidden min-h-0">
             {/* Chat Interface */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 h-full">
               <EnhancedChatInterface
                 user={user}
                 conversationId={currentConversationId}
@@ -97,7 +97,7 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
             </div>
 
             {/* Ask Interface - Desktop only */}
-            <div className="hidden lg:flex w-80 border-l bg-card">
+            <div className="hidden lg:flex w-80 border-l bg-card h-full">
               <AskInterface
                 selectedText={selectedText}
                 targetLanguage={targetLanguage}
