@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,8 @@ interface Conversation {
   updated_at: string;
   ai_mode: string;
   language: string;
+  chat_mate_prompt?: string;
+  editor_mate_prompt?: string;
 }
 
 interface ChatSidebarProps {
@@ -168,8 +169,8 @@ const ChatSidebar = ({
           user_id: user.id,
           title: `Fork of ${originalConv.title}`,
           language: originalConv.language,
-          chat_mate_prompt: originalConv.chat_mate_prompt,
-          editor_mate_prompt: originalConv.editor_mate_prompt
+          chat_mate_prompt: originalConv.chat_mate_prompt || null,
+          editor_mate_prompt: originalConv.editor_mate_prompt || null
         })
         .select()
         .single();

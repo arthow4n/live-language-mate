@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -106,8 +105,8 @@ const EnhancedChatInterface = ({
 
       if (error) throw error;
 
-      if (data.chat_mate_prompt) setChatMatePrompt(data.chat_mate_prompt);
-      if (data.editor_mate_prompt) setEditorMatePrompt(data.editor_mate_prompt);
+      if (data?.chat_mate_prompt) setChatMatePrompt(data.chat_mate_prompt);
+      if (data?.editor_mate_prompt) setEditorMatePrompt(data.editor_mate_prompt);
     } catch (error) {
       console.error('Error loading prompts:', error);
     }

@@ -12,7 +12,9 @@ export type Database = {
       conversations: {
         Row: {
           ai_mode: string
+          chat_mate_prompt: string | null
           created_at: string
+          editor_mate_prompt: string | null
           id: string
           language: string
           title: string
@@ -21,7 +23,9 @@ export type Database = {
         }
         Insert: {
           ai_mode?: string
+          chat_mate_prompt?: string | null
           created_at?: string
+          editor_mate_prompt?: string | null
           id?: string
           language?: string
           title?: string
@@ -30,7 +34,9 @@ export type Database = {
         }
         Update: {
           ai_mode?: string
+          chat_mate_prompt?: string | null
           created_at?: string
+          editor_mate_prompt?: string | null
           id?: string
           language?: string
           title?: string
