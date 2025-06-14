@@ -310,6 +310,8 @@ const EnhancedChatInterface = ({
           <AskInterface 
             selectedText={selectedText}
             onClose={() => setShowAskInterface(false)}
+            targetLanguage={targetLanguage}
+            editorMatePrompt={editorMatePrompt}
           />
         )}
       </div>
@@ -321,6 +323,8 @@ const EnhancedChatInterface = ({
             <AskInterface 
               selectedText={selectedText}
               onClose={() => setShowAskInterface(false)}
+              targetLanguage={targetLanguage}
+              editorMatePrompt={editorMatePrompt}
             />
           </div>
         </div>

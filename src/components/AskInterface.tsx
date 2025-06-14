@@ -1,28 +1,59 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Search, 
   Send, 
   ExternalLink, 
-  Volume2,
   X,
   Globe,
   Book,
-  Play
+  Play,
+  Loader2
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Message {
+  id: string;
+  type: 'user' | 'editor';
+  content: string;
+  timestamp: Date;
+}
 
 interface AskInterfaceProps {
   selectedText: string;
   onClose?: () => void;
+  targetLanguage?: string;
+  editorMatePrompt?: string;
 }
 
-const AskInterface = ({ selectedText, onClose }: AskInterfaceProps) => {
+const AskInterface = ({ 
+  selectedText, 
+  onClose, 
+  targetLanguage = 'Swedish',
+  editorMatePrompt = 'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.'
+}: AskInterfaceProps) => {
   const [question, setQuestion] = useState('');
-  const [conversation, setConversation] = useState<Array<{ type: 'user' | 'editor'; content: string }>>([]);
+  const [conversation, setConversation] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Initialize conversation when selectedText changes
+  useEffect(() => {
+    if (selectedText && selectedText.trim()) {
+      const welcomeMessage: Message = {
+        id: Date.now().toString(),
+        type: 'editor',
+        content: `I can help you understand "${selectedText}". What would you like to know about this text?`,
+        timestamp: new Date()
+      };
+      setConversation([welcomeMessage]);
+    }
+  }, [selectedText]);
 
   const quickLinks = [
     {
@@ -38,37 +69,77 @@ const AskInterface = ({ selectedText, onClose }: AskInterfaceProps) => {
     {
       name: 'YouGlish',
       icon: Play,
-      url: (text: string) => `https://youglish.com/pronounce/${encodeURIComponent(text)}/swedish`
+      url: (text: string) => `https://youglish.com/pronounce/${encodeURIComponent(text)}/${targetLanguage.toLowerCase()}`
     }
   ];
 
-  const handleSendQuestion = () => {
-    if (!question.trim()) return;
+  const callEditorMate = async (question: string) => {
+    const conversationHistory = conversation.map(msg => ({
+      role: msg.type === 'user' ? 'user' : 'assistant',
+      content: msg.content
+    }));
 
-    const newConversation = [
-      ...conversation,
-      { type: 'user' as const, content: question },
-    ];
+    const contextMessage = selectedText 
+      ? `The user has selected this text: "${selectedText}". Answer their question about it: ${question}`
+      : question;
 
-    // Simulate Editor Mate response
-    setTimeout(() => {
-      const responses = [
-        `Great question about "${selectedText || 'the selected text'}"! This word/phrase is commonly used in Swedish conversations...`,
-        `"${selectedText || 'The selected text'}" is an interesting expression. Let me explain the grammar and usage...`,
-        `Good observation! "${selectedText || 'The selected text'}" has some nuances in Swedish that are worth understanding...`,
-        `Excellent question! This relates to Swedish grammar rules about...`
-      ];
+    const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
+      body: {
+        message: contextMessage,
+        messageType: 'editor-mate-user-comment',
+        conversationHistory,
+        editorMatePrompt,
+        targetLanguage
+      }
+    });
 
-      const response = responses[Math.floor(Math.random() * responses.length)];
-      
-      setConversation([
-        ...newConversation,
-        { type: 'editor', content: response }
-      ]);
-    }, 1000);
+    if (aiError) {
+      throw new Error(aiError.message || 'Failed to get Editor Mate response');
+    }
 
-    setConversation(newConversation);
+    if (!aiData || !aiData.response) {
+      throw new Error('No response from Editor Mate');
+    }
+
+    return aiData.response;
+  };
+
+  const handleSendQuestion = async () => {
+    if (!question.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: question.trim(),
+      timestamp: new Date()
+    };
+
+    setConversation(prev => [...prev, userMessage]);
+    const currentQuestion = question.trim();
     setQuestion('');
+    setIsLoading(true);
+
+    try {
+      const response = await callEditorMate(currentQuestion);
+      
+      const editorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'editor',
+        content: response,
+        timestamp: new Date()
+      };
+
+      setConversation(prev => [...prev, editorMessage]);
+    } catch (error) {
+      console.error('Error getting Editor Mate response:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to get response from Editor Mate",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -76,6 +147,10 @@ const AskInterface = ({ selectedText, onClose }: AskInterfaceProps) => {
       e.preventDefault();
       handleSendQuestion();
     }
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -138,45 +213,58 @@ const AskInterface = ({ selectedText, onClose }: AskInterfaceProps) => {
                 Select text from the chat to ask questions
               </p>
               <p className="text-xs text-gray-400">
-                Or ask Editor Mate anything about Swedish!
+                Or ask Editor Mate anything about {targetLanguage}!
               </p>
             </div>
           )}
           
-          {conversation.map((msg, index) => (
-            <div
-              key={index}
-              className={`p-3 rounded-lg ${
-                msg.type === 'user'
-                  ? 'bg-user-light ml-4'
-                  : 'bg-editor-mate-light mr-4'
-              }`}
-            >
+          {conversation.map((msg) => (
+            <div key={msg.id} className="space-y-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-medium">
                   {msg.type === 'user' ? 'You' : 'Editor Mate'}
                 </span>
+                <span className="text-xs text-gray-400">
+                  {formatTime(msg.timestamp)}
+                </span>
               </div>
-              <p className="text-sm">{msg.content}</p>
+              <div
+                className={`p-3 rounded-lg ${
+                  msg.type === 'user'
+                    ? 'bg-blue-50 border border-blue-200 ml-4'
+                    : 'bg-orange-50 border border-orange-200 mr-4'
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              </div>
             </div>
           ))}
+          
+          {isLoading && (
+            <div className="flex items-center space-x-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Editor Mate is thinking...</span>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
       {/* Input Area */}
       <div className="p-4 border-t">
         <div className="flex gap-2">
-          <Input
+          <Textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask Editor Mate about language..."
-            className="flex-1 text-sm"
+            placeholder={`Ask Editor Mate about ${targetLanguage}...`}
+            className="flex-1 text-sm min-h-[60px] max-h-[120px] resize-none"
+            disabled={isLoading}
           />
           <Button 
             size="icon" 
             onClick={handleSendQuestion}
-            disabled={!question.trim()}
+            disabled={!question.trim() || isLoading}
+            className="self-end"
           >
             <Send className="w-4 h-4" />
           </Button>
