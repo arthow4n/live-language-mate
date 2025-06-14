@@ -1,0 +1,333 @@
+
+import { useState, useEffect, useRef } from 'react';
+import { User } from '@supabase/supabase-js';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Send, Loader2, Settings } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import EnhancedChatMessage from './EnhancedChatMessage';
+import AskInterface from './AskInterface';
+
+interface Message {
+  id: string;
+  type: 'user' | 'chat-mate' | 'editor-mate';
+  content: string;
+  timestamp: Date;
+  isStreaming?: boolean;
+  parentMessageId?: string;
+}
+
+interface EnhancedChatInterfaceProps {
+  user: User;
+  conversationId: string | null;
+  targetLanguage: string;
+  onConversationUpdate: () => void;
+}
+
+const EnhancedChatInterface = ({ 
+  user, 
+  conversationId, 
+  targetLanguage,
+  onConversationUpdate 
+}: EnhancedChatInterfaceProps) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [showAskInterface, setShowAskInterface] = useState(false);
+  const [chatMatePrompt, setChatMatePrompt] = useState('You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.');
+  const [editorMatePrompt, setEditorMatePrompt] = useState('You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Load messages when conversation changes
+  useEffect(() => {
+    if (conversationId) {
+      loadMessages();
+    } else {
+      setMessages([]);
+    }
+  }, [conversationId]);
+
+  const loadMessages = async () => {
+    if (!conversationId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedMessages = data.map(msg => ({
+        id: msg.id,
+        type: msg.message_type as 'user' | 'chat-mate' | 'editor-mate',
+        content: msg.content,
+        timestamp: new Date(msg.created_at),
+      }));
+
+      setMessages(formattedMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load messages",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveMessage = async (message: Omit<Message, 'id' | 'timestamp'>) => {
+    if (!conversationId) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          user_id: user.id,
+          content: message.content,
+          message_type: message.type,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error saving message:', error);
+      return null;
+    }
+  };
+
+  const callAI = async (message: string, messageType: string, history: any[]) => {
+    const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
+      body: {
+        message,
+        messageType,
+        conversationHistory: history,
+        chatMatePrompt,
+        editorMatePrompt,
+        targetLanguage
+      }
+    });
+
+    if (aiError) {
+      console.error('AI function error:', aiError);
+      throw new Error(aiError.message || 'Failed to get AI response');
+    }
+
+    if (!aiData || !aiData.response) {
+      throw new Error('No response from AI');
+    }
+
+    return aiData.response;
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !conversationId || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: inputMessage.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage.trim();
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      // Save user message
+      await saveMessage(userMessage);
+
+      // Prepare conversation history for AI context (only Chat Mate messages for Chat Mate, full context for Editor Mate)
+      const chatMateHistory = messages
+        .filter(msg => msg.type === 'user' || msg.type === 'chat-mate')
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        }));
+
+      const fullHistory = messages.map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: `[${msg.type}]: ${msg.content}`
+      }));
+
+      // Get Chat Mate response
+      const chatMateResponse = await callAI(currentInput, 'chat-mate-response', chatMateHistory);
+      
+      const chatMateMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'chat-mate',
+        content: chatMateResponse,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, chatMateMessage]);
+      await saveMessage(chatMateMessage);
+
+      // Get Editor Mate comment on user message
+      const editorUserComment = await callAI(currentInput, 'editor-mate-user-comment', fullHistory);
+      
+      const editorUserMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        type: 'editor-mate',
+        content: editorUserComment,
+        timestamp: new Date(),
+        parentMessageId: userMessage.id,
+      };
+
+      setMessages(prev => [...prev, editorUserMessage]);
+      await saveMessage(editorUserMessage);
+
+      // Get Editor Mate comment on Chat Mate response
+      const editorChatMateComment = await callAI(chatMateResponse, 'editor-mate-chatmate-comment', fullHistory);
+      
+      const editorChatMateMessage: Message = {
+        id: (Date.now() + 3).toString(),
+        type: 'editor-mate',
+        content: editorChatMateComment,
+        timestamp: new Date(),
+        parentMessageId: chatMateMessage.id,
+      };
+
+      setMessages(prev => [...prev, editorChatMateMessage]);
+      await saveMessage(editorChatMateMessage);
+
+      onConversationUpdate();
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleTextSelect = (text: string) => {
+    setSelectedText(text);
+    setShowAskInterface(true);
+  };
+
+  return (
+    <div className="flex h-full">
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Chat Header */}
+        <div className="p-4 border-b bg-card">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Learning {targetLanguage}</h2>
+              <p className="text-sm text-muted-foreground">
+                Chat with your language partner and get real-time feedback
+              </p>
+            </div>
+            <Button variant="outline" size="icon">
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {messages.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">
+              <p className="mb-2">Start a conversation in {targetLanguage}!</p>
+              <p className="text-sm">
+                Your Chat Mate will respond naturally, and Editor Mate will provide helpful feedback.
+              </p>
+            </div>
+          )}
+          
+          {messages.map((message) => (
+            <EnhancedChatMessage
+              key={message.id}
+              message={message}
+              onTextSelect={handleTextSelect}
+            />
+          ))}
+          
+          {isLoading && (
+            <div className="flex items-center space-x-2 text-muted-foreground mb-4">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Getting responses...</span>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 border-t bg-card">
+          <div className="flex space-x-2">
+            <Textarea
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={`Write in ${targetLanguage} or your native language...`}
+              className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+              disabled={isLoading}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isLoading}
+              size="icon"
+              className="self-end"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Ask Interface - Desktop */}
+      <div className={`hidden lg:block w-80 border-l ${showAskInterface ? '' : 'w-0 border-l-0'}`}>
+        {showAskInterface && (
+          <AskInterface 
+            selectedText={selectedText}
+            onClose={() => setShowAskInterface(false)}
+          />
+        )}
+      </div>
+
+      {/* Ask Interface - Mobile Modal */}
+      {showAskInterface && (
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white">
+            <AskInterface 
+              selectedText={selectedText}
+              onClose={() => setShowAskInterface(false)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EnhancedChatInterface;

@@ -15,48 +15,70 @@ serve(async (req) => {
   }
 
   try {
-    const { message, aiMode, conversationHistory } = await req.json();
+    const { message, messageType, conversationHistory, chatMatePrompt, editorMatePrompt, targetLanguage = 'Swedish' } = await req.json();
     
-    console.log('AI Chat request:', { message, aiMode, historyLength: conversationHistory?.length });
+    console.log('AI Chat request:', { messageType, targetLanguage, historyLength: conversationHistory?.length });
 
     const openrouterApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openrouterApiKey) {
       throw new Error('OpenRouter API key not configured');
     }
 
-    // Create system prompts based on AI mode
-    const systemPrompts = {
-      'chat-mate': `You are Chat Mate, a friendly Swedish conversation partner. Your role is to:
-- Have natural, engaging conversations in Swedish
-- Gently correct mistakes in a supportive way
-- Provide cultural context when relevant
-- Keep conversations flowing naturally
-- Use everyday Swedish expressions and vocabulary
-- Be encouraging and patient with language learners
-- Respond primarily in Swedish, but explain difficult concepts in English when needed
+    let systemPrompt = '';
+    let responseType = '';
 
-Always maintain a warm, friendly tone as if chatting with a good friend who's learning Swedish.`,
+    if (messageType === 'chat-mate-response') {
+      systemPrompt = `You are Chat Mate, a native speaker of ${targetLanguage} and a local from the country. ${chatMatePrompt || ''}
 
-      'editor-mate': `You are Editor Mate, a professional Swedish language teacher and editor. Your role is to:
-- Provide detailed feedback on Swedish text submissions
-- Highlight grammatical errors and suggest corrections
-- Explain grammar rules and language patterns
-- Suggest more natural or sophisticated expressions
-- Point out cultural nuances in language use
-- Provide structured, educational feedback
-- Use both Swedish and English for explanations
+Key instructions:
+- You are unaware that the user is learning your language - treat them as a fully integrated local
+- Respond naturally in ${targetLanguage} as if chatting with a friend
+- You cannot see any comments from Editor Mate - only respond to the user's messages
+- Keep conversations natural and culturally appropriate
+- Use everyday expressions and vocabulary
+- Be friendly and engaging
 
-Format your feedback clearly with corrections, explanations, and suggestions for improvement.`
-    };
+Always respond only in ${targetLanguage}.`;
+      responseType = 'chat-mate';
+
+    } else if (messageType === 'editor-mate-user-comment') {
+      systemPrompt = `You are Editor Mate, an experienced ${targetLanguage} teacher observing the conversation. ${editorMatePrompt || ''}
+
+Instructions for commenting on USER messages:
+- If the message has language mistakes: Point out grammar errors, wrong word choices, and suggest corrections with examples
+- If the message is in a different language: Provide a ${targetLanguage} translation considering the chat context
+- If the message is well-written in ${targetLanguage}: Simply respond with 👍
+- Be constructive and educational
+- Keep comments concise but helpful
+
+Comment on this user message in the context of their conversation.`;
+      responseType = 'editor-mate';
+
+    } else if (messageType === 'editor-mate-chatmate-comment') {
+      systemPrompt = `You are Editor Mate, an experienced ${targetLanguage} teacher observing the conversation. ${editorMatePrompt || ''}
+
+Instructions for commenting on CHAT MATE messages:
+- Check for any language mistakes or unnatural expressions
+- If mistakes found: Point out issues and suggest improvements
+- If well-written: Simply respond with 👍
+- Focus on teaching opportunities for the user
+- Keep comments brief and educational
+
+Comment on Chat Mate's response to help the user learn.`;
+      responseType = 'editor-mate';
+
+    } else {
+      throw new Error('Invalid message type');
+    }
 
     // Prepare messages for OpenRouter
     const messages = [
-      { role: 'system', content: systemPrompts[aiMode] || systemPrompts['chat-mate'] },
+      { role: 'system', content: systemPrompt },
       ...(conversationHistory || []),
       { role: 'user', content: message }
     ];
 
-    console.log('Sending request to OpenRouter with', messages.length, 'messages');
+    console.log('Sending request to OpenRouter for', responseType);
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -81,7 +103,7 @@ Format your feedback clearly with corrections, explanations, and suggestions for
     }
 
     const data = await response.json();
-    console.log('OpenRouter response received');
+    console.log('OpenRouter response received for', responseType);
 
     const aiResponse = data.choices[0]?.message?.content;
     if (!aiResponse) {
@@ -90,6 +112,7 @@ Format your feedback clearly with corrections, explanations, and suggestions for
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
+      responseType: responseType,
       usage: data.usage 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
