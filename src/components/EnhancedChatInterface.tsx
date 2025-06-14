@@ -133,14 +133,12 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const saveMessage = async (message: Omit<Message, 'id' | 'timestamp'>) => {
-    if (!conversationId) return null;
-
+  const saveMessage = async (message: Omit<Message, 'id' | 'timestamp'>, actualConversationId: string) => {
     try {
       const { data, error } = await supabase
         .from('messages')
         .insert({
-          conversation_id: conversationId,
+          conversation_id: actualConversationId,
           user_id: user.id,
           content: message.content,
           message_type: message.type,
@@ -394,7 +392,7 @@ const EnhancedChatInterface = ({
     }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `temp-${Date.now()}`,
       type: 'user',
       content: inputMessage.trim(),
       timestamp: new Date(),
@@ -406,8 +404,14 @@ const EnhancedChatInterface = ({
     setIsLoading(true);
 
     try {
-      // Save user message
-      await saveMessage(userMessage);
+      // Save user message and get the actual ID
+      const savedUserMessage = await saveMessage(userMessage, currentConversationId);
+      if (savedUserMessage) {
+        // Update the message with the real ID from database
+        setMessages(prev => prev.map(msg => 
+          msg.id === userMessage.id ? { ...msg, id: savedUserMessage.id } : msg
+        ));
+      }
 
       // Prepare conversation history for AI context
       const chatMateHistory = messages
@@ -426,42 +430,57 @@ const EnhancedChatInterface = ({
       const editorUserComment = await callAI(currentInput, 'editor-mate-user-comment', fullHistory);
       
       const editorUserMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `temp-${Date.now() + 1}`,
         type: 'editor-mate',
         content: editorUserComment,
         timestamp: new Date(),
-        parentMessageId: userMessage.id,
+        parentMessageId: savedUserMessage?.id || userMessage.id,
       };
 
       setMessages(prev => [...prev, editorUserMessage]);
-      await saveMessage(editorUserMessage);
+      const savedEditorUserMessage = await saveMessage(editorUserMessage, currentConversationId);
+      if (savedEditorUserMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === editorUserMessage.id ? { ...msg, id: savedEditorUserMessage.id } : msg
+        ));
+      }
 
       // Get Chat Mate response
       const chatMateResponse = await callAI(currentInput, 'chat-mate-response', chatMateHistory);
       
       const chatMateMessage: Message = {
-        id: (Date.now() + 2).toString(),
+        id: `temp-${Date.now() + 2}`,
         type: 'chat-mate',
         content: chatMateResponse,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, chatMateMessage]);
-      await saveMessage(chatMateMessage);
+      const savedChatMateMessage = await saveMessage(chatMateMessage, currentConversationId);
+      if (savedChatMateMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === chatMateMessage.id ? { ...msg, id: savedChatMateMessage.id } : msg
+        ));
+      }
 
       // Get Editor Mate comment on Chat Mate response
       const editorChatMateComment = await callAI(chatMateResponse, 'editor-mate-chatmate-comment', fullHistory);
       
       const editorChatMateMessage: Message = {
-        id: (Date.now() + 3).toString(),
+        id: `temp-${Date.now() + 3}`,
         type: 'editor-mate',
         content: editorChatMateComment,
         timestamp: new Date(),
-        parentMessageId: chatMateMessage.id,
+        parentMessageId: savedChatMateMessage?.id || chatMateMessage.id,
       };
 
       setMessages(prev => [...prev, editorChatMateMessage]);
-      await saveMessage(editorChatMateMessage);
+      const savedEditorChatMateMessage = await saveMessage(editorChatMateMessage, currentConversationId);
+      if (savedEditorChatMateMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === editorChatMateMessage.id ? { ...msg, id: savedEditorChatMateMessage.id } : msg
+        ));
+      }
 
       onConversationUpdate();
 
