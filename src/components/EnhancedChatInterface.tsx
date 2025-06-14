@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Settings } from 'lucide-react';
+import { Send, Loader2, Settings, PanelRight } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedChatMessage from './EnhancedChatMessage';
@@ -23,19 +23,22 @@ interface EnhancedChatInterfaceProps {
   conversationId: string | null;
   targetLanguage: string;
   onConversationUpdate: () => void;
+  onConversationCreated: (id: string) => void;
 }
 
 const EnhancedChatInterface = ({ 
   user, 
   conversationId, 
   targetLanguage,
-  onConversationUpdate 
+  onConversationUpdate,
+  onConversationCreated
 }: EnhancedChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [showAskInterface, setShowAskInterface] = useState(false);
+  const [askInterfaceCollapsed, setAskInterfaceCollapsed] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [chatMatePrompt, setChatMatePrompt] = useState('You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.');
   const [editorMatePrompt, setEditorMatePrompt] = useState('You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.');
@@ -348,8 +351,47 @@ const EnhancedChatInterface = ({
     return aiData.response;
   };
 
+  const createNewConversation = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({
+          user_id: user.id,
+          title: `${targetLanguage} Practice`,
+          language: targetLanguage.toLowerCase(),
+          chat_mate_prompt: chatMatePrompt,
+          editor_mate_prompt: editorMatePrompt
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data.id;
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      throw error;
+    }
+  };
+
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !conversationId || isLoading) return;
+    if (!inputMessage.trim() || isLoading) return;
+
+    let currentConversationId = conversationId;
+
+    // Create conversation only when first message is sent
+    if (!currentConversationId) {
+      try {
+        currentConversationId = await createNewConversation();
+        onConversationCreated(currentConversationId);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create conversation",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -445,6 +487,7 @@ const EnhancedChatInterface = ({
   const handleTextSelect = (text: string) => {
     setSelectedText(text);
     setShowAskInterface(true);
+    setAskInterfaceCollapsed(false);
   };
 
   const handlePromptsUpdate = (chatMate: string, editorMate: string) => {
@@ -456,9 +499,9 @@ const EnhancedChatInterface = ({
   return (
     <div className="flex h-full">
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Chat Header */}
-        <div className="p-4 border-b bg-card">
+        <div className="p-4 border-b bg-card flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold">Learning {targetLanguage}</h2>
@@ -466,9 +509,19 @@ const EnhancedChatInterface = ({
                 Chat with your language partner and get real-time feedback
               </p>
             </div>
-            <Button variant="outline" size="icon" onClick={() => setShowSettings(true)}>
-              <Settings className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => setAskInterfaceCollapsed(!askInterfaceCollapsed)}
+                className="lg:flex hidden"
+              >
+                <PanelRight className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => setShowSettings(true)}>
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -506,7 +559,7 @@ const EnhancedChatInterface = ({
         </div>
 
         {/* Input Area */}
-        <div className="p-4 border-t bg-card">
+        <div className="p-4 border-t bg-card flex-shrink-0">
           <div className="flex space-x-2">
             <Textarea
               value={inputMessage}
@@ -528,12 +581,14 @@ const EnhancedChatInterface = ({
         </div>
       </div>
 
-      {/* Ask Interface - Desktop */}
-      <div className={`hidden lg:block w-80 border-l ${showAskInterface ? '' : 'w-0 border-l-0'}`}>
-        {showAskInterface && (
+      {/* Ask Interface - Desktop Collapsible */}
+      <div className={`hidden lg:block border-l transition-all duration-300 ${
+        askInterfaceCollapsed ? 'w-0 border-l-0 overflow-hidden' : 'w-80'
+      }`}>
+        {!askInterfaceCollapsed && (
           <AskInterface 
             selectedText={selectedText}
-            onClose={() => setShowAskInterface(false)}
+            onClose={() => setAskInterfaceCollapsed(true)}
             targetLanguage={targetLanguage}
             editorMatePrompt={editorMatePrompt}
           />

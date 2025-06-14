@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Settings, LogOut } from 'lucide-react';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import SettingsDialog from './SettingsDialog';
@@ -21,76 +22,22 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
     await supabase.auth.signOut();
   };
 
-  const createNewConversation = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .insert({
-          user_id: user.id,
-          title: `${targetLanguage} Practice`,
-          language: targetLanguage.toLowerCase(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      setCurrentConversationId(data.id);
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-    }
-  };
-
   const handleConversationSelect = (conversationId: string) => {
     setCurrentConversationId(conversationId);
   };
 
   const handleNewConversation = () => {
-    createNewConversation();
+    setCurrentConversationId(null); // Just clear the current conversation, don't create until first message
   };
 
   const handleConversationUpdate = () => {
     // Trigger sidebar refresh if needed
   };
 
-  // Create initial conversation
-  useEffect(() => {
-    if (!currentConversationId) {
-      createNewConversation();
-    }
-  }, []);
-
   return (
-    <div className="h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b bg-card h-14 flex items-center justify-between px-4">
-        <div className="flex items-center space-x-3">
-          <h1 className="text-xl font-bold">Language Mate</h1>
-          <span className="text-sm text-muted-foreground">
-            for {targetLanguage} learners
-          </span>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSettingsOpen(true)}
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleSignOut}
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        {/* Chat Sidebar */}
         <ChatSidebar
           user={user}
           currentConversationId={currentConversationId}
@@ -98,18 +45,54 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
           onNewConversation={handleNewConversation}
           targetLanguage={targetLanguage}
         />
-        
-        <EnhancedChatInterface
-          user={user}
-          conversationId={currentConversationId}
-          targetLanguage={targetLanguage}
-          onConversationUpdate={handleConversationUpdate}
-        />
-      </div>
 
-      {/* Settings Dialog */}
-      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
-    </div>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="border-b bg-card h-14 flex items-center justify-between px-4">
+            <div className="flex items-center space-x-3">
+              <SidebarTrigger />
+              <h1 className="text-xl font-bold">Language Mate</h1>
+              <span className="text-sm text-muted-foreground">
+                for {targetLanguage} learners
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          </header>
+
+          {/* Chat Interface - grows to fill remaining space */}
+          <div className="flex-1 overflow-hidden">
+            <EnhancedChatInterface
+              user={user}
+              conversationId={currentConversationId}
+              targetLanguage={targetLanguage}
+              onConversationUpdate={handleConversationUpdate}
+              onConversationCreated={setCurrentConversationId}
+            />
+          </div>
+        </div>
+
+        {/* Settings Dialog */}
+        <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      </div>
+    </SidebarProvider>
   );
 };
 
