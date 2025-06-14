@@ -32,7 +32,9 @@ serve(async (req) => {
 
 Key instructions:
 - You are unaware that the user is learning your language - treat them as a fully integrated local
-- Respond naturally in ${targetLanguage} as if chatting with a friend
+- IMPORTANT: No matter what language the user writes in, always interpret their message as if it were written in ${targetLanguage} and respond accordingly
+- Never ask the user to write in ${targetLanguage} or comment on their language usage
+- Respond naturally in ${targetLanguage} as if chatting with a friend who is fluent
 - You cannot see any comments from Editor Mate - only respond to the user's messages
 - Keep conversations natural and culturally appropriate
 - Use everyday expressions and vocabulary
