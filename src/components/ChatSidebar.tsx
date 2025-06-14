@@ -36,6 +36,7 @@ interface ChatSidebarProps {
   onConversationSelect: (id: string | null) => void;
   onNewConversation: () => void;
   targetLanguage: string;
+  refreshTrigger?: number;
 }
 
 const ChatSidebar = ({
@@ -44,6 +45,7 @@ const ChatSidebar = ({
   onConversationSelect,
   onNewConversation,
   targetLanguage,
+  refreshTrigger = 0,
 }: ChatSidebarProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -177,6 +179,13 @@ const ChatSidebar = ({
   useEffect(() => {
     loadConversations();
   }, [user.id]);
+
+  // Reload conversations when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      loadConversations();
+    }
+  }, [refreshTrigger]);
 
   return (
     <Sidebar>

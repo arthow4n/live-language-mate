@@ -17,6 +17,7 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState('Swedish');
+  const [refreshSidebar, setRefreshSidebar] = useState(0);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -31,7 +32,8 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
   };
 
   const handleConversationUpdate = () => {
-    // Trigger sidebar refresh if needed
+    // Trigger sidebar refresh by incrementing the refresh counter
+    setRefreshSidebar(prev => prev + 1);
   };
 
   return (
@@ -44,6 +46,7 @@ const LanguageMateApp = ({ user }: LanguageMateAppProps) => {
           onConversationSelect={handleConversationSelect}
           onNewConversation={handleNewConversation}
           targetLanguage={targetLanguage}
+          refreshTrigger={refreshSidebar}
         />
 
         {/* Main Content */}
