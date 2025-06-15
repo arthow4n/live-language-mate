@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -205,10 +206,9 @@ const AskInterface = ({
         const reader = response.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
-        let isStreamComplete = false;
 
         try {
-          while (true && !isStreamComplete) {
+          while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -219,11 +219,10 @@ const AskInterface = ({
               if (line.startsWith('data: ')) {
                 const data = line.slice(6);
                 if (data === '[DONE]') {
-                  isStreamComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
                   
-                  // Final update with streaming complete
+                  // Final update with streaming complete - break immediately after
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 
                       ? { 
@@ -238,12 +237,14 @@ const AskInterface = ({
                         }
                       : msg
                   ));
-                  break;
+                  // Exit both loops immediately
+                  reader.releaseLock();
+                  return;
                 }
 
                 try {
                   const parsed = JSON.parse(data);
-                  if (parsed.content && !isStreamComplete) {
+                  if (parsed.content) {
                     accumulatedContent += parsed.content;
                     // Update content while maintaining streaming state
                     setConversation(prev => prev.map(msg => 
@@ -261,12 +262,11 @@ const AskInterface = ({
                 }
               }
             }
-            
-            // Exit outer loop if stream is complete
-            if (isStreamComplete) break;
           }
         } finally {
-          reader.releaseLock();
+          if (!reader.locked) {
+            reader.releaseLock();
+          }
         }
       }
     } catch (error) {
