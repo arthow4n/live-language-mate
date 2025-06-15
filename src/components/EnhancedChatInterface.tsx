@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -309,7 +308,7 @@ const EnhancedChatInterface = ({
         messageType = isUserComment ? 'editor-mate-user-comment' : 'editor-mate-chatmate-comment';
       }
 
-      const response = await callAI(userMessage, messageType, conversationHistory, messageId);
+      const response = await callAI(userMessage, messageType, conversationHistory);
 
       // Update the message in the database
       updateMessage(messageId, { content: response });
@@ -345,16 +344,11 @@ const EnhancedChatInterface = ({
     let fullContent = '';
     let buffer = '';
 
-    console.log('📡 Starting to process streaming response for message:', messageId);
-
     try {
       while (true) {
         const { done, value } = await reader.read();
         
-        if (done) {
-          console.log('✅ Streaming completed for message:', messageId);
-          break;
-        }
+        if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
@@ -369,14 +363,13 @@ const EnhancedChatInterface = ({
               
               if (data.type === 'content') {
                 fullContent += data.content;
-                console.log('📝 Updating message content immediately:', messageId, 'New chunk:', data.content);
                 
-                // Update message content immediately for each chunk
+                // Update message content in real-time
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { ...msg, content: fullContent, isStreaming: true } : msg
                 ));
               } else if (data.type === 'done') {
-                console.log('✅ Streaming done signal received for message:', messageId);
+                console.log('✅ Streaming completed for message:', messageId);
                 
                 // Mark streaming as complete
                 setMessages(prev => prev.map(msg => 
@@ -386,7 +379,7 @@ const EnhancedChatInterface = ({
                 return fullContent;
               }
             } catch (e) {
-              console.error('Error parsing streaming data:', e, 'Line:', line);
+              console.error('Error parsing streaming data:', e);
             }
           }
         }
@@ -394,11 +387,6 @@ const EnhancedChatInterface = ({
     } finally {
       reader.releaseLock();
     }
-
-    // Mark streaming as complete even if we didn't get a done signal
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, content: fullContent, isStreaming: false } : msg
-    ));
 
     return fullContent;
   };
@@ -443,8 +431,8 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAI = async (message: string, messageType: string, history: any[], messageId: string) => {
-    console.log('🚀 Calling AI with streaming enabled for message:', messageId);
+  const callAI = async (message: string, messageType: string, history: any[]) => {
+    console.log('🚀 Calling AI with streaming enabled');
 
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
@@ -478,11 +466,9 @@ const EnhancedChatInterface = ({
 
     // Check if the response is streaming
     const contentType = response.headers.get('content-type');
-    console.log('📡 Response content type:', contentType);
-    
     if (contentType?.includes('text/event-stream')) {
       // Handle streaming response
-      return await handleStreamingResponse(response, messageId);
+      return await handleStreamingResponse(response);
     } else {
       // Handle non-streaming response (fallback)
       const data = await response.json();
@@ -576,7 +562,6 @@ const EnhancedChatInterface = ({
       const editorChatMateTempId = `temp-${Date.now() + 3}`;
 
       // Get Editor Mate comment on user message first
-      console.log('🎓 Starting Editor Mate comment on user message with ID:', editorUserTempId);
       const editorUserMessage: Message = {
         id: editorUserTempId,
         type: 'editor-mate',
@@ -588,12 +573,35 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorUserMessage]);
 
-      const editorUserComment = await callAI(
-        currentInput, 
-        'editor-mate-user-comment', 
-        fullHistory, 
-        editorUserTempId
-      );
+      const editorUserResponse = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
+        },
+        body: JSON.stringify({
+          message: currentInput,
+          messageType: 'editor-mate-user-comment',
+          conversationHistory: fullHistory,
+          chatMatePrompt,
+          editorMatePrompt: currentEditorMatePrompt,
+          targetLanguage,
+          model: settings.model,
+          apiKey: settings.apiKey,
+          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: settings.feedbackStyle || 'encouraging',
+          culturalContext: settings.culturalContext ?? true,
+          progressiveComplexity: settings.progressiveComplexity ?? true,
+          streaming: settings.streaming ?? true
+        })
+      });
+
+      if (!editorUserResponse.ok) {
+        throw new Error('Failed to get editor mate response');
+      }
+
+      const editorUserComment = await handleStreamingResponse(editorUserResponse, editorUserTempId);
       
       // Save the completed message
       const savedEditorUserMessage = saveMessage({
@@ -609,7 +617,6 @@ const EnhancedChatInterface = ({
       }
 
       // Get Chat Mate response
-      console.log('💬 Starting Chat Mate response with ID:', chatMateTempId);
       const chatMateMessage: Message = {
         id: chatMateTempId,
         type: 'chat-mate',
@@ -620,12 +627,35 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, chatMateMessage]);
 
-      const chatMateContent = await callAI(
-        currentInput, 
-        'chat-mate-response', 
-        chatMateHistory, 
-        chatMateTempId
-      );
+      const chatMateResponse = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
+        },
+        body: JSON.stringify({
+          message: currentInput,
+          messageType: 'chat-mate-response',
+          conversationHistory: chatMateHistory,
+          chatMatePrompt,
+          editorMatePrompt: currentEditorMatePrompt,
+          targetLanguage,
+          model: settings.model,
+          apiKey: settings.apiKey,
+          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: settings.feedbackStyle || 'encouraging',
+          culturalContext: settings.culturalContext ?? true,
+          progressiveComplexity: settings.progressiveComplexity ?? true,
+          streaming: settings.streaming ?? true
+        })
+      });
+
+      if (!chatMateResponse.ok) {
+        throw new Error('Failed to get chat mate response');
+      }
+
+      const chatMateContent = await handleStreamingResponse(chatMateResponse, chatMateTempId);
       
       // Save the completed message
       const savedChatMateMessage = saveMessage({
@@ -640,7 +670,6 @@ const EnhancedChatInterface = ({
       }
 
       // Get Editor Mate comment on Chat Mate response
-      console.log('🎓 Starting Editor Mate comment on Chat Mate response with ID:', editorChatMateTempId);
       const editorChatMateMessage: Message = {
         id: editorChatMateTempId,
         type: 'editor-mate',
@@ -652,12 +681,35 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorChatMateMessage]);
 
-      const editorChatMateComment = await callAI(
-        chatMateContent, 
-        'editor-mate-chatmate-comment', 
-        fullHistory, 
-        editorChatMateTempId
-      );
+      const editorChatMateResponse = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
+        },
+        body: JSON.stringify({
+          message: chatMateContent,
+          messageType: 'editor-mate-chatmate-comment',
+          conversationHistory: fullHistory,
+          chatMatePrompt,
+          editorMatePrompt: currentEditorMatePrompt,
+          targetLanguage,
+          model: settings.model,
+          apiKey: settings.apiKey,
+          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: settings.feedbackStyle || 'encouraging',
+          culturalContext: settings.culturalContext ?? true,
+          progressiveComplexity: settings.progressiveComplexity ?? true,
+          streaming: settings.streaming ?? true
+        })
+      });
+
+      if (!editorChatMateResponse.ok) {
+        throw new Error('Failed to get editor mate chat response');
+      }
+
+      const editorChatMateComment = await handleStreamingResponse(editorChatMateResponse, editorChatMateTempId);
       
       // Save the completed message
       const savedEditorChatMateMessage = saveMessage({
