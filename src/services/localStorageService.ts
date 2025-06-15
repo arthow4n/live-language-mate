@@ -1,10 +1,16 @@
-
 export interface LocalMessage {
   id: string;
   type: 'user' | 'chat-mate' | 'editor-mate';
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  parentMessageId?: string;
+  metadata?: {
+    model?: string;
+    generationTime?: number; // in milliseconds
+    startTime?: number;
+    endTime?: number;
+  };
 }
 
 export interface LocalConversation {
@@ -117,15 +123,59 @@ class LocalStorageService {
     this.saveData(data);
   }
 
-  addMessage(conversationId: string, message: LocalMessage): void {
+  addMessage(conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>): LocalMessage {
     const data = this.getData();
     const conversation = data.conversations.find(conv => conv.id === conversationId);
     
     if (conversation) {
-      conversation.messages.push(message);
+      const newMessage: LocalMessage = {
+        id: Date.now().toString(),
+        timestamp: new Date(),
+        ...message
+      };
+      conversation.messages.push(newMessage);
       conversation.updated_at = new Date();
       this.saveData(data);
+      return newMessage;
     }
+    
+    throw new Error('Conversation not found');
+  }
+
+  updateMessage(messageId: string, updates: Partial<LocalMessage>): void {
+    const data = this.getData();
+    
+    for (const conversation of data.conversations) {
+      const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex >= 0) {
+        conversation.messages[messageIndex] = {
+          ...conversation.messages[messageIndex],
+          ...updates
+        };
+        conversation.updated_at = new Date();
+        this.saveData(data);
+        return;
+      }
+    }
+  }
+
+  deleteMessage(id: string): void {
+    const data = this.getData();
+    
+    for (const conversation of data.conversations) {
+      const messageIndex = conversation.messages.findIndex(msg => msg.id === id);
+      if (messageIndex >= 0) {
+        conversation.messages.splice(messageIndex, 1);
+        conversation.updated_at = new Date();
+        this.saveData(data);
+        return;
+      }
+    }
+  }
+
+  getMessages(conversationId: string): LocalMessage[] {
+    const conversation = this.getConversation(conversationId);
+    return conversation ? conversation.messages : [];
   }
 
   updateConversationTitle(id: string, title: string): void {
