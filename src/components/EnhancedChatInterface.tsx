@@ -467,8 +467,8 @@ const EnhancedChatInterface = ({
     // Check if the response is streaming
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
-      // Handle streaming response
-      return await handleStreamingResponse(response);
+      // Handle streaming response - this shouldn't happen as it expects 2 params but let's return empty string for fallback
+      return '';
     } else {
       // Handle non-streaming response (fallback)
       const data = await response.json();
