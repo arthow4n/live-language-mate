@@ -37,6 +37,21 @@ serve(async (req) => {
       throw new Error('OpenRouter API key not configured');
     }
 
+    // Get current date and time
+    const now = new Date();
+    const currentDateTime = now.toISOString();
+    const currentDate = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    const currentTime = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+
     // Helper function to get country and nationality from language
     const getCountryInfo = (lang: string) => {
       const countryMap: { [key: string]: { country: string, nationality: string, culture: string } } = {
@@ -73,6 +88,9 @@ serve(async (req) => {
     if (messageType === 'chat-mate-response') {
       systemPrompt = `You are Chat Mate, a ${nationality} native speaker and local resident from ${country}. 
 
+CURRENT DATE & TIME:
+Today is ${currentDate} and the current time is ${currentTime}. Use this information to provide contextually relevant responses about current events, time-sensitive topics, holidays, seasons, and daily activities.
+
 PERSONALITY & BACKGROUND:
 ${chatMatePrompt}
 Background details: ${chatMateBackground}
@@ -104,6 +122,9 @@ Always respond only in ${targetLanguage}.`;
 
     } else if (messageType === 'editor-mate-user-comment') {
       systemPrompt = `You are Editor Mate, an experienced ${targetLanguage} language teacher observing this conversation.
+
+CURRENT DATE & TIME:
+Today is ${currentDate} and the current time is ${currentTime}. Use this temporal context when providing feedback and explanations.
 
 TEACHING CREDENTIALS & APPROACH:
 ${editorMatePrompt}
@@ -148,6 +169,9 @@ Always respond in ${targetLanguage}.`;
 
     } else if (messageType === 'editor-mate-chatmate-comment') {
       systemPrompt = `You are Editor Mate, an experienced ${targetLanguage} language teacher observing this conversation.
+
+CURRENT DATE & TIME:
+Today is ${currentDate} and the current time is ${currentTime}. Use this temporal context when providing feedback and explanations.
 
 TEACHING CREDENTIALS & APPROACH:
 ${editorMatePrompt}
