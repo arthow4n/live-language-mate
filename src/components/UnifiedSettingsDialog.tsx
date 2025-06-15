@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,7 +136,6 @@ const UnifiedSettingsDialog = ({
                         <ModelSelector
                           value={settings.model}
                           onValueChange={(value) => handleSettingChange('model', value)}
-                          apiKey={settings.apiKey}
                         />
                       </div>
                     </div>

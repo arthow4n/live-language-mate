@@ -1,14 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, MessageSquare, MoreVertical, Trash2, Edit2, GitBranch, Settings } from 'lucide-react';
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import {
   Sidebar,
   SidebarContent,
@@ -22,19 +21,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-interface Conversation {
-  id: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-  ai_mode: string;
-  language: string;
-  chat_mate_prompt?: string;
-  editor_mate_prompt?: string;
-}
-
 interface ChatSidebarProps {
-  user: User;
   currentConversationId: string | null;
   onConversationSelect: (id: string | null) => void;
   onNewConversation: () => void;
@@ -45,7 +32,6 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar = ({
-  user,
   currentConversationId,
   onConversationSelect,
   onNewConversation,
@@ -54,57 +40,28 @@ const ChatSidebar = ({
   onChatSettingsOpen,
   onMainSettingsOpen,
 }: ChatSidebarProps) => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const { toast } = useToast();
+  const { conversations, updateConversation, deleteConversation, createConversation } = useLocalStorage();
 
-  const loadConversations = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
-
-      setConversations(data);
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load conversations",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRenameConversation = async () => {
+  const handleRenameConversation = () => {
     if (!editingConversation || !editTitle.trim()) return;
 
     try {
-      const { error } = await supabase
-        .from('conversations')
-        .update({ title: editTitle.trim(), updated_at: new Date().toISOString() })
-        .eq('id', editingConversation);
-
-      if (error) throw error;
-
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.id === editingConversation ? { ...conv, title: editTitle.trim() } : conv
-        )
-      );
-      setEditingConversation(null);
-      toast({
-        title: "Success",
-        description: "Conversation renamed",
-      });
+      const conversation = conversations.find(c => c.id === editingConversation);
+      if (conversation) {
+        updateConversation(editingConversation, {
+          ...conversation,
+          title: editTitle.trim(),
+          updated_at: new Date()
+        });
+        setEditingConversation(null);
+        toast({
+          title: "Success",
+          description: "Conversation renamed",
+        });
+      }
     } catch (error) {
       console.error('Error renaming conversation:', error);
       toast({
@@ -115,16 +72,9 @@ const ChatSidebar = ({
     }
   };
 
-  const handleDeleteConversation = async (conversationId: string) => {
+  const handleDeleteConversation = (conversationId: string) => {
     try {
-      const { error } = await supabase
-        .from('conversations')
-        .delete()
-        .eq('id', conversationId);
-
-      if (error) throw error;
-
-      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      deleteConversation(conversationId);
       if (currentConversationId === conversationId) {
         onConversationSelect(null);
       }
@@ -142,31 +92,18 @@ const ChatSidebar = ({
     }
   };
 
-  const handleForkConversation = async (conversationId: string) => {
+  const handleForkConversation = (conversationId: string) => {
     try {
-      const { data: originalConversation, error: originalError } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('id', conversationId)
-        .single();
+      const originalConversation = conversations.find(c => c.id === conversationId);
+      if (!originalConversation) return;
 
-      if (originalError) throw originalError;
+      const forkedConversation = createConversation({
+        title: `Forked: ${originalConversation.title}`,
+        language: originalConversation.language,
+        chat_mate_prompt: originalConversation.chat_mate_prompt,
+        editor_mate_prompt: originalConversation.editor_mate_prompt
+      });
 
-      const { data: forkedConversation, error: forkError } = await supabase
-        .from('conversations')
-        .insert({
-          user_id: user.id,
-          title: `Forked: ${originalConversation.title}`,
-          language: originalConversation.language,
-          chat_mate_prompt: originalConversation.chat_mate_prompt,
-          editor_mate_prompt: originalConversation.editor_mate_prompt
-        })
-        .select()
-        .single();
-
-      if (forkError) throw forkError;
-
-      setConversations(prev => [forkedConversation, ...prev]);
       onConversationSelect(forkedConversation.id);
 
       toast({
@@ -182,17 +119,6 @@ const ChatSidebar = ({
       });
     }
   };
-
-  useEffect(() => {
-    loadConversations();
-  }, [user.id]);
-
-  // Reload conversations when refreshTrigger changes
-  useEffect(() => {
-    if (refreshTrigger > 0) {
-      loadConversations();
-    }
-  }, [refreshTrigger]);
 
   return (
     <Sidebar>
@@ -212,11 +138,7 @@ const ChatSidebar = ({
           <SidebarGroupContent>
             <ScrollArea className="h-full">
               <SidebarMenu>
-                {isLoading ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    Loading conversations...
-                  </div>
-                ) : conversations.length === 0 ? (
+                {conversations.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground text-sm">
                     No conversations yet. Start a new chat!
                   </div>
