@@ -121,24 +121,6 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
           <span className="text-xs text-muted-foreground">
             {formatTime(message.timestamp)}
           </span>
-          
-          {/* Metadata display */}
-          {message.metadata && (message.metadata.model || message.metadata.generationTime) && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {message.metadata.model && (
-                <div className="flex items-center gap-1">
-                  <Cpu className="w-3 h-3" />
-                  <span>{message.metadata.model}</span>
-                </div>
-              )}
-              {message.metadata.generationTime && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{formatGenerationTime(message.metadata.generationTime)}</span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
@@ -192,6 +174,24 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
             </DropdownMenu>
           </div>
         </div>
+
+        {/* Metadata display - rendered below the message bubble */}
+        {message.metadata && (message.metadata.model || message.metadata.generationTime) && (
+          <div className="flex items-center gap-3 text-xs text-muted-foreground ml-1">
+            {message.metadata.model && (
+              <div className="flex items-center gap-1">
+                <Cpu className="w-3 h-3" />
+                <span>{message.metadata.model}</span>
+              </div>
+            )}
+            {message.metadata.generationTime && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{formatGenerationTime(message.metadata.generationTime)}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
