@@ -4,6 +4,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 interface SettingsData {
   chatMatePersonality: string;
   editorMatePersonality: string;
+  
+  // Advanced settings
+  chatMateBackground: string;
+  editorMateExpertise: string;
+  feedbackStyle: 'gentle' | 'direct' | 'encouraging' | 'detailed';
+  culturalContext: boolean;
+  progressiveComplexity: boolean;
+  
   targetLanguage: string;
   streamingEnabled: boolean;
   provider: string;
@@ -19,8 +27,13 @@ interface SettingsContextType {
 }
 
 const defaultSettings: SettingsData = {
-  chatMatePersonality: "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society.",
-  editorMatePersonality: "You are an experienced Swedish language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+  chatMatePersonality: "You are a friendly local who loves helping newcomers feel welcome. You're enthusiastic about culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into society.",
+  editorMatePersonality: "You are an experienced language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+  chatMateBackground: "young professional, loves local culture and outdoor activities",
+  editorMateExpertise: "10+ years teaching experience, specializes in conversational fluency",
+  feedbackStyle: 'encouraging',
+  culturalContext: true,
+  progressiveComplexity: true,
   targetLanguage: 'swedish',
   streamingEnabled: true,
   provider: 'openrouter',
@@ -51,7 +64,9 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     const savedMainSettings = localStorage.getItem('languageMate_mainSettings');
     if (savedMainSettings) {
       try {
-        setMainSettings(JSON.parse(savedMainSettings));
+        const parsed = JSON.parse(savedMainSettings);
+        // Merge with defaults to handle new settings
+        setMainSettings({ ...defaultSettings, ...parsed });
       } catch (error) {
         console.error('Failed to parse main settings from localStorage:', error);
       }
@@ -60,7 +75,13 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     const savedChatSettings = localStorage.getItem('languageMate_chatSettings');
     if (savedChatSettings) {
       try {
-        setChatSettings(JSON.parse(savedChatSettings));
+        const parsed = JSON.parse(savedChatSettings);
+        // Merge each conversation's settings with defaults
+        const mergedChatSettings: Record<string, SettingsData> = {};
+        for (const [convId, settings] of Object.entries(parsed)) {
+          mergedChatSettings[convId] = { ...defaultSettings, ...settings as SettingsData };
+        }
+        setChatSettings(mergedChatSettings);
       } catch (error) {
         console.error('Failed to parse chat settings from localStorage:', error);
       }

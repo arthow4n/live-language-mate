@@ -45,8 +45,8 @@ const EnhancedChatInterface = ({
 
   // Get current conversation settings
   const currentSettings = conversationId ? getChatSettings(conversationId) : null;
-  const chatMatePrompt = currentSettings?.chatMatePersonality || 'You are a friendly Swedish native who loves to chat about daily life, culture, and local experiences.';
-  const editorMatePrompt = currentSettings?.editorMatePersonality || 'You are a patient Swedish teacher. Provide helpful corrections and suggestions to improve language skills.';
+  const chatMatePrompt = currentSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
+  const editorMatePrompt = currentSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -314,7 +314,13 @@ const EnhancedChatInterface = ({
         conversationHistory: history,
         chatMatePrompt,
         editorMatePrompt,
-        targetLanguage
+        targetLanguage,
+        // Pass new advanced settings
+        chatMateBackground: currentSettings?.chatMateBackground || 'young professional, loves local culture',
+        editorMateExpertise: currentSettings?.editorMateExpertise || '10+ years teaching experience',
+        feedbackStyle: currentSettings?.feedbackStyle || 'encouraging',
+        culturalContext: currentSettings?.culturalContext ?? true,
+        progressiveComplexity: currentSettings?.progressiveComplexity ?? true
       }
     });
 

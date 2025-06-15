@@ -21,7 +21,8 @@ import {
   GraduationCap, 
   Brain,
   Globe,
-  Key
+  Key,
+  Zap
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +30,13 @@ interface SettingsData {
   // AI Agent settings
   chatMatePersonality: string;
   editorMatePersonality: string;
+  
+  // Advanced settings
+  chatMateBackground: string;
+  editorMateExpertise: string;
+  feedbackStyle: 'gentle' | 'direct' | 'encouraging' | 'detailed';
+  culturalContext: boolean;
+  progressiveComplexity: boolean;
   
   // Language settings
   targetLanguage: string;
@@ -58,8 +66,13 @@ const UnifiedSettingsDialog = ({
   conversationTitle
 }: UnifiedSettingsDialogProps) => {
   const [settings, setSettings] = useState<SettingsData>({
-    chatMatePersonality: initialSettings.chatMatePersonality || "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society.",
-    editorMatePersonality: initialSettings.editorMatePersonality || "You are an experienced Swedish language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+    chatMatePersonality: initialSettings.chatMatePersonality || "You are a friendly local who loves helping newcomers feel welcome. You're enthusiastic about culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into society.",
+    editorMatePersonality: initialSettings.editorMatePersonality || "You are an experienced language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+    chatMateBackground: initialSettings.chatMateBackground || "young professional, loves local culture and outdoor activities",
+    editorMateExpertise: initialSettings.editorMateExpertise || "10+ years teaching experience, specializes in conversational fluency",
+    feedbackStyle: initialSettings.feedbackStyle || 'encouraging',
+    culturalContext: initialSettings.culturalContext ?? true,
+    progressiveComplexity: initialSettings.progressiveComplexity ?? true,
     targetLanguage: initialSettings.targetLanguage || 'swedish',
     streamingEnabled: initialSettings.streamingEnabled ?? true,
     provider: initialSettings.provider || 'openrouter',
@@ -72,8 +85,13 @@ const UnifiedSettingsDialog = ({
   useEffect(() => {
     if (open) {
       setSettings({
-        chatMatePersonality: initialSettings.chatMatePersonality || "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society.",
-        editorMatePersonality: initialSettings.editorMatePersonality || "You are an experienced Swedish language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+        chatMatePersonality: initialSettings.chatMatePersonality || "You are a friendly local who loves helping newcomers feel welcome. You're enthusiastic about culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into society.",
+        editorMatePersonality: initialSettings.editorMatePersonality || "You are an experienced language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.",
+        chatMateBackground: initialSettings.chatMateBackground || "young professional, loves local culture and outdoor activities",
+        editorMateExpertise: initialSettings.editorMateExpertise || "10+ years teaching experience, specializes in conversational fluency",
+        feedbackStyle: initialSettings.feedbackStyle || 'encouraging',
+        culturalContext: initialSettings.culturalContext ?? true,
+        progressiveComplexity: initialSettings.progressiveComplexity ?? true,
         targetLanguage: initialSettings.targetLanguage || 'swedish',
         streamingEnabled: initialSettings.streamingEnabled ?? true,
         provider: initialSettings.provider || 'openrouter',
@@ -101,7 +119,9 @@ const UnifiedSettingsDialog = ({
     setSettings({
       ...settings,
       chatMatePersonality: `You are a friendly ${languageLabel} local who loves helping newcomers feel welcome. You're enthusiastic about ${languageLabel} culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into ${languageLabel} society.`,
-      editorMatePersonality: `You are an experienced ${languageLabel} language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.`
+      editorMatePersonality: `You are an experienced ${languageLabel} language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.`,
+      chatMateBackground: "young professional, loves local culture and outdoor activities",
+      editorMateExpertise: "10+ years teaching experience, specializes in conversational fluency"
     });
   };
 
@@ -151,6 +171,13 @@ const UnifiedSettingsDialog = ({
     { value: 'danish', label: 'Danish' }
   ];
 
+  const feedbackStyles = [
+    { value: 'gentle', label: 'Gentle & Patient' },
+    { value: 'encouraging', label: 'Encouraging & Positive' },
+    { value: 'direct', label: 'Direct & Clear' },
+    { value: 'detailed', label: 'Detailed & Comprehensive' }
+  ];
+
   const currentModels = modelsByProvider[settings.provider as keyof typeof modelsByProvider] || [];
 
   const handleProviderChange = (provider: string) => {
@@ -164,7 +191,7 @@ const UnifiedSettingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
@@ -183,13 +210,14 @@ const UnifiedSettingsDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue="agents" className="flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="agents">AI Agents</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
             <TabsTrigger value="language">Language</TabsTrigger>
             <TabsTrigger value="api">API Settings</TabsTrigger>
           </TabsList>
 
-          <div className="overflow-y-auto max-h-[60vh] pr-2">
+          <div className="overflow-y-auto max-h-[55vh] pr-2">
             <TabsContent value="agents" className="space-y-6 mt-4">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
@@ -199,16 +227,26 @@ const UnifiedSettingsDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="chat-mate-personality">Personality & Background</Label>
+                  <Label htmlFor="chat-mate-personality">Personality & Conversation Style</Label>
                   <Textarea
                     id="chat-mate-personality"
                     value={settings.chatMatePersonality}
                     onChange={(e) => setSettings({ ...settings, chatMatePersonality: e.target.value })}
-                    placeholder="Describe Chat Mate's personality, background, and conversation style..."
-                    rows={4}
+                    placeholder="Describe Chat Mate's personality and conversation style..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="chat-mate-background">Background & Interests</Label>
+                  <Input
+                    id="chat-mate-background"
+                    value={settings.chatMateBackground}
+                    onChange={(e) => setSettings({ ...settings, chatMateBackground: e.target.value })}
+                    placeholder="e.g., university student, works in tech, loves hiking..."
                   />
                   <p className="text-xs text-muted-foreground">
-                    This will be added to Chat Mate's system prompt to customize their personality and conversation style.
+                    This helps create more engaging, contextual conversations.
                   </p>
                 </div>
               </div>
@@ -221,17 +259,24 @@ const UnifiedSettingsDialog = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="editor-mate-personality">Teaching Style & Approach</Label>
+                  <Label htmlFor="editor-mate-personality">Teaching Philosophy & Approach</Label>
                   <Textarea
                     id="editor-mate-personality"
                     value={settings.editorMatePersonality}
                     onChange={(e) => setSettings({ ...settings, editorMatePersonality: e.target.value })}
-                    placeholder="Describe Editor Mate's teaching style, feedback approach, and expertise level..."
-                    rows={4}
+                    placeholder="Describe Editor Mate's teaching style and approach..."
+                    rows={3}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Customize how detailed and encouraging Editor Mate's feedback should be.
-                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editor-mate-expertise">Expertise & Experience</Label>
+                  <Input
+                    id="editor-mate-expertise"
+                    value={settings.editorMateExpertise}
+                    onChange={(e) => setSettings({ ...settings, editorMateExpertise: e.target.value })}
+                    placeholder="e.g., 5+ years teaching, TESOL certified, specializes in business language..."
+                  />
                 </div>
               </div>
 
@@ -239,6 +284,62 @@ const UnifiedSettingsDialog = ({
                 <Button variant="outline" onClick={handleReset} size="sm">
                   Reset to Language Defaults
                 </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="advanced" className="space-y-6 mt-4">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Zap className="w-4 h-4" />
+                  <h3 className="font-semibold">Advanced AI Behavior</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="feedback-style">Editor Mate Feedback Style</Label>
+                    <Select value={settings.feedbackStyle} onValueChange={(value: any) => setSettings({ ...settings, feedbackStyle: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select feedback style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {feedbackStyles.map((style) => (
+                          <SelectItem key={style.value} value={style.value}>
+                            {style.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Controls how Editor Mate delivers corrections and suggestions.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label>Cultural Context Integration</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Include cultural explanations and local context in responses
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.culturalContext}
+                      onCheckedChange={(checked) => setSettings({ ...settings, culturalContext: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label>Progressive Complexity</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Gradually increase language complexity as conversation progresses
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.progressiveComplexity}
+                      onCheckedChange={(checked) => setSettings({ ...settings, progressiveComplexity: checked })}
+                    />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
