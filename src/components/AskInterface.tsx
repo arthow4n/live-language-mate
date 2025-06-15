@@ -41,11 +41,13 @@ const AskInterface = ({
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editableSelectedText, setEditableSelectedText] = useState('');
   const { toast } = useToast();
 
-  // Initialize conversation when selectedText changes
+  // Update editable selected text when selectedText prop changes
   useEffect(() => {
     if (selectedText && selectedText.trim()) {
+      setEditableSelectedText(selectedText);
       const welcomeMessage: Message = {
         id: Date.now().toString(),
         type: 'editor',
@@ -80,8 +82,8 @@ const AskInterface = ({
       content: msg.content
     }));
 
-    const contextMessage = selectedText 
-      ? `The user has selected this text: "${selectedText}". Answer their question about it: ${question}`
+    const contextMessage = editableSelectedText 
+      ? `The user has selected this text: "${editableSelectedText}". Answer their question about it: ${question}`
       : question;
 
     const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
@@ -170,17 +172,19 @@ const AskInterface = ({
           )}
         </div>
         
-        {selectedText && (
-          <div className="bg-gray-50 rounded-lg p-3 mb-3">
-            <p className="text-sm font-medium text-gray-700 mb-2">Selected text:</p>
-            <p className="text-sm bg-white rounded px-2 py-1 border">
-              "{selectedText}"
-            </p>
-          </div>
-        )}
+        {/* Always visible selected text input */}
+        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+          <p className="text-sm font-medium text-gray-700 mb-2">Selected text:</p>
+          <Input
+            value={editableSelectedText}
+            onChange={(e) => setEditableSelectedText(e.target.value)}
+            placeholder="Enter or paste text you want to ask about..."
+            className="bg-white"
+          />
+        </div>
 
         {/* Quick Links */}
-        {selectedText && (
+        {editableSelectedText && (
           <div className="space-y-2">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
               Quick Tools
@@ -192,7 +196,7 @@ const AskInterface = ({
                   variant="outline"
                   size="sm"
                   className="justify-start h-8 text-xs"
-                  onClick={() => window.open(link.url(selectedText), '_blank')}
+                  onClick={() => window.open(link.url(editableSelectedText), '_blank')}
                 >
                   <link.icon className="w-3 h-3 mr-2" />
                   {link.name}
@@ -211,7 +215,7 @@ const AskInterface = ({
             <div className="text-center py-8">
               <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
               <p className="text-sm text-gray-500 mb-2">
-                Select text from the chat to ask questions
+                Enter text above or select text from the chat to ask questions
               </p>
               <p className="text-xs text-gray-400">
                 Or ask Editor Mate anything about {targetLanguage}!
