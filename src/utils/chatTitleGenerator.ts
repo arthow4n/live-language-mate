@@ -9,25 +9,47 @@ export const generateChatTitle = async (
     // Get the first few messages to understand the conversation context
     const contextMessages = conversationHistory.slice(0, 4).map(msg => msg.content).join(' ');
     
-    const { data, error } = await supabase.functions.invoke('ai-chat', {
-      body: {
+    console.log('🏷️ Generating title from messages:', contextMessages.substring(0, 100) + '...');
+
+    const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
+      },
+      body: JSON.stringify({
         message: `Based on this conversation in ${targetLanguage}, generate a very short (2-4 words) chat title that summarizes the topic. Only return the title, nothing else: ${contextMessages}`,
         messageType: 'title-generation',
         conversationHistory: [],
-        targetLanguage
-      }
+        targetLanguage,
+        model: 'anthropic/claude-3-5-sonnet', // Use a reliable model for title generation
+        streaming: false // Disable streaming for title generation
+      })
     });
 
-    if (error || !data?.response) {
-      console.error('Error generating title:', error);
+    if (!response.ok) {
+      console.error('❌ Title generation response not ok:', response.status, response.statusText);
       return 'Chat';
     }
 
-    // Clean up the response and ensure it's short
-    const title = data.response.trim().replace(/['"]/g, '');
-    return title.length > 30 ? title.substring(0, 30) + '...' : title;
+    // Handle both streaming and non-streaming responses
+    const contentType = response.headers.get('content-type');
+    let data;
+    
+    if (contentType?.includes('application/json')) {
+      data = await response.json();
+      if (data.response) {
+        const title = data.response.trim().replace(/['"]/g, '');
+        const finalTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
+        console.log('✅ Generated title:', finalTitle);
+        return finalTitle;
+      }
+    }
+
+    console.error('❌ Invalid response format for title generation');
+    return 'Chat';
   } catch (error) {
-    console.error('Error generating chat title:', error);
+    console.error('❌ Error generating title:', error);
     return 'Chat';
   }
 };
@@ -37,6 +59,8 @@ export const updateConversationTitle = async (
   newTitle: string
 ): Promise<boolean> => {
   try {
+    console.log('💾 Updating conversation title:', conversationId, 'to:', newTitle);
+    
     const { error } = await supabase
       .from('conversations')
       .update({ 
@@ -46,13 +70,14 @@ export const updateConversationTitle = async (
       .eq('id', conversationId);
 
     if (error) {
-      console.error('Error updating conversation title:', error);
+      console.error('❌ Error updating conversation title:', error);
       return false;
     }
 
+    console.log('✅ Conversation title updated successfully');
     return true;
   } catch (error) {
-    console.error('Error updating conversation title:', error);
+    console.error('❌ Error updating conversation title:', error);
     return false;
   }
 };

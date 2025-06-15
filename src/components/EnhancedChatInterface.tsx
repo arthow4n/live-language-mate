@@ -79,7 +79,7 @@ const EnhancedChatInterface = ({
     if (!convId || titleGenerationProcessed.has(convId)) return;
     
     try {
-      console.log('🏷️ Generating conversation title for:', convId);
+      console.log('🏷️ Starting title generation for conversation:', convId);
       
       // Mark this conversation as being processed to prevent duplicates
       setTitleGenerationProcessed(prev => new Set(prev).add(convId));
@@ -95,15 +95,15 @@ const EnhancedChatInterface = ({
       if (newTitle && newTitle !== 'Chat') {
         const success = await updateConversationTitle(convId, newTitle);
         if (success) {
-          console.log('✅ Title generated and updated:', newTitle);
+          console.log('✅ Title generated and updated successfully:', newTitle);
           // Force sidebar refresh after title update
           setTimeout(() => {
             onConversationUpdate();
-          }, 100);
+          }, 200);
         }
       }
     } catch (error) {
-      console.error('❌ Error generating title:', error);
+      console.error('❌ Error in title generation process:', error);
       // Remove from processed set on error so it can be retried
       setTitleGenerationProcessed(prev => {
         const newSet = new Set(prev);
@@ -561,17 +561,13 @@ const EnhancedChatInterface = ({
     }
 
     try {
-      console.log('🆕 Creating new conversation with settings:', {
-        targetLanguage,
-        chatMatePrompt: chatMatePrompt.substring(0, 50) + '...',
-        editorMatePrompt: currentEditorMatePrompt.substring(0, 50) + '...'
-      });
+      console.log('🆕 Creating new conversation...');
       
       const { data, error } = await supabase
         .from('conversations')
         .insert({
           user_id: user.id,
-          title: 'New Chat', // Simple initial title that will be replaced
+          title: `${targetLanguage} Chat`, // Better initial title that will be replaced
           language: targetLanguage.toLowerCase(),
           chat_mate_prompt: chatMatePrompt,
           editor_mate_prompt: currentEditorMatePrompt
@@ -583,7 +579,7 @@ const EnhancedChatInterface = ({
       console.log('✅ New conversation created with ID:', data.id);
       return data.id;
     } catch (error) {
-      console.error('Error creating conversation:', error);
+      console.error('❌ Error creating conversation:', error);
       throw error;
     }
   };
