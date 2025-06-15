@@ -4,7 +4,6 @@ import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   MessageCircle, 
   GraduationCap, 
@@ -14,16 +13,16 @@ import {
   Trash2,
   RotateCcw,
   Copy,
-  GitBranch,
-  Check,
-  X,
   Clock,
-  Cpu
+  Cpu,
+  GitBranch,
+  Scissors
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Message } from '@/types/Message';
@@ -34,6 +33,7 @@ interface EnhancedChatMessageProps {
   onRegenerateMessage?: (messageId: string) => void;
   onEditMessage?: (messageId: string, newContent: string) => void;
   onDeleteMessage?: (messageId: string) => void;
+  onDeleteAllBelow?: (messageId: string) => void;
   onForkFrom?: (messageId: string) => void;
 }
 
@@ -43,6 +43,7 @@ const EnhancedChatMessage = ({
   onRegenerateMessage,
   onEditMessage,
   onDeleteMessage,
+  onDeleteAllBelow,
   onForkFrom
 }: EnhancedChatMessageProps) => {
   const [selectedText, setSelectedText] = useState('');
@@ -58,55 +59,35 @@ const EnhancedChatMessage = ({
     }
   };
 
-  const handleEditSave = () => {
-    if (onEditMessage && editContent.trim() !== message.content) {
-      onEditMessage(message.id, editContent.trim());
-    }
-    setIsEditing(false);
-  };
-
-  const handleEditCancel = () => {
-    setEditContent(message.content);
-    setIsEditing(false);
-  };
-
   const getMessageStyles = () => {
     switch (message.type) {
       case 'user':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100',
-          avatar: 'bg-blue-500 text-white',
-          icon: User,
-          label: 'User',
-          badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+          bubble: 'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
+          avatar: 'bg-user text-white',
+          icon: User
         };
       case 'chat-mate':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-green-50 border border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100',
-          avatar: 'bg-green-500 text-white',
-          icon: MessageCircle,
-          label: 'Chat Mate',
-          badgeClass: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+          bubble: 'bg-chat-mate-light border border-chat-mate/20 dark:bg-chat-mate/10 dark:border-chat-mate/30',
+          avatar: 'bg-chat-mate text-white',
+          icon: MessageCircle
         };
       case 'editor-mate':
         return {
-          container: 'mr-auto max-w-[70%] ml-10',
-          bubble: 'bg-orange-50 border border-orange-200 text-orange-900 dark:bg-orange-950 dark:border-orange-800 dark:text-orange-100',
-          avatar: 'bg-orange-500 text-white',
-          icon: GraduationCap,
-          label: 'Editor Mate',
-          badgeClass: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
+          container: 'mr-auto max-w-[80%]',
+          bubble: 'bg-editor-mate-light border border-editor-mate/20 dark:bg-editor-mate/10 dark:border-editor-mate/30',
+          avatar: 'bg-editor-mate text-white',
+          icon: GraduationCap
         };
       default:
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-gray-100 dark:bg-gray-800',
-          avatar: 'bg-gray-500 text-white',
-          icon: MessageCircle,
-          label: 'Unknown',
-          badgeClass: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+          bubble: 'bg-muted',
+          avatar: 'bg-muted-foreground text-background',
+          icon: MessageCircle
         };
     }
   };
@@ -129,50 +110,35 @@ const EnhancedChatMessage = ({
     navigator.clipboard.writeText(message.content);
   };
 
-  if (isEditing) {
-    return (
-      <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
-        <Avatar className="w-8 h-8 mt-1">
-          <AvatarFallback className={styles.avatar}>
-            <IconComponent className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={`text-xs ${styles.badgeClass}`}>
-              {styles.label}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {formatTime(message.timestamp)}
-            </span>
-          </div>
-          
-          <div className="space-y-2">
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[100px]"
-              placeholder="Edit your message..."
-            />
-            <div className="flex gap-2">
-              <Button size="sm" onClick={handleEditSave}>
-                <Check className="w-3 h-3 mr-1" />
-                Save
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleEditCancel}>
-                <X className="w-3 h-3 mr-1" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const getDisplayName = () => {
+    switch (message.type) {
+      case 'user':
+        return 'User';
+      case 'chat-mate':
+        return 'Chat Mate';
+      case 'editor-mate':
+        return 'Editor Mate';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const handleEdit = () => {
+    if (isEditing && onEditMessage) {
+      onEditMessage(message.id, editContent);
+      setIsEditing(false);
+    } else {
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(message.content);
+  };
 
   return (
-    <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
+    <div className={`flex items-start gap-3 group mb-4 ${styles.container}`}>
       <Avatar className="w-8 h-8 mt-1">
         <AvatarFallback className={styles.avatar}>
           <IconComponent className="w-4 h-4" />
@@ -181,8 +147,8 @@ const EnhancedChatMessage = ({
       
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className={`text-xs ${styles.badgeClass}`}>
-            {styles.label}
+          <Badge variant="secondary" className="text-xs">
+            {getDisplayName()}
           </Badge>
           <span className="text-xs text-muted-foreground">
             {formatTime(message.timestamp)}
@@ -208,70 +174,99 @@ const EnhancedChatMessage = ({
         </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
-          <div 
-            className="text-sm leading-relaxed select-text prose prose-sm max-w-none dark:prose-invert"
-            onMouseUp={handleTextSelection}
-          >
-            <ReactMarkdown
-              components={{
-                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                em: ({ children }) => <em className="italic">{children}</em>,
-                code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-            {message.isStreaming && (
-              <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
-            )}
-          </div>
-          
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-6 h-6">
-                  <MoreVertical className="w-3 h-3" />
+          {isEditing ? (
+            <div className="space-y-2">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full p-2 border rounded-md resize-none min-h-[100px] bg-background"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleEdit}>
+                  Save
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={copyToClipboard}>
-                  <Copy className="w-3 h-3 mr-2" />
-                  Copy
-                </DropdownMenuItem>
-                {onEditMessage && (
-                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div 
+              className="text-sm leading-relaxed select-text prose prose-sm max-w-none dark:prose-invert"
+              onMouseUp={handleTextSelection}
+            >
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+              {message.isStreaming && (
+                <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
+              )}
+            </div>
+          )}
+          
+          {!isEditing && (
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-6 h-6">
+                    <MoreVertical className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={copyToClipboard}>
+                    <Copy className="w-3 h-3 mr-2" />
+                    Copy
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleEdit}>
                     <Edit3 className="w-3 h-3 mr-2" />
                     Edit
                   </DropdownMenuItem>
-                )}
-                {onRegenerateMessage && message.type !== 'user' && (
-                  <DropdownMenuItem onClick={() => onRegenerateMessage(message.id)}>
-                    <RotateCcw className="w-3 h-3 mr-2" />
-                    Regenerate
-                  </DropdownMenuItem>
-                )}
-                {onForkFrom && (
-                  <DropdownMenuItem onClick={() => onForkFrom(message.id)}>
-                    <GitBranch className="w-3 h-3 mr-2" />
-                    Fork from here
-                  </DropdownMenuItem>
-                )}
-                {onDeleteMessage && (
-                  <DropdownMenuItem 
-                    className="text-destructive"
-                    onClick={() => onDeleteMessage(message.id)}
-                  >
-                    <Trash2 className="w-3 h-3 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                  {onRegenerateMessage && message.type !== 'user' && (
+                    <DropdownMenuItem onClick={() => onRegenerateMessage(message.id)}>
+                      <RotateCcw className="w-3 h-3 mr-2" />
+                      Regenerate
+                    </DropdownMenuItem>
+                  )}
+                  {onForkFrom && (
+                    <DropdownMenuItem onClick={() => onForkFrom(message.id)}>
+                      <GitBranch className="w-3 h-3 mr-2" />
+                      Fork from here
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  {onDeleteMessage && (
+                    <DropdownMenuItem 
+                      onClick={() => onDeleteMessage(message.id)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3 mr-2" />
+                      Delete message
+                    </DropdownMenuItem>
+                  )}
+                  {onDeleteAllBelow && (
+                    <DropdownMenuItem 
+                      onClick={() => onDeleteAllBelow(message.id)}
+                      className="text-destructive"
+                    >
+                      <Scissors className="w-3 h-3 mr-2" />
+                      Delete all below
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
       </div>
     </div>

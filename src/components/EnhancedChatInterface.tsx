@@ -250,6 +250,37 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const deleteAllBelow = (messageId: string) => {
+    try {
+      // Find the index of the selected message
+      const messageIndex = messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex === -1) return;
+
+      // Get all messages from the selected message onwards (including the selected message)
+      const messagesToDelete = messages.slice(messageIndex);
+      
+      // Delete each message from storage
+      messagesToDelete.forEach(msg => {
+        deleteMessageFromStorage(msg.id);
+      });
+
+      // Update local state to remove all messages from the selected index onwards
+      setMessages(prev => prev.slice(0, messageIndex));
+      
+      toast({
+        title: "Success",
+        description: `Deleted ${messagesToDelete.length} message${messagesToDelete.length > 1 ? 's' : ''}`,
+      });
+    } catch (error) {
+      console.error('Error deleting messages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete messages",
+        variant: "destructive",
+      });
+    }
+  };
+
   const editMessage = (messageId: string, newContent: string) => {
     try {
       updateMessage(messageId, { content: newContent });
@@ -718,6 +749,7 @@ const EnhancedChatInterface = ({
             onRegenerateMessage={regenerateMessage}
             onEditMessage={editMessage}
             onDeleteMessage={deleteMessage}
+            onDeleteAllBelow={deleteAllBelow}
             onForkFrom={forkFromMessage}
           />
         ))}
