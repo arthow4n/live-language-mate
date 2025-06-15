@@ -43,7 +43,7 @@ serve(async (req) => {
 
     // Use provided API key or fall back to environment variable
     // Check if apiKey exists and is not empty/whitespace
-    const openRouterApiKey = (apiKey && apiKey.trim()) ? apiKey.trim() : Deno.env.get('OPENROUTER_API_KEY')
+    const openRouterApiKey = (apiKey && apiKey.trim()) ? apiKey.trim() : Deno.env.get('OPENAI_API_KEY')
     
     if (!openRouterApiKey) {
       throw new Error('No API key provided. Please set your OpenRouter API key in the settings.')
