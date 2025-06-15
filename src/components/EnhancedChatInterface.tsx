@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, MessageSquare } from 'lucide-react';
+import { Send, Loader2, MessageSquare, Square } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -50,6 +50,7 @@ const EnhancedChatInterface = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const [componentReady, setComponentReady] = useState(false);
   const [titleGenerationProcessed, setTitleGenerationProcessed] = useState(new Set<string>());
@@ -326,6 +327,8 @@ const EnhancedChatInterface = ({
     if (message.type === 'user') return;
 
     setIsLoading(true);
+    const controller = new AbortController();
+    setAbortController(controller);
 
     try {
       let userMessage = '';
@@ -351,7 +354,7 @@ const EnhancedChatInterface = ({
         messageType = isUserComment ? 'editor-mate-user-comment' : 'editor-mate-chatmate-comment';
       }
 
-      const response = await callAI(userMessage, messageType, conversationHistory, messageId);
+      const response = await callAI(userMessage, messageType, conversationHistory, messageId, controller.signal);
 
       updateMessage(messageId, { content: response.content, metadata: response.metadata });
 
@@ -364,14 +367,23 @@ const EnhancedChatInterface = ({
         description: "Message regenerated",
       });
     } catch (error) {
-      console.error('Error regenerating message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to regenerate message",
-        variant: "destructive",
-      });
+      if (error.name === 'AbortError') {
+        console.log('🛑 Regeneration cancelled by user.');
+        toast({
+          title: "Cancelled",
+          description: "Message regeneration was cancelled.",
+        });
+      } else {
+        console.error('Error regenerating message:', error);
+        toast({
+          title: "Error",
+          description: "Failed to regenerate message",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -520,7 +532,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string): Promise<{ content: string; metadata: any }> => {
+  const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string, signal: AbortSignal): Promise<{ content: string; metadata: any }> => {
     console.log('🚀 Calling AI with model:', effectiveModel);
 
     const startTime = Date.now();
@@ -560,7 +572,8 @@ const EnhancedChatInterface = ({
         streaming: globalSettings.streaming ?? true,
         currentDateTime,
         userTimezone
-      })
+      }),
+      signal,
     });
 
     if (!response.ok) {
@@ -608,6 +621,9 @@ const EnhancedChatInterface = ({
     if (!inputMessage.trim() || isLoading) return;
 
     console.log('📤 Sending message with model:', effectiveModel);
+
+    const controller = new AbortController();
+    setAbortController(controller);
 
     let currentConversationId = conversationId;
 
@@ -681,7 +697,8 @@ const EnhancedChatInterface = ({
         currentInput,
         'editor-mate-user-comment',
         fullHistory,
-        editorUserTempId
+        editorUserTempId,
+        controller.signal
       );
       
       const savedEditorUserMessage = saveMessage({
@@ -717,7 +734,8 @@ const EnhancedChatInterface = ({
         currentInput,
         'chat-mate-response',
         chatMateHistory,
-        chatMateTempId
+        chatMateTempId,
+        controller.signal
       );
       
       const savedChatMateMessage = saveMessage({
@@ -753,7 +771,8 @@ const EnhancedChatInterface = ({
         chatMateResult.content,
         'editor-mate-chatmate-comment',
         fullHistory,
-        editorChatMateTempId
+        editorChatMateTempId,
+        controller.signal
       );
       
       const savedEditorChatMateMessage = saveMessage({
@@ -777,15 +796,25 @@ const EnhancedChatInterface = ({
       onConversationUpdate();
 
     } catch (error) {
-      console.error('❌ Error sending message:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send message",
-        variant: "destructive",
-      });
+      if (error.name === 'AbortError') {
+        console.log('🛑 Generation cancelled by user.');
+        toast({
+          title: "Cancelled",
+          description: "Message generation was cancelled.",
+        });
+        setMessages(prev => prev.filter(msg => !msg.isStreaming && !msg.id.startsWith('temp-')));
+      } else {
+        console.error('❌ Error sending message:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send message",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
       setIsCreatingNewConversation(false);
+      setAbortController(null);
     }
   };
 
@@ -798,6 +827,13 @@ const EnhancedChatInterface = ({
 
   const handleTextSelect = (text: string) => {
     onTextSelect(text);
+  };
+
+  const handleCancel = () => {
+    if (abortController) {
+      abortController.abort();
+      console.log('👋 Cancel requested');
+    }
   };
 
   return (
@@ -838,37 +874,46 @@ const EnhancedChatInterface = ({
 
       {/* Input Area */}
       <div className="p-4 border-t bg-card flex-shrink-0">
-        <div className="flex items-end space-x-2">
-          <Textarea
-            ref={textareaRef}
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={`Type in ${targetLanguage} or your native language...`}
-            className="flex-1 min-h-[40px] max-h-[120px]"
-            disabled={isLoading}
-            rows={1}
-          />
-          {isMobile && onAskInterfaceOpen && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onAskInterfaceOpen}
-              className="h-10 w-10 flex-shrink-0"
-              title="Open Ask Interface"
-            >
-              <MessageSquare className="w-4 h-4" />
+        {isLoading ? (
+          <div className="flex items-center justify-center">
+            <Button variant="outline" onClick={handleCancel}>
+              <Square className="w-4 h-4 mr-2" />
+              Stop generating
             </Button>
-          )}
-          <Button
-            onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading}
-            size="icon"
-            className="h-10 w-10 flex-shrink-0"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+          </div>
+        ) : (
+          <div className="flex items-end space-x-2">
+            <Textarea
+              ref={textareaRef}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={`Type in ${targetLanguage} or your native language...`}
+              className="flex-1 min-h-[40px] max-h-[120px]"
+              disabled={isLoading}
+              rows={1}
+            />
+            {isMobile && onAskInterfaceOpen && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onAskInterfaceOpen}
+                className="h-10 w-10 flex-shrink-0"
+                title="Open Ask Interface"
+              >
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            )}
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isLoading}
+              size="icon"
+              className="h-10 w-10 flex-shrink-0"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
