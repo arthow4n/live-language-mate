@@ -9,8 +9,13 @@ interface LocalStorageContextType {
   refreshConversations: () => void;
   getConversation: (id: string) => LocalConversation | null;
   saveConversation: (conversation: LocalConversation) => void;
+  createConversation: (data: Partial<LocalConversation>) => LocalConversation;
+  updateConversation: (id: string, updates: Partial<LocalConversation>) => void;
   deleteConversation: (id: string) => void;
-  addMessage: (conversationId: string, message: LocalMessage) => void;
+  addMessage: (conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>) => LocalMessage;
+  getMessages: (conversationId: string) => LocalMessage[];
+  updateMessage: (messageId: string, updates: Partial<LocalMessage>) => void;
+  deleteMessage: (messageId: string) => void;
   updateConversationTitle: (id: string, title: string) => void;
   updateSettings: (newSettings: Partial<LocalAppData['settings']>) => void;
   deleteAllChats: () => void;
@@ -45,14 +50,84 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     refreshConversations();
   };
 
+  const createConversation = (data: Partial<LocalConversation>): LocalConversation => {
+    const newConversation: LocalConversation = {
+      id: `conv_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      title: data.title || 'New Chat',
+      language: data.language || 'swedish',
+      ai_mode: data.ai_mode || 'dual',
+      chat_mate_prompt: data.chat_mate_prompt,
+      editor_mate_prompt: data.editor_mate_prompt,
+      created_at: new Date(),
+      updated_at: new Date(),
+      messages: []
+    };
+    
+    localStorageService.saveConversation(newConversation);
+    refreshConversations();
+    return newConversation;
+  };
+
+  const updateConversation = (id: string, updates: Partial<LocalConversation>) => {
+    const conversation = localStorageService.getConversation(id);
+    if (conversation) {
+      const updated = { ...conversation, ...updates, updated_at: new Date() };
+      localStorageService.saveConversation(updated);
+      refreshConversations();
+    }
+  };
+
   const deleteConversation = (id: string) => {
     localStorageService.deleteConversation(id);
     refreshConversations();
   };
 
-  const addMessage = (conversationId: string, message: LocalMessage) => {
-    localStorageService.addMessage(conversationId, message);
+  const addMessage = (conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>): LocalMessage => {
+    const newMessage: LocalMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      type: message.type,
+      content: message.content,
+      timestamp: new Date()
+    };
+    
+    localStorageService.addMessage(conversationId, newMessage);
     refreshConversations();
+    return newMessage;
+  };
+
+  const getMessages = (conversationId: string): LocalMessage[] => {
+    const conversation = localStorageService.getConversation(conversationId);
+    return conversation?.messages || [];
+  };
+
+  const updateMessage = (messageId: string, updates: Partial<LocalMessage>) => {
+    const data = localStorageService.getData();
+    
+    for (const conversation of data.conversations) {
+      const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex >= 0) {
+        conversation.messages[messageIndex] = { ...conversation.messages[messageIndex], ...updates };
+        conversation.updated_at = new Date();
+        localStorageService.saveData(data);
+        refreshConversations();
+        break;
+      }
+    }
+  };
+
+  const deleteMessage = (messageId: string) => {
+    const data = localStorageService.getData();
+    
+    for (const conversation of data.conversations) {
+      const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex >= 0) {
+        conversation.messages.splice(messageIndex, 1);
+        conversation.updated_at = new Date();
+        localStorageService.saveData(data);
+        refreshConversations();
+        break;
+      }
+    }
   };
 
   const updateConversationTitle = (id: string, title: string) => {
@@ -91,8 +166,13 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     refreshConversations,
     getConversation,
     saveConversation,
+    createConversation,
+    updateConversation,
     deleteConversation,
     addMessage,
+    getMessages,
+    updateMessage,
+    deleteMessage,
     updateConversationTitle,
     updateSettings,
     deleteAllChats,

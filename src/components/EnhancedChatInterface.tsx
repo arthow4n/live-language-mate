@@ -194,10 +194,9 @@ const EnhancedChatInterface = ({
 
       const formattedMessages = conversationMessages.map(msg => ({
         id: msg.id,
-        type: msg.message_type as 'user' | 'chat-mate' | 'editor-mate',
+        type: msg.type,
         content: msg.content,
-        timestamp: new Date(msg.created_at),
-        parentMessageId: msg.parent_message_id,
+        timestamp: msg.timestamp,
       }));
 
       console.log('📥 Loaded messages:', formattedMessages.length);
@@ -222,8 +221,7 @@ const EnhancedChatInterface = ({
       console.log('💾 Saving message to local storage:', message.type, message.content.substring(0, 50) + '...');
       const savedMessage = addMessage(actualConversationId, {
         content: message.content,
-        message_type: message.type,
-        parent_message_id: message.parentMessageId,
+        type: message.type,
       });
       console.log('✅ Message saved successfully with ID:', savedMessage.id);
       return savedMessage;
@@ -356,8 +354,7 @@ const EnhancedChatInterface = ({
       for (const msg of messagesToCopy) {
         addMessage(newConversation.id, {
           content: msg.content,
-          message_type: msg.type,
-          parent_message_id: msg.parentMessageId,
+          type: msg.type,
         });
       }
 
@@ -395,12 +392,12 @@ const EnhancedChatInterface = ({
         targetLanguage,
         model: settings.model,
         apiKey: settings.apiKey,
-        // Pass new advanced settings
-        chatMateBackground: currentConversation?.chatMateBackground || 'young professional, loves local culture',
-        editorMateExpertise: currentConversation?.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: currentConversation?.feedbackStyle || 'encouraging',
-        culturalContext: currentConversation?.culturalContext ?? true,
-        progressiveComplexity: currentConversation?.progressiveComplexity ?? true,
+        // Pass new advanced settings with defaults
+        chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+        editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+        feedbackStyle: settings.feedbackStyle || 'encouraging',
+        culturalContext: settings.culturalContext ?? true,
+        progressiveComplexity: settings.progressiveComplexity ?? true,
         streaming: settings.streaming ?? true
       })
     });
@@ -595,11 +592,11 @@ const EnhancedChatInterface = ({
           targetLanguage,
           model: settings.model,
           apiKey: settings.apiKey,
-          chatMateBackground: currentConversation?.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: currentConversation?.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: currentConversation?.feedbackStyle || 'encouraging',
-          culturalContext: currentConversation?.culturalContext ?? true,
-          progressiveComplexity: currentConversation?.progressiveComplexity ?? true,
+          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: settings.feedbackStyle || 'encouraging',
+          culturalContext: settings.culturalContext ?? true,
+          progressiveComplexity: settings.progressiveComplexity ?? true,
           streaming: settings.streaming ?? true
         })
       });
@@ -649,11 +646,11 @@ const EnhancedChatInterface = ({
           targetLanguage,
           model: settings.model,
           apiKey: settings.apiKey,
-          chatMateBackground: currentConversation?.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: currentConversation?.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: currentConversation?.feedbackStyle || 'encouraging',
-          culturalContext: currentConversation?.culturalContext ?? true,
-          progressiveComplexity: currentConversation?.progressiveComplexity ?? true,
+          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: settings.feedbackStyle || 'encouraging',
+          culturalContext: settings.culturalContext ?? true,
+          progressiveComplexity: settings.progressiveComplexity ?? true,
           streaming: settings.streaming ?? true
         })
       });
@@ -703,11 +700,11 @@ const EnhancedChatInterface = ({
           targetLanguage,
           model: settings.model,
           apiKey: settings.apiKey,
-          chatMateBackground: currentConversation?.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: currentConversation?.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: currentConversation?.feedbackStyle || 'encouraging',
-          culturalContext: currentConversation?.culturalContext ?? true,
-          progressiveComplexity: currentConversation?.progressiveComplexity ?? true,
+          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: settings.feedbackStyle || 'encouraging',
+          culturalContext: settings.culturalContext ?? true,
+          progressiveComplexity: settings.progressiveComplexity ?? true,
           streaming: settings.streaming ?? true
         })
       });

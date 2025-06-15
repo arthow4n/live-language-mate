@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,9 +51,7 @@ const ChatSidebar = ({
       const conversation = conversations.find(c => c.id === editingConversation);
       if (conversation) {
         updateConversation(editingConversation, {
-          ...conversation,
           title: editTitle.trim(),
-          updated_at: new Date()
         });
         setEditingConversation(null);
         toast({
