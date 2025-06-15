@@ -235,7 +235,7 @@ const ChatSidebar = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="w-6 h-6 opacity-0 group-hover:opacity-100 ml-auto flex-shrink-0"
+                            className="w-6 h-6 ml-auto flex-shrink-0 opacity-100"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="w-3 h-3" />

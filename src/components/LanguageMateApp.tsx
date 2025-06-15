@@ -157,18 +157,13 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                   onConversationUpdate={handleConversationUpdate}
                   onConversationCreated={setCurrentConversationId}
                   onTextSelect={handleTextSelect}
+                  onAskInterfaceOpen={() => setAskInterfaceOpen(true)}
+                  selectedText={selectedText}
+                  editorMatePrompt={currentSettings.editorMatePersonality}
                 />
 
-                {/* Floating Action Button for Ask Interface */}
+                {/* Ask Interface Drawer for Mobile */}
                 <Drawer open={askInterfaceOpen} onOpenChange={setAskInterfaceOpen}>
-                  <DrawerTrigger asChild>
-                    <Button
-                      size="icon"
-                      className="fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg z-10"
-                    >
-                      <MessageSquare className="w-6 h-6" />
-                    </Button>
-                  </DrawerTrigger>
                   <DrawerContent className="h-[80vh]">
                     <DrawerHeader>
                       <DrawerTitle>Ask Interface</DrawerTitle>
