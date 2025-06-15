@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { localStorageService, LocalConversation, LocalMessage, LocalAppData } from '@/services/localStorageService';
 
@@ -83,16 +82,9 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addMessage = (conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>): LocalMessage => {
-    const newMessage: LocalMessage = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
-      type: message.type,
-      content: message.content,
-      timestamp: new Date()
-    };
-    
-    localStorageService.addMessage(conversationId, newMessage);
+    const savedMessage = localStorageService.addMessage(conversationId, message);
     refreshConversations();
-    return newMessage;
+    return savedMessage;
   };
 
   const getMessages = (conversationId: string): LocalMessage[] => {
@@ -101,33 +93,13 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateMessage = (messageId: string, updates: Partial<LocalMessage>) => {
-    const data = localStorageService.getData();
-    
-    for (const conversation of data.conversations) {
-      const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
-      if (messageIndex >= 0) {
-        conversation.messages[messageIndex] = { ...conversation.messages[messageIndex], ...updates };
-        conversation.updated_at = new Date();
-        localStorageService.saveData(data);
-        refreshConversations();
-        break;
-      }
-    }
+    localStorageService.updateMessage(messageId, updates);
+    refreshConversations();
   };
 
   const deleteMessage = (messageId: string) => {
-    const data = localStorageService.getData();
-    
-    for (const conversation of data.conversations) {
-      const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
-      if (messageIndex >= 0) {
-        conversation.messages.splice(messageIndex, 1);
-        conversation.updated_at = new Date();
-        localStorageService.saveData(data);
-        refreshConversations();
-        break;
-      }
-    }
+    localStorageService.deleteMessage(messageId);
+    refreshConversations();
   };
 
   const updateConversationTitle = (id: string, title: string) => {

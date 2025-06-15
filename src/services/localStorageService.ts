@@ -129,7 +129,7 @@ class LocalStorageService {
     
     if (conversation) {
       const newMessage: LocalMessage = {
-        id: Date.now().toString(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
         timestamp: new Date(),
         ...message
       };
