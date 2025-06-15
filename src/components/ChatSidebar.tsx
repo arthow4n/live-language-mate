@@ -242,7 +242,7 @@ const ChatSidebar = ({
                             className={`w-6 h-6 ml-auto flex-shrink-0 ${
                               currentConversationId === conversation.id 
                                 ? 'hover:bg-primary-foreground/20 text-primary-foreground' 
-                                : 'hover:bg-accent opacity-100'
+                                : 'hover:bg-accent'
                             }`}
                             onClick={(e) => e.stopPropagation()}
                           >
