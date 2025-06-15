@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,7 +142,7 @@ const AskInterface = ({
       }
       const endTime = Date.now();
       const generationTime = endTime - startTime;
-      return { response: data.response, generationTime, model: settings.model, startTime, endTime };
+      return { response: data.response, generationTime, model: settings.model };
     }
   };
 
@@ -179,19 +178,12 @@ const AskInterface = ({
     setConversation(prev => [...prev, initialEditorMessage]);
 
     try {
-      const { response, startTime, model, generationTime, endTime } = await callEditorMateStreaming(currentQuestion);
+      const { response, startTime, model } = await callEditorMateStreaming(currentQuestion);
       
       if (typeof response === 'string') {
         // Non-streaming response
-        const finalGenerationTime = generationTime || (Date.now() - startTime);
-        const finalEndTime = endTime || Date.now();
-        
-        console.log('Saving metadata for non-streaming response:', {
-          model,
-          generationTime: finalGenerationTime,
-          startTime,
-          endTime: finalEndTime
-        });
+        const endTime = Date.now();
+        const generationTime = endTime - startTime;
         
         setConversation(prev => prev.map(msg => 
           msg.id === editorMessageId 
@@ -201,9 +193,9 @@ const AskInterface = ({
                 isStreaming: false,
                 metadata: {
                   model,
-                  generationTime: finalGenerationTime,
+                  generationTime,
                   startTime,
-                  endTime: finalEndTime
+                  endTime
                 }
               }
             : msg
@@ -230,13 +222,6 @@ const AskInterface = ({
                   isStreamingComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
-                  
-                  console.log('Saving metadata for streaming response:', {
-                    model,
-                    generationTime,
-                    startTime,
-                    endTime
-                  });
                   
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 

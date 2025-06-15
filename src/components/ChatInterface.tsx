@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import EnhancedChatMessage from './EnhancedChatMessage';
+import ChatMessage from './ChatMessage';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Message } from '@/types/Message';
 
@@ -23,7 +22,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { getChatSettings, getGlobalSettings, createChatSettings } = useSettings();
+  const { getChatSettings, getGlobalSettings } = useSettings();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,8 +31,6 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const stableCreateChatSettings = useCallback(createChatSettings, []);
 
   useEffect(() => {
     const createConversation = async () => {
@@ -50,8 +47,6 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
 
         if (error) throw error;
         setConversationId(data.id);
-        // Initialize settings for the new chat
-        stableCreateChatSettings(data.id);
       } catch (error) {
         console.error('Error creating conversation:', error);
         toast({
@@ -64,7 +59,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
 
     createConversation();
     setMessages([]); // Clear messages when switching modes
-  }, [user.id, aiMode, stableCreateChatSettings, toast]);
+  }, [user.id, aiMode]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !conversationId || isLoading) return;
@@ -81,7 +76,6 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
     setInputMessage('');
     setIsLoading(true);
 
-    const aiMessageId = (Date.now() + 1).toString();
     const startTime = Date.now();
 
     try {
@@ -93,124 +87,96 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         message_type: 'user',
       });
 
-      // Get settings
+      // Get settings for this conversation
       const chatSettings = getChatSettings(conversationId);
       const globalSettings = getGlobalSettings();
       
-      const modelToUse = chatSettings.model || globalSettings.model;
-      const apiKeyToUse = chatSettings.apiKey || globalSettings.apiKey;
-      const targetLanguageToUse = chatSettings.targetLanguage || globalSettings.targetLanguage;
-      
-      console.log('Using chat settings for AI call:', { model: modelToUse, targetLanguage: targetLanguageToUse, conversationId });
+      console.log('Using settings:', {
+        model: globalSettings.model,
+        targetLanguage: globalSettings.targetLanguage,
+        apiKey: globalSettings.apiKey ? 'Set' : 'Not set'
+      });
 
-      const initialAiMessage: Message = {
-        id: aiMessageId,
-        type: aiMode,
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        metadata: { startTime, model: modelToUse }
-      };
-      setMessages(prev => [...prev, initialAiMessage]);
-
+      // Prepare conversation history for AI context
       const conversationHistory = messages.map(msg => ({
         role: msg.type === 'user' ? 'user' : 'assistant',
         content: msg.content
       }));
 
-      const { data: stream, error: aiError } = await supabase.functions.invoke('ai-chat', {
+      console.log('Sending message to AI:', { 
+        message: currentInput, 
+        aiMode, 
+        conversationHistory,
+        model: globalSettings.model,
+        targetLanguage: globalSettings.targetLanguage
+      });
+
+      // Call AI edge function with settings
+      const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
         body: {
           message: currentInput,
           messageType: aiMode === 'chat-mate' ? 'chat-mate-response' : 'editor-mate-user-comment',
           conversationHistory: conversationHistory,
           chatMatePrompt: chatSettings.chatMatePersonality,
           editorMatePrompt: chatSettings.editorMatePersonality,
-          targetLanguage: targetLanguageToUse,
-          model: modelToUse,
-          apiKey: apiKeyToUse,
+          targetLanguage: globalSettings.targetLanguage,
+          model: globalSettings.model,
+          apiKey: globalSettings.apiKey,
+          // Advanced settings
           chatMateBackground: chatSettings.chatMateBackground,
           editorMateExpertise: chatSettings.editorMateExpertise,
           feedbackStyle: chatSettings.feedbackStyle,
           culturalContext: chatSettings.culturalContext,
-          progressiveComplexity: chatSettings.progressiveComplexity,
-          streaming: true // Force streaming
-        },
-        responseType: 'stream'
-      } as any);
-      
-      if (aiError) throw new Error(aiError.message || 'Failed to get AI response');
-      if (!stream) throw new Error('No response stream from AI');
-
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedContent = '';
-      let isStreamingComplete = false;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') {
-              isStreamingComplete = true;
-              break;
-            }
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                accumulatedContent += parsed.content;
-                setMessages(prev => prev.map(msg =>
-                  msg.id === aiMessageId
-                    ? { ...msg, content: accumulatedContent, isStreaming: true }
-                    : msg
-                ));
-              }
-            } catch (e) {
-              // Ignore invalid JSON
-            }
-          }
+          progressiveComplexity: chatSettings.progressiveComplexity
         }
-        if (isStreamingComplete) break;
+      });
+
+      if (aiError) {
+        console.error('AI function error:', aiError);
+        throw new Error(aiError.message || 'Failed to get AI response');
       }
-      
+
+      if (!aiData || !aiData.response) {
+        throw new Error('No response from AI');
+      }
+
       const endTime = Date.now();
       const generationTime = endTime - startTime;
 
-      const finalAiMessage = {
-        content: accumulatedContent,
-        metadata: { model: modelToUse, generationTime, startTime, endTime }
+      console.log('Received AI response:', aiData.response);
+
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: aiMode,
+        content: aiData.response,
+        timestamp: new Date(),
+        metadata: {
+          model: globalSettings.model,
+          generationTime,
+          startTime,
+          endTime
+        }
       };
 
-      setMessages(prev => prev.map(msg =>
-        msg.id === aiMessageId
-          ? { ...msg, content: finalAiMessage.content, isStreaming: false, metadata: finalAiMessage.metadata }
-          : msg
-      ));
+      setMessages(prev => [...prev, aiResponse]);
 
       // Save AI response to database
       await supabase.from('messages').insert({
         conversation_id: conversationId,
         user_id: user.id,
-        content: finalAiMessage.content,
+        content: aiResponse.content,
         message_type: aiMode,
       });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to send message",
         variant: "destructive",
       });
-      setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));
     } finally {
       setIsLoading(false);
-      setMessages(prev => prev.map(msg => ({...msg, isStreaming: false})));
     }
   };
 
@@ -266,7 +232,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
             )}
             
             {messages.map((message) => (
-              <EnhancedChatMessage
+              <ChatMessage
                 key={message.id}
                 message={message}
                 onTextSelect={handleTextSelect}
