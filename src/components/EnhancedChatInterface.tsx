@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -361,7 +360,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAI = async (message: string, messageType: string, history: any[]) => {
+  const callAI = async (message: string, messageType: string, history: any[], streamingMessageId?: string) => {
     if (!mainSettings) {
       throw new Error('Main settings not loaded');
     }
@@ -402,7 +401,7 @@ const EnhancedChatInterface = ({
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
       // Handle streaming response
-      return await handleStreamingResponse(response);
+      return await handleStreamingResponse(response, streamingMessageId);
     } else {
       // Handle non-streaming response (fallback)
       const data = await response.json();
@@ -410,7 +409,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleStreamingResponse = async (response: Response): Promise<string> => {
+  const handleStreamingResponse = async (response: Response, streamingMessageId?: string): Promise<string> => {
     if (!response.body) {
       throw new Error('No response body for streaming');
     }
@@ -439,9 +438,27 @@ const EnhancedChatInterface = ({
               
               if (data.type === 'content') {
                 fullContent += data.content;
-                // You could update the UI here to show streaming content if desired
+                
+                // Update the streaming message with the new content
+                if (streamingMessageId) {
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === streamingMessageId 
+                      ? { ...msg, content: fullContent, isStreaming: true }
+                      : msg
+                  ));
+                }
               } else if (data.type === 'done') {
                 console.log('✅ Streaming completed');
+                
+                // Mark streaming as complete
+                if (streamingMessageId) {
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === streamingMessageId 
+                      ? { ...msg, content: fullContent, isStreaming: false }
+                      : msg
+                  ));
+                }
+                
                 return fullContent;
               }
             } catch (e) {
@@ -551,61 +568,80 @@ const EnhancedChatInterface = ({
 
       console.log('🔄 Processing AI responses for message:', currentInput);
 
-      // Get Editor Mate comment on user message first
-      const editorUserComment = await callAI(currentInput, 'editor-mate-user-comment', fullHistory);
-      
+      // Create placeholder messages for streaming
       const editorUserMessage: Message = {
         id: `temp-${Date.now() + 1}`,
         type: 'editor-mate',
-        content: editorUserComment,
+        content: '',
         timestamp: new Date(),
         parentMessageId: savedUserMessage?.id || userMessage.id,
+        isStreaming: true,
       };
 
-      setMessages(prev => [...prev, editorUserMessage]);
-      const savedEditorUserMessage = await saveMessage(editorUserMessage, currentConversationId);
-      if (savedEditorUserMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === editorUserMessage.id ? { ...msg, id: savedEditorUserMessage.id } : msg
-        ));
-      }
-
-      // Get Chat Mate response
-      const chatMateResponse = await callAI(currentInput, 'chat-mate-response', chatMateHistory);
-      
       const chatMateMessage: Message = {
         id: `temp-${Date.now() + 2}`,
         type: 'chat-mate',
-        content: chatMateResponse,
+        content: '',
         timestamp: new Date(),
+        isStreaming: true,
       };
 
-      setMessages(prev => [...prev, chatMateMessage]);
-      const savedChatMateMessage = await saveMessage(chatMateMessage, currentConversationId);
-      if (savedChatMateMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === chatMateMessage.id ? { ...msg, id: savedChatMateMessage.id } : msg
-        ));
-      }
-
-      // Get Editor Mate comment on Chat Mate response
-      const editorChatMateComment = await callAI(chatMateResponse, 'editor-mate-chatmate-comment', fullHistory);
-      
       const editorChatMateMessage: Message = {
         id: `temp-${Date.now() + 3}`,
         type: 'editor-mate',
-        content: editorChatMateComment,
+        content: '',
         timestamp: new Date(),
-        parentMessageId: savedChatMateMessage?.id || chatMateMessage.id,
+        parentMessageId: chatMateMessage.id,
+        isStreaming: true,
       };
 
-      setMessages(prev => [...prev, editorChatMateMessage]);
-      const savedEditorChatMateMessage = await saveMessage(editorChatMateMessage, currentConversationId);
-      if (savedEditorChatMateMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === editorChatMateMessage.id ? { ...msg, id: savedEditorChatMateMessage.id } : msg
-        ));
-      }
+      // Add placeholder messages
+      setMessages(prev => [...prev, editorUserMessage, chatMateMessage, editorChatMateMessage]);
+
+      // Start all AI calls with streaming
+      const [editorUserComment, chatMateResponse, editorChatMateComment] = await Promise.all([
+        callAI(currentInput, 'editor-mate-user-comment', fullHistory, editorUserMessage.id),
+        callAI(currentInput, 'chat-mate-response', chatMateHistory, chatMateMessage.id),
+        // For editor mate chat comment, we'll call it after chat mate response starts
+        new Promise(resolve => {
+          setTimeout(async () => {
+            const response = await callAI(chatMateMessage.content || currentInput, 'editor-mate-chatmate-comment', fullHistory, editorChatMateMessage.id);
+            resolve(response);
+          }, 1000); // Small delay to let chat mate response start
+        })
+      ]);
+
+      // Save all messages to database
+      const savedEditorUserMessage = await saveMessage({
+        type: 'editor-mate',
+        content: editorUserComment,
+        parentMessageId: savedUserMessage?.id || userMessage.id,
+      }, currentConversationId);
+
+      const savedChatMateMessage = await saveMessage({
+        type: 'chat-mate',
+        content: chatMateResponse,
+      }, currentConversationId);
+
+      const savedEditorChatMateMessage = await saveMessage({
+        type: 'editor-mate',
+        content: editorChatMateComment,
+        parentMessageId: savedChatMateMessage?.id || chatMateMessage.id,
+      }, currentConversationId);
+
+      // Update messages with real IDs
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === editorUserMessage.id && savedEditorUserMessage) {
+          return { ...msg, id: savedEditorUserMessage.id, isStreaming: false };
+        }
+        if (msg.id === chatMateMessage.id && savedChatMateMessage) {
+          return { ...msg, id: savedChatMateMessage.id, isStreaming: false };
+        }
+        if (msg.id === editorChatMateMessage.id && savedEditorChatMateMessage) {
+          return { ...msg, id: savedEditorChatMateMessage.id, isStreaming: false };
+        }
+        return msg;
+      }));
 
       onConversationUpdate();
 
