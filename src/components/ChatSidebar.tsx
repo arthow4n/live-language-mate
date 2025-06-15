@@ -206,101 +206,99 @@ const ChatSidebar = ({
         </Button>
       </SidebarHeader>
 
-      <SidebarContent className="overflow-hidden">
-        <SidebarGroup className="flex flex-col h-full overflow-hidden">
+      <SidebarContent>
+        <SidebarGroup>
           <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
-          <SidebarGroupContent className="flex-1 overflow-hidden">
+          <SidebarGroupContent>
             <ScrollArea className="h-full">
-              <div className="space-y-1 p-1">
-                <SidebarMenu>
-                  {isLoading ? (
-                    <div className="p-4 text-center text-muted-foreground">
-                      Loading conversations...
-                    </div>
-                  ) : conversations.length === 0 ? (
-                    <div className="p-4 text-center text-muted-foreground text-sm">
-                      No conversations yet. Start a new chat!
-                    </div>
-                  ) : (
-                    conversations.map((conversation) => (
-                      <SidebarMenuItem key={conversation.id}>
-                        <div className={`group relative w-full flex items-center ${
-                          currentConversationId === conversation.id 
-                            ? 'bg-primary/90 text-primary-foreground hover:bg-primary shadow-sm border-l-4 border-gray-800 dark:border-gray-200 font-medium rounded-md' 
-                            : 'hover:bg-accent/50 rounded-md'
-                        }`}>
-                          <button
-                            onClick={() => onConversationSelect(conversation.id)}
-                            className="flex items-center flex-1 p-2 text-left min-w-0"
-                          >
-                            <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
-                            <span className="truncate flex-1">
-                              {conversation.title}
-                            </span>
-                          </button>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`w-6 h-6 mr-2 flex-shrink-0 !opacity-100 !visible ${
-                                  currentConversationId === conversation.id 
-                                    ? 'hover:bg-primary-foreground/20 text-primary-foreground' 
-                                    : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-                                }`}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <MoreVertical className="w-3 h-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onChatSettingsOpen();
-                                }}
-                              >
-                                <Settings className="w-4 h-4 mr-2" />
-                                Chat Settings
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingConversation(conversation.id);
-                                  setEditTitle(conversation.title);
-                                }}
-                              >
-                                <Edit2 className="w-4 h-4 mr-2" />
-                                Rename
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleForkConversation(conversation.id);
-                                }}
-                              >
-                                <GitBranch className="w-4 h-4 mr-2" />
-                                Fork Chat
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteConversation(conversation.id);
-                                }}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </SidebarMenuItem>
-                    ))
-                  )}
-                </SidebarMenu>
-              </div>
+              <SidebarMenu>
+                {isLoading ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    Loading conversations...
+                  </div>
+                ) : conversations.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    No conversations yet. Start a new chat!
+                  </div>
+                ) : (
+                  conversations.map((conversation) => (
+                    <SidebarMenuItem key={conversation.id}>
+                      <div className={`group relative w-full flex items-center ${
+                        currentConversationId === conversation.id 
+                          ? 'bg-primary/90 text-primary-foreground hover:bg-primary shadow-sm border-l-4 border-gray-800 dark:border-gray-200 font-medium rounded-md' 
+                          : 'hover:bg-accent/50 rounded-md'
+                      }`}>
+                        <button
+                          onClick={() => onConversationSelect(conversation.id)}
+                          className="flex items-center flex-1 p-2 text-left min-w-0"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span className="truncate flex-1">
+                            {conversation.title}
+                          </span>
+                        </button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`w-6 h-6 mr-2 flex-shrink-0 !opacity-100 !visible ${
+                                currentConversationId === conversation.id 
+                                  ? 'hover:bg-primary-foreground/20 text-primary-foreground' 
+                                  : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                              }`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="w-3 h-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onChatSettingsOpen();
+                              }}
+                            >
+                              <Settings className="w-4 h-4 mr-2" />
+                              Chat Settings
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingConversation(conversation.id);
+                                setEditTitle(conversation.title);
+                              }}
+                            >
+                              <Edit2 className="w-4 h-4 mr-2" />
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleForkConversation(conversation.id);
+                              }}
+                            >
+                              <GitBranch className="w-4 h-4 mr-2" />
+                              Fork Chat
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteConversation(conversation.id);
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </SidebarMenuItem>
+                  ))
+                )}
+              </SidebarMenu>
             </ScrollArea>
           </SidebarGroupContent>
         </SidebarGroup>
