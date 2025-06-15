@@ -2,14 +2,16 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, MessageSquare } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import AskInterface from './AskInterface';
 import UnifiedSettingsDialog from './UnifiedSettingsDialog';
 import { SettingsProvider, useSettings } from '@/contexts/SettingsContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from "@/integrations/supabase/client";
 
 interface LanguageMateAppProps {
@@ -22,8 +24,10 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
   const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
   const [refreshSidebar, setRefreshSidebar] = useState(0);
   const [selectedText, setSelectedText] = useState('');
+  const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
   
   const { mainSettings, updateMainSettings, getChatSettings, updateChatSettings } = useSettings();
+  const isMobile = useIsMobile();
   
   // Get current conversation settings
   const currentSettings = currentConversationId ? getChatSettings(currentConversationId) : mainSettings;
@@ -71,6 +75,13 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
     return [70, 30];
   };
 
+  const handleTextSelect = (text: string) => {
+    setSelectedText(text);
+    if (isMobile && text.trim()) {
+      setAskInterfaceOpen(true);
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
@@ -97,54 +108,83 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           {/* Content Area - Chat + Ask Interface */}
           <div className="flex-1 flex overflow-hidden min-h-0">
             {/* Desktop: Resizable panels for Chat and Ask Interface */}
-            <div className="hidden lg:flex flex-1 h-full">
-              <ResizablePanelGroup
-                direction="horizontal"
-                onLayout={handlePanelSizeChange}
-                className="h-full"
-              >
-                <ResizablePanel
-                  defaultSize={getDefaultPanelSizes()[0]}
-                  minSize={30}
+            {!isMobile && (
+              <div className="flex-1 h-full">
+                <ResizablePanelGroup
+                  direction="horizontal"
+                  onLayout={handlePanelSizeChange}
                   className="h-full"
                 >
-                  <EnhancedChatInterface
-                    user={user}
-                    conversationId={currentConversationId}
-                    targetLanguage={currentSettings.targetLanguage}
-                    onConversationUpdate={handleConversationUpdate}
-                    onConversationCreated={setCurrentConversationId}
-                    onTextSelect={setSelectedText}
-                  />
-                </ResizablePanel>
-                
-                <ResizableHandle withHandle />
-                
-                <ResizablePanel
-                  defaultSize={getDefaultPanelSizes()[1]}
-                  minSize={20}
-                  className="h-full bg-card border-l"
-                >
-                  <AskInterface
-                    selectedText={selectedText}
-                    targetLanguage={currentSettings.targetLanguage}
-                    editorMatePrompt={currentSettings.editorMatePersonality}
-                  />
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </div>
+                  <ResizablePanel
+                    defaultSize={getDefaultPanelSizes()[0]}
+                    minSize={30}
+                    className="h-full"
+                  >
+                    <EnhancedChatInterface
+                      user={user}
+                      conversationId={currentConversationId}
+                      targetLanguage={currentSettings.targetLanguage}
+                      onConversationUpdate={handleConversationUpdate}
+                      onConversationCreated={setCurrentConversationId}
+                      onTextSelect={handleTextSelect}
+                    />
+                  </ResizablePanel>
+                  
+                  <ResizableHandle withHandle />
+                  
+                  <ResizablePanel
+                    defaultSize={getDefaultPanelSizes()[1]}
+                    minSize={20}
+                    className="h-full bg-card border-l"
+                  >
+                    <AskInterface
+                      selectedText={selectedText}
+                      targetLanguage={currentSettings.targetLanguage}
+                      editorMatePrompt={currentSettings.editorMatePersonality}
+                    />
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </div>
+            )}
 
-            {/* Mobile: Single column layout */}
-            <div className="lg:hidden flex-1 min-w-0 h-full">
-              <EnhancedChatInterface
-                user={user}
-                conversationId={currentConversationId}
-                targetLanguage={currentSettings.targetLanguage}
-                onConversationUpdate={handleConversationUpdate}
-                onConversationCreated={setCurrentConversationId}
-                onTextSelect={setSelectedText}
-              />
-            </div>
+            {/* Mobile: Single column layout with drawer for Ask Interface */}
+            {isMobile && (
+              <div className="flex-1 min-w-0 h-full relative">
+                <EnhancedChatInterface
+                  user={user}
+                  conversationId={currentConversationId}
+                  targetLanguage={currentSettings.targetLanguage}
+                  onConversationUpdate={handleConversationUpdate}
+                  onConversationCreated={setCurrentConversationId}
+                  onTextSelect={handleTextSelect}
+                />
+
+                {/* Floating Action Button for Ask Interface */}
+                <Drawer open={askInterfaceOpen} onOpenChange={setAskInterfaceOpen}>
+                  <DrawerTrigger asChild>
+                    <Button
+                      size="icon"
+                      className="fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg z-10"
+                    >
+                      <MessageSquare className="w-6 h-6" />
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerContent className="h-[80vh]">
+                    <DrawerHeader>
+                      <DrawerTitle>Ask Interface</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="flex-1 overflow-hidden">
+                      <AskInterface
+                        selectedText={selectedText}
+                        targetLanguage={currentSettings.targetLanguage}
+                        editorMatePrompt={currentSettings.editorMatePersonality}
+                        onClose={() => setAskInterfaceOpen(false)}
+                      />
+                    </div>
+                  </DrawerContent>
+                </Drawer>
+              </div>
+            )}
           </div>
         </div>
 
