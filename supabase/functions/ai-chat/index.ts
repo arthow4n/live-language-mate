@@ -27,7 +27,6 @@ serve(async (req) => {
       culturalContext = true,
       progressiveComplexity = true,
       streaming = true,
-      reasoning = false,
       currentDateTime = null,
       userTimezone = null
     } = await req.json()
@@ -42,7 +41,6 @@ serve(async (req) => {
       hasChatMatePrompt: !!chatMatePrompt,
       hasEditorMatePrompt: !!editorMatePrompt,
       streaming,
-      reasoning,
       currentDateTime,
       userTimezone
     })
@@ -107,22 +105,8 @@ Keep responses natural and conversational.${dateTimeContext}`
       messageType,
       systemPromptLength: systemPrompt.length,
       messagesCount: messages.length,
-      streaming,
-      reasoning
+      streaming
     })
-
-    const requestBody = {
-      model,
-      messages,
-      stream: streaming,
-      temperature: 0.7,
-      max_tokens: 1000
-    }
-
-    // Add reasoning for supported models
-    if (reasoning && (model.includes('claude') || model.includes('gpt-4o') || model.includes('o1'))) {
-      requestBody.reasoning = true
-    }
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -132,7 +116,13 @@ Keep responses natural and conversational.${dateTimeContext}`
         'HTTP-Referer': 'https://expat-language-mate.lovable.app',
         'X-Title': 'Expat Language Mate'
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({
+        model,
+        messages,
+        stream: streaming,
+        temperature: 0.7,
+        max_tokens: 1000
+      })
     })
 
     if (!response.ok) {
@@ -156,17 +146,8 @@ Keep responses natural and conversational.${dateTimeContext}`
             if (line.startsWith('data: ') && line !== 'data: [DONE]') {
               try {
                 const data = JSON.parse(line.slice(6))
-                
-                // Handle reasoning tokens
-                if (data.choices?.[0]?.delta?.reasoning) {
-                  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
-                    type: 'thinking',
-                    content: data.choices[0].delta.reasoning
-                  })}\n\n`))
-                }
-                
-                // Handle regular content
                 if (data.choices?.[0]?.delta?.content) {
+                  // Send the content chunk
                   controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                     type: 'content',
                     content: data.choices[0].delta.content
@@ -197,20 +178,15 @@ Keep responses natural and conversational.${dateTimeContext}`
       // Non-streaming response (fallback)
       const data = await response.json()
       const aiResponse = data.choices[0].message.content
-      const thinking = data.choices[0].message.reasoning || null
 
       console.log('✅ OpenRouter response received successfully:', {
         model,
         messageType,
         responseLength: aiResponse.length,
-        hasThinking: !!thinking,
         usage: data.usage
       })
 
-      return new Response(JSON.stringify({ 
-        response: aiResponse,
-        thinking: thinking 
-      }), {
+      return new Response(JSON.stringify({ response: aiResponse }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
@@ -15,10 +16,7 @@ import {
   Clock,
   Cpu,
   GitBranch,
-  Scissors,
-  Brain,
-  ChevronDown,
-  ChevronRight
+  Scissors
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -27,11 +25,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Message } from '@/types/Message';
 
 interface EnhancedChatMessageProps {
@@ -56,7 +49,6 @@ const EnhancedChatMessage = ({
   const [selectedText, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
-  const [isThinkingOpen, setIsThinkingOpen] = useState(false);
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -180,42 +172,6 @@ const EnhancedChatMessage = ({
             </div>
           )}
         </div>
-
-        {/* Thinking section - only show for AI messages with thinking content */}
-        {message.thinking && message.type !== 'user' && (
-          <Collapsible open={isThinkingOpen} onOpenChange={setIsThinkingOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-auto p-2 text-xs text-muted-foreground hover:text-foreground">
-                <Brain className="w-3 h-3 mr-1" />
-                <span>Thinking</span>
-                {isThinkingOpen ? (
-                  <ChevronDown className="w-3 h-3 ml-1" />
-                ) : (
-                  <ChevronRight className="w-3 h-3 ml-1" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="rounded-lg border bg-muted/50 p-3 mt-2 mb-3">
-                <div className="text-xs leading-relaxed text-muted-foreground prose prose-xs max-w-none dark:prose-invert">
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
-                      ul: ({ children }) => <ul className="list-disc list-inside mb-1 space-y-0.5">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal list-inside mb-1 space-y-0.5">{children}</ol>,
-                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                      em: ({ children }) => <em className="italic">{children}</em>,
-                      code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-                    }}
-                  >
-                    {message.thinking}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
           {isEditing ? (

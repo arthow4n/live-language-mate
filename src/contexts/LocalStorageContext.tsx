@@ -1,160 +1,196 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { localStorageService, LocalConversation, LocalMessage, LocalSettings } from '@/services/localStorageService';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { localStorageService, LocalConversation, LocalMessage, LocalAppData } from '@/services/localStorageService';
 
 interface LocalStorageContextType {
-  // Settings
-  settings: LocalSettings;
-  updateSettings: (newSettings: Partial<LocalSettings>) => void;
-  
-  // Conversations
   conversations: LocalConversation[];
+  settings: LocalAppData['settings'];
+  isLoaded: boolean;
+  refreshConversations: () => void;
   getConversation: (id: string) => LocalConversation | null;
-  createConversation: (data: { title: string; language: string; chat_mate_prompt?: string; editor_mate_prompt?: string }) => LocalConversation;
+  saveConversation: (conversation: LocalConversation) => void;
+  createConversation: (data: Partial<LocalConversation>) => LocalConversation;
   updateConversation: (id: string, updates: Partial<LocalConversation>) => void;
   deleteConversation: (id: string) => void;
-  
-  // Messages
+  addMessage: (conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>) => LocalMessage;
   getMessages: (conversationId: string) => LocalMessage[];
-  addMessage: (conversationId: string, data: { content: string; type: 'user' | 'chat-mate' | 'editor-mate'; thinking?: string }) => LocalMessage;
-  updateMessage: (id: string, updates: Partial<LocalMessage>) => void;
-  deleteMessage: (id: string) => void;
-  
-  // Utility
-  clearAllData: () => void;
+  updateMessage: (messageId: string, updates: Partial<LocalMessage>) => void;
+  deleteMessage: (messageId: string) => void;
+  updateConversationTitle: (id: string, title: string) => void;
+  updateSettings: (newSettings: Partial<LocalAppData['settings']>) => void;
+  deleteAllChats: () => void;
   exportData: () => string;
-  importData: (jsonData: string) => void;
-  refreshConversations: () => void;
+  importData: (jsonData: string) => boolean;
 }
 
-const LocalStorageContext = createContext<LocalStorageContextType | null>(null);
+const LocalStorageContext = createContext<LocalStorageContextType | undefined>(undefined);
 
-export const useLocalStorage = () => {
-  const context = useContext(LocalStorageContext);
-  if (!context) {
-    throw new Error('useLocalStorage must be used within a LocalStorageProvider');
-  }
-  return context;
-};
-
-export const LocalStorageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useState<LocalSettings>(() => localStorageService.getSettings());
-  const [conversations, setConversations] = useState<LocalConversation[]>(() => localStorageService.getConversations());
-
-  const updateSettings = (newSettings: Partial<LocalSettings>) => {
-    const updatedSettings = { ...settings, ...newSettings };
-    setSettings(updatedSettings);
-    localStorageService.saveSettings(updatedSettings);
-  };
+export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
+  const [conversations, setConversations] = useState<LocalConversation[]>([]);
+  const [settings, setSettings] = useState<LocalAppData['settings']>(localStorageService.getSettings());
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const refreshConversations = () => {
-    setConversations(localStorageService.getConversations());
+    const data = localStorageService.getData();
+    setConversations(data.conversations);
+    setSettings(data.settings);
   };
+
+  useEffect(() => {
+    refreshConversations();
+    setIsLoaded(true);
+  }, []);
 
   const getConversation = (id: string): LocalConversation | null => {
     return localStorageService.getConversation(id);
   };
 
-  const createConversation = (data: { title: string; language: string; chat_mate_prompt?: string; editor_mate_prompt?: string }): LocalConversation => {
-    const conversation: LocalConversation = {
-      id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      title: data.title,
-      language: data.language,
-      created_at: new Date(),
-      updated_at: new Date(),
+  const saveConversation = (conversation: LocalConversation) => {
+    localStorageService.saveConversation(conversation);
+    refreshConversations();
+  };
+
+  const createConversation = (data: Partial<LocalConversation>): LocalConversation => {
+    const newConversation: LocalConversation = {
+      id: `conv_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      title: data.title || 'New Chat',
+      language: data.language || 'swedish',
+      ai_mode: data.ai_mode || 'dual',
       chat_mate_prompt: data.chat_mate_prompt,
       editor_mate_prompt: data.editor_mate_prompt,
+      created_at: new Date(),
+      updated_at: new Date(),
+      messages: []
     };
     
-    localStorageService.saveConversation(conversation);
-    setConversations(prev => [conversation, ...prev]);
-    return conversation;
+    localStorageService.saveConversation(newConversation);
+    refreshConversations();
+    return newConversation;
   };
 
   const updateConversation = (id: string, updates: Partial<LocalConversation>) => {
-    const existingConversation = getConversation(id);
-    if (!existingConversation) return;
-    
-    const updatedConversation = {
-      ...existingConversation,
-      ...updates,
-      updated_at: new Date(),
-    };
-    
-    localStorageService.saveConversation(updatedConversation);
-    setConversations(prev => prev.map(conv => conv.id === id ? updatedConversation : conv));
+    const conversation = localStorageService.getConversation(id);
+    if (conversation) {
+      const updated = { ...conversation, ...updates, updated_at: new Date() };
+      localStorageService.saveConversation(updated);
+      refreshConversations();
+    }
   };
 
   const deleteConversation = (id: string) => {
     localStorageService.deleteConversation(id);
-    setConversations(prev => prev.filter(conv => conv.id !== id));
+    refreshConversations();
+  };
+
+  const addMessage = (conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>): LocalMessage => {
+    const newMessage: LocalMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      type: message.type,
+      content: message.content,
+      timestamp: new Date()
+    };
+    
+    localStorageService.addMessage(conversationId, newMessage);
+    refreshConversations();
+    return newMessage;
   };
 
   const getMessages = (conversationId: string): LocalMessage[] => {
-    return localStorageService.getConversationMessages(conversationId);
+    const conversation = localStorageService.getConversation(conversationId);
+    return conversation?.messages || [];
   };
 
-  const addMessage = (conversationId: string, data: { content: string; type: 'user' | 'chat-mate' | 'editor-mate'; thinking?: string }): LocalMessage => {
-    const message: LocalMessage = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      conversation_id: conversationId,
-      type: data.type,
-      content: data.content,
-      thinking: data.thinking,
-      timestamp: new Date(),
-    };
+  const updateMessage = (messageId: string, updates: Partial<LocalMessage>) => {
+    const data = localStorageService.getData();
     
-    localStorageService.saveMessage(message);
+    for (const conversation of data.conversations) {
+      const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex >= 0) {
+        conversation.messages[messageIndex] = { ...conversation.messages[messageIndex], ...updates };
+        conversation.updated_at = new Date();
+        localStorageService.saveData(data);
+        refreshConversations();
+        break;
+      }
+    }
+  };
+
+  const deleteMessage = (messageId: string) => {
+    const data = localStorageService.getData();
     
-    // Update conversation's updated_at timestamp
-    updateConversation(conversationId, { updated_at: new Date() });
-    
-    return message;
+    for (const conversation of data.conversations) {
+      const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex >= 0) {
+        conversation.messages.splice(messageIndex, 1);
+        conversation.updated_at = new Date();
+        localStorageService.saveData(data);
+        refreshConversations();
+        break;
+      }
+    }
   };
 
-  const updateMessage = (id: string, updates: Partial<LocalMessage>) => {
-    localStorageService.updateMessage(id, updates);
+  const updateConversationTitle = (id: string, title: string) => {
+    localStorageService.updateConversationTitle(id, title);
+    refreshConversations();
   };
 
-  const deleteMessage = (id: string) => {
-    localStorageService.deleteMessage(id);
+  const updateSettings = (newSettings: Partial<LocalAppData['settings']>) => {
+    localStorageService.updateSettings(newSettings);
+    refreshConversations();
   };
 
-  const clearAllData = () => {
-    localStorageService.clearAllData();
-    setSettings(localStorageService.getSettings());
-    setConversations([]);
+  const deleteAllChats = () => {
+    const data = localStorageService.getData();
+    data.conversations = [];
+    localStorageService.saveData(data);
+    refreshConversations();
   };
 
   const exportData = (): string => {
     return localStorageService.exportData();
   };
 
-  const importData = (jsonData: string) => {
-    localStorageService.importData(jsonData);
-    setSettings(localStorageService.getSettings());
-    setConversations(localStorageService.getConversations());
+  const importData = (jsonData: string): boolean => {
+    const success = localStorageService.importData(jsonData);
+    if (success) {
+      refreshConversations();
+    }
+    return success;
+  };
+
+  const value = {
+    conversations,
+    settings,
+    isLoaded,
+    refreshConversations,
+    getConversation,
+    saveConversation,
+    createConversation,
+    updateConversation,
+    deleteConversation,
+    addMessage,
+    getMessages,
+    updateMessage,
+    deleteMessage,
+    updateConversationTitle,
+    updateSettings,
+    deleteAllChats,
+    exportData,
+    importData,
   };
 
   return (
-    <LocalStorageContext.Provider value={{
-      settings,
-      updateSettings,
-      conversations,
-      getConversation,
-      createConversation,
-      updateConversation,
-      deleteConversation,
-      getMessages,
-      addMessage,
-      updateMessage,
-      deleteMessage,
-      clearAllData,
-      exportData,
-      importData,
-      refreshConversations,
-    }}>
+    <LocalStorageContext.Provider value={value}>
       {children}
     </LocalStorageContext.Provider>
   );
+};
+
+export const useLocalStorage = () => {
+  const context = useContext(LocalStorageContext);
+  if (context === undefined) {
+    throw new Error('useLocalStorage must be used within a LocalStorageProvider');
+  }
+  return context;
 };
