@@ -49,7 +49,7 @@ const EnhancedChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const [componentReady, setComponentReady] = useState(false);
-  const [titleGenerated, setTitleGenerated] = useState(false);
+  const [titleGenerationProcessed, setTitleGenerationProcessed] = useState(new Set<string>());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -62,9 +62,9 @@ const EnhancedChatInterface = ({
   const chatMatePrompt = currentChatSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt = currentChatSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
-  // Check if we should generate a title
-  const shouldGenerateTitle = (messagesList: Message[]) => {
-    if (titleGenerated || !conversationId) return false;
+  // Check if we should generate a title - more robust logic
+  const shouldGenerateTitle = (messagesList: Message[], convId: string | null) => {
+    if (!convId || titleGenerationProcessed.has(convId)) return false;
     
     // Count messages by type
     const userMessages = messagesList.filter(m => m.type === 'user').length;
@@ -75,11 +75,14 @@ const EnhancedChatInterface = ({
     return userMessages >= 1 && chatMateMessages >= 1 && editorMateMessages >= 2;
   };
 
-  const generateAndUpdateTitle = async (messagesList: Message[]) => {
-    if (!conversationId || titleGenerated) return;
+  const generateAndUpdateTitle = async (messagesList: Message[], convId: string) => {
+    if (!convId || titleGenerationProcessed.has(convId)) return;
     
     try {
-      console.log('🏷️ Generating conversation title...');
+      console.log('🏷️ Generating conversation title for:', convId);
+      
+      // Mark this conversation as being processed to prevent duplicates
+      setTitleGenerationProcessed(prev => new Set(prev).add(convId));
       
       // Convert messages to the format expected by title generator
       const conversationHistory = messagesList.map(msg => ({
@@ -90,15 +93,23 @@ const EnhancedChatInterface = ({
       const newTitle = await generateChatTitle(conversationHistory, targetLanguage);
       
       if (newTitle && newTitle !== 'Chat') {
-        const success = await updateConversationTitle(conversationId, newTitle);
+        const success = await updateConversationTitle(convId, newTitle);
         if (success) {
           console.log('✅ Title generated and updated:', newTitle);
-          setTitleGenerated(true);
-          onConversationUpdate();
+          // Force sidebar refresh after title update
+          setTimeout(() => {
+            onConversationUpdate();
+          }, 100);
         }
       }
     } catch (error) {
       console.error('❌ Error generating title:', error);
+      // Remove from processed set on error so it can be retried
+      setTitleGenerationProcessed(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(convId);
+        return newSet;
+      });
     }
   };
 
@@ -155,17 +166,36 @@ const EnhancedChatInterface = ({
     } else if (!conversationId) {
       console.log('🆕 New conversation - clearing messages');
       setMessages([]);
-      setTitleGenerated(false); // Reset title generation flag for new conversation
-      // Reset to default prompts for new conversation
+      // Clear title generation tracking for new conversation
+      setTitleGenerationProcessed(new Set());
     }
   }, [conversationId, isCreatingNewConversation, isLoaded]);
 
-  // Check for title generation when messages change
+  // Check for title generation when messages change - with better race condition handling
   useEffect(() => {
-    if (shouldGenerateTitle(messages)) {
-      generateAndUpdateTitle(messages);
+    if (conversationId && shouldGenerateTitle(messages, conversationId)) {
+      // Use a small delay to ensure all messages are saved before generating title
+      const timeoutId = setTimeout(() => {
+        generateAndUpdateTitle(messages, conversationId);
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [messages, conversationId, titleGenerated]);
+  }, [messages, conversationId]);
+
+  // Reset title generation tracking when conversation changes
+  useEffect(() => {
+    if (conversationId) {
+      setTitleGenerationProcessed(prev => {
+        // Keep the current conversation in the set if it's already there
+        const newSet = new Set<string>();
+        if (prev.has(conversationId)) {
+          newSet.add(conversationId);
+        }
+        return newSet;
+      });
+    }
+  }, [conversationId]);
 
   const loadMessages = async () => {
     if (!conversationId) return;
@@ -190,9 +220,9 @@ const EnhancedChatInterface = ({
       console.log('📥 Loaded messages:', formattedMessages.length);
       setMessages(formattedMessages);
       
-      // Check if title was already generated for this conversation
-      if (shouldGenerateTitle(formattedMessages)) {
-        setTitleGenerated(true); // Assume title was already generated if we have enough messages
+      // Check if title should already be generated for this conversation
+      if (shouldGenerateTitle(formattedMessages, conversationId)) {
+        setTitleGenerationProcessed(prev => new Set(prev).add(conversationId));
       }
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -541,7 +571,7 @@ const EnhancedChatInterface = ({
         .from('conversations')
         .insert({
           user_id: user.id,
-          title: `${targetLanguage} Practice`,
+          title: 'New Chat', // Simple initial title that will be replaced
           language: targetLanguage.toLowerCase(),
           chat_mate_prompt: chatMatePrompt,
           editor_mate_prompt: currentEditorMatePrompt
