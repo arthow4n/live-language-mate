@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -206,6 +205,7 @@ const AskInterface = ({
         const reader = response.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
+        let isStreamingComplete = false;
 
         try {
           while (true) {
@@ -219,6 +219,7 @@ const AskInterface = ({
               if (line.startsWith('data: ')) {
                 const data = line.slice(6);
                 if (data === '[DONE]') {
+                  isStreamingComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
                   
@@ -241,15 +242,14 @@ const AskInterface = ({
 
                 try {
                   const parsed = JSON.parse(data);
-                  if (parsed.content) {
+                  if (parsed.content && !isStreamingComplete) {
                     accumulatedContent += parsed.content;
-                    // Force immediate state update for word-by-word rendering
                     setConversation(prev => prev.map(msg => 
                       msg.id === editorMessageId 
                         ? { 
                             ...msg, 
                             content: accumulatedContent,
-                            isStreaming: true // Ensure streaming state is maintained
+                            isStreaming: true
                           }
                         : msg
                     ));
@@ -259,6 +259,8 @@ const AskInterface = ({
                 }
               }
             }
+            
+            if (isStreamingComplete) break;
           }
         } finally {
           reader.releaseLock();
