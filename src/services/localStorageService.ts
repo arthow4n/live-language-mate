@@ -1,96 +1,50 @@
 
 export interface LocalMessage {
   id: string;
+  conversation_id: string;
   type: 'user' | 'chat-mate' | 'editor-mate';
   content: string;
+  thinking?: string; // Add thinking property
   timestamp: Date;
-  isStreaming?: boolean;
 }
 
 export interface LocalConversation {
   id: string;
   title: string;
   language: string;
-  ai_mode: string;
-  chat_mate_prompt?: string;
-  editor_mate_prompt?: string;
   created_at: Date;
   updated_at: Date;
-  messages: LocalMessage[];
+  chat_mate_prompt?: string;
+  editor_mate_prompt?: string;
 }
 
-export interface LocalAppData {
-  conversations: LocalConversation[];
-  settings: {
-    model: string;
-    apiKey: string;
-    targetLanguage: string;
-    streaming: boolean;
-    chatMatePersonality: string;
-    editorMatePersonality: string;
-    chatMateBackground: string;
-    editorMateExpertise: string;
-    feedbackStyle: 'encouraging' | 'gentle' | 'direct' | 'detailed';
-    culturalContext: boolean;
-    progressiveComplexity: boolean;
-  };
+export interface LocalSettings {
+  model: string;
+  apiKey: string;
+  targetLanguage: string;
 }
 
 class LocalStorageService {
-  private readonly STORAGE_KEY = 'language-mate-data';
+  private CONVERSATIONS_KEY = 'expat-language-mate-conversations';
+  private MESSAGES_KEY = 'expat-language-mate-messages';
+  private SETTINGS_KEY = 'expat-language-mate-settings';
 
-  private getDefaultData(): LocalAppData {
-    return {
-      conversations: [],
-      settings: {
-        model: 'anthropic/claude-3-5-sonnet',
-        apiKey: '',
-        targetLanguage: 'swedish',
-        streaming: true,
-        chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
-        editorMatePersonality: 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
-        chatMateBackground: 'young professional, loves local culture',
-        editorMateExpertise: '10+ years teaching experience',
-        feedbackStyle: 'encouraging',
-        culturalContext: true,
-        progressiveComplexity: true,
-      }
-    };
-  }
-
-  getData(): LocalAppData {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Convert date strings back to Date objects
-        parsed.conversations = parsed.conversations.map((conv: any) => ({
-          ...conv,
-          created_at: new Date(conv.created_at),
-          updated_at: new Date(conv.updated_at),
-          messages: conv.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        }));
-        return { ...this.getDefaultData(), ...parsed };
-      }
-    } catch (error) {
-      console.error('Error loading data from localStorage:', error);
-    }
-    return this.getDefaultData();
-  }
-
-  saveData(data: LocalAppData): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-    } catch (error) {
-      console.error('Error saving data to localStorage:', error);
-    }
-  }
-
+  // Conversation methods
   getConversations(): LocalConversation[] {
-    return this.getData().conversations;
+    try {
+      const data = localStorage.getItem(this.CONVERSATIONS_KEY);
+      if (!data) return [];
+      
+      const conversations = JSON.parse(data);
+      return conversations.map((conv: any) => ({
+        ...conv,
+        created_at: new Date(conv.created_at),
+        updated_at: new Date(conv.updated_at)
+      }));
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+      return [];
+    }
   }
 
   getConversation(id: string): LocalConversation | null {
@@ -99,76 +53,186 @@ class LocalStorageService {
   }
 
   saveConversation(conversation: LocalConversation): void {
-    const data = this.getData();
-    const index = data.conversations.findIndex(conv => conv.id === conversation.id);
-    
-    if (index >= 0) {
-      data.conversations[index] = { ...conversation, updated_at: new Date() };
-    } else {
-      data.conversations.push(conversation);
+    try {
+      const conversations = this.getConversations();
+      const existingIndex = conversations.findIndex(conv => conv.id === conversation.id);
+      
+      if (existingIndex >= 0) {
+        conversations[existingIndex] = conversation;
+      } else {
+        conversations.push(conversation);
+      }
+      
+      localStorage.setItem(this.CONVERSATIONS_KEY, JSON.stringify(conversations));
+    } catch (error) {
+      console.error('Error saving conversation:', error);
+      throw error;
     }
-    
-    this.saveData(data);
   }
 
   deleteConversation(id: string): void {
-    const data = this.getData();
-    data.conversations = data.conversations.filter(conv => conv.id !== id);
-    this.saveData(data);
-  }
-
-  addMessage(conversationId: string, message: LocalMessage): void {
-    const data = this.getData();
-    const conversation = data.conversations.find(conv => conv.id === conversationId);
-    
-    if (conversation) {
-      conversation.messages.push(message);
-      conversation.updated_at = new Date();
-      this.saveData(data);
+    try {
+      const conversations = this.getConversations();
+      const filtered = conversations.filter(conv => conv.id !== id);
+      localStorage.setItem(this.CONVERSATIONS_KEY, JSON.stringify(filtered));
+      
+      // Also delete all messages for this conversation
+      const messages = this.getMessages();
+      const filteredMessages = messages.filter(msg => msg.conversation_id !== id);
+      localStorage.setItem(this.MESSAGES_KEY, JSON.stringify(filteredMessages));
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      throw error;
     }
   }
 
-  updateConversationTitle(id: string, title: string): void {
-    const data = this.getData();
-    const conversation = data.conversations.find(conv => conv.id === id);
-    
-    if (conversation) {
-      conversation.title = title;
-      conversation.updated_at = new Date();
-      this.saveData(data);
+  // Message methods
+  getMessages(): LocalMessage[] {
+    try {
+      const data = localStorage.getItem(this.MESSAGES_KEY);
+      if (!data) return [];
+      
+      const messages = JSON.parse(data);
+      return messages.map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      return [];
     }
   }
 
-  getSettings() {
-    return this.getData().settings;
+  getConversationMessages(conversationId: string): LocalMessage[] {
+    const messages = this.getMessages();
+    return messages
+      .filter(msg => msg.conversation_id === conversationId)
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 
-  updateSettings(newSettings: Partial<LocalAppData['settings']>): void {
-    const data = this.getData();
-    data.settings = { ...data.settings, ...newSettings };
-    this.saveData(data);
+  saveMessage(message: LocalMessage): void {
+    try {
+      const messages = this.getMessages();
+      const existingIndex = messages.findIndex(msg => msg.id === message.id);
+      
+      if (existingIndex >= 0) {
+        messages[existingIndex] = message;
+      } else {
+        messages.push(message);
+      }
+      
+      localStorage.setItem(this.MESSAGES_KEY, JSON.stringify(messages));
+    } catch (error) {
+      console.error('Error saving message:', error);
+      throw error;
+    }
   }
 
-  deleteAllData(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
+  updateMessage(id: string, updates: Partial<LocalMessage>): void {
+    try {
+      const messages = this.getMessages();
+      const messageIndex = messages.findIndex(msg => msg.id === id);
+      
+      if (messageIndex >= 0) {
+        messages[messageIndex] = { ...messages[messageIndex], ...updates };
+        localStorage.setItem(this.MESSAGES_KEY, JSON.stringify(messages));
+      }
+    } catch (error) {
+      console.error('Error updating message:', error);
+      throw error;
+    }
+  }
+
+  deleteMessage(id: string): void {
+    try {
+      const messages = this.getMessages();
+      const filtered = messages.filter(msg => msg.id !== id);
+      localStorage.setItem(this.MESSAGES_KEY, JSON.stringify(filtered));
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      throw error;
+    }
+  }
+
+  // Settings methods
+  getSettings(): LocalSettings {
+    try {
+      const data = localStorage.getItem(this.SETTINGS_KEY);
+      if (!data) {
+        return {
+          model: 'gpt-4o-mini',
+          apiKey: '',
+          targetLanguage: 'Swedish'
+        };
+      }
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      return {
+        model: 'gpt-4o-mini',
+        apiKey: '',
+        targetLanguage: 'Swedish'
+      };
+    }
+  }
+
+  saveSettings(settings: LocalSettings): void {
+    try {
+      localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      throw error;
+    }
+  }
+
+  // Utility methods
+  clearAllData(): void {
+    try {
+      localStorage.removeItem(this.CONVERSATIONS_KEY);
+      localStorage.removeItem(this.MESSAGES_KEY);
+      localStorage.removeItem(this.SETTINGS_KEY);
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      throw error;
+    }
   }
 
   exportData(): string {
-    return JSON.stringify(this.getData(), null, 2);
+    try {
+      const conversations = this.getConversations();
+      const messages = this.getMessages();
+      const settings = this.getSettings();
+      
+      return JSON.stringify({
+        conversations,
+        messages,
+        settings,
+        exportDate: new Date().toISOString()
+      }, null, 2);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      throw error;
+    }
   }
 
-  importData(jsonData: string): boolean {
+  importData(jsonData: string): void {
     try {
       const data = JSON.parse(jsonData);
-      // Validate the structure
-      if (!data.conversations || !data.settings) {
-        throw new Error('Invalid data structure');
+      
+      if (data.conversations) {
+        localStorage.setItem(this.CONVERSATIONS_KEY, JSON.stringify(data.conversations));
       }
-      this.saveData(data);
-      return true;
+      
+      if (data.messages) {
+        localStorage.setItem(this.MESSAGES_KEY, JSON.stringify(data.messages));
+      }
+      
+      if (data.settings) {
+        localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(data.settings));
+      }
     } catch (error) {
       console.error('Error importing data:', error);
-      return false;
+      throw error;
     }
   }
 }
