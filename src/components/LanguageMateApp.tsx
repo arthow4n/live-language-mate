@@ -87,7 +87,13 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex min-w-0 h-full">
+        <div className="flex-1 flex flex-col min-w-0 h-full">
+          {/* Header with Sidebar Toggle */}
+          <div className="flex items-center h-12 px-4 border-b bg-background shrink-0">
+            <SidebarTrigger className="mr-2" />
+            <h1 className="text-lg font-semibold">Language Mate</h1>
+          </div>
+
           {/* Content Area - Chat + Ask Interface */}
           <div className="flex-1 flex overflow-hidden min-h-0">
             {/* Desktop: Resizable panels for Chat and Ask Interface */}
