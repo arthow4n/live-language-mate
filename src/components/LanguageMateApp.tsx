@@ -26,7 +26,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
   const [selectedText, setSelectedText] = useState('');
   const [selectionSource, setSelectionSource] = useState<'main-chat' | 'ask-interface'>('main-chat');
   const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
-  const [pendingNewChatSettings, setPendingNewChatSettings] = useState<any>(null);
   
   const { mainSettings, updateMainSettings, getChatSettings, updateChatSettings, getMainSettings } = useSettings();
   const isMobile = useIsMobile();
@@ -41,14 +40,10 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
 
   const handleConversationSelect = (conversationId: string) => {
     setCurrentConversationId(conversationId);
-    // Clear pending settings when selecting an existing conversation
-    setPendingNewChatSettings(null);
   };
 
   const handleNewConversation = () => {
     setCurrentConversationId(null);
-    // Clear pending settings when starting fresh
-    setPendingNewChatSettings(null);
   };
 
   const handleConversationUpdate = () => {
@@ -62,21 +57,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
   const handleChatSettingsSave = (settings: any) => {
     if (currentConversationId) {
       updateChatSettings(currentConversationId, settings);
-    } else {
-      // For new conversations, store the settings temporarily
-      setPendingNewChatSettings(settings);
-      console.log('📝 Stored pending settings for new conversation:', settings);
-    }
-  };
-
-  const handleConversationCreated = (conversationId: string) => {
-    setCurrentConversationId(conversationId);
-    
-    // Apply pending settings if they exist
-    if (pendingNewChatSettings) {
-      console.log('✨ Applying pending settings to new conversation:', conversationId, pendingNewChatSettings);
-      updateChatSettings(conversationId, pendingNewChatSettings);
-      setPendingNewChatSettings(null);
     }
   };
 
@@ -109,14 +89,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
     handleTextSelect(text, 'ask-interface');
   };
 
-  // Get effective chat settings (pending settings for new conversations, or saved settings for existing ones)
-  const effectiveChatSettings = currentConversationId 
-    ? currentChatSettings 
-    : (pendingNewChatSettings || {
-        chatMatePersonality: `You are a friendly local who loves helping newcomers feel welcome. You're enthusiastic about culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into society.`,
-        editorMatePersonality: `You are an experienced language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.`
-      });
-
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
@@ -130,7 +102,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           refreshTrigger={refreshSidebar}
           onChatSettingsOpen={() => setChatSettingsOpen(true)}
           onMainSettingsOpen={() => setMainSettingsOpen(true)}
-          isNewConversation={currentConversationId === null}
         />
 
         {/* Main Content */}
@@ -161,9 +132,8 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                       conversationId={currentConversationId}
                       targetLanguage={currentMainSettings.targetLanguage}
                       onConversationUpdate={handleConversationUpdate}
-                      onConversationCreated={handleConversationCreated}
+                      onConversationCreated={setCurrentConversationId}
                       onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
-                      pendingChatSettings={pendingNewChatSettings}
                     />
                   </ResizablePanel>
                   
@@ -177,7 +147,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                     <AskInterface
                       selectedText={selectedText}
                       targetLanguage={currentMainSettings.targetLanguage}
-                      editorMatePrompt={effectiveChatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.'}
+                      editorMatePrompt={currentChatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.'}
                       onTextSelect={handleAskInterfaceTextSelect}
                       selectionSource={selectionSource}
                     />
@@ -194,12 +164,11 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                   conversationId={currentConversationId}
                   targetLanguage={currentMainSettings.targetLanguage}
                   onConversationUpdate={handleConversationUpdate}
-                  onConversationCreated={handleConversationCreated}
+                  onConversationCreated={setCurrentConversationId}
                   onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                   onAskInterfaceOpen={() => setAskInterfaceOpen(true)}
                   selectedText={selectedText}
-                  editorMatePrompt={effectiveChatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.'}
-                  pendingChatSettings={pendingNewChatSettings}
+                  editorMatePrompt={currentChatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.'}
                 />
 
                 {/* Editor Mate Drawer for Mobile */}
@@ -212,7 +181,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                       <AskInterface
                         selectedText={selectedText}
                         targetLanguage={currentMainSettings.targetLanguage}
-                        editorMatePrompt={effectiveChatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.'}
+                        editorMatePrompt={currentChatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.'}
                         onClose={() => setAskInterfaceOpen(false)}
                         onTextSelect={handleAskInterfaceTextSelect}
                         selectionSource={selectionSource}
@@ -236,15 +205,17 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           onSignOut={handleSignOut}
         />
 
-        {/* Chat Settings Dialog - Updated to handle new conversations */}
-        <UnifiedSettingsDialog
-          open={chatSettingsOpen}
-          onOpenChange={setChatSettingsOpen}
-          mode="chat"
-          initialSettings={effectiveChatSettings}
-          onSave={handleChatSettingsSave}
-          conversationTitle={currentConversationId ? "Current Chat" : "New Chat"}
-        />
+        {/* Chat Settings Dialog */}
+        {currentConversationId && currentChatSettings && (
+          <UnifiedSettingsDialog
+            open={chatSettingsOpen}
+            onOpenChange={setChatSettingsOpen}
+            mode="chat"
+            initialSettings={currentChatSettings}
+            onSave={handleChatSettingsSave}
+            conversationTitle="Current Chat"
+          />
+        )}
       </div>
     </SidebarProvider>
   );
