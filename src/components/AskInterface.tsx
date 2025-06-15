@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -206,6 +205,7 @@ const AskInterface = ({
         const reader = response.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
+        let streamingComplete = false;
 
         try {
           while (true) {
@@ -219,10 +219,11 @@ const AskInterface = ({
               if (line.startsWith('data: ')) {
                 const data = line.slice(6);
                 if (data === '[DONE]') {
+                  streamingComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
                   
-                  // Final update with streaming complete - break immediately after
+                  // Final update with streaming complete
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 
                       ? { 
@@ -237,14 +238,12 @@ const AskInterface = ({
                         }
                       : msg
                   ));
-                  // Exit both loops immediately
-                  reader.releaseLock();
-                  return;
+                  break;
                 }
 
                 try {
                   const parsed = JSON.parse(data);
-                  if (parsed.content) {
+                  if (parsed.content && !streamingComplete) {
                     accumulatedContent += parsed.content;
                     // Update content while maintaining streaming state
                     setConversation(prev => prev.map(msg => 
@@ -262,11 +261,12 @@ const AskInterface = ({
                 }
               }
             }
+            
+            // Exit outer loop if streaming is complete
+            if (streamingComplete) break;
           }
         } finally {
-          if (!reader.locked) {
-            reader.releaseLock();
-          }
+          reader.releaseLock();
         }
       }
     } catch (error) {
