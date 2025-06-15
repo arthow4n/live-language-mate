@@ -220,10 +220,7 @@ const UnifiedSettingsDialog = ({
           <div className="block sm:hidden mb-4">
             <Select value={activeTab} onValueChange={setActiveTab}>
               <SelectTrigger className="w-full">
-                <div className="flex items-center gap-2">
-                  {currentTab && <currentTab.icon className="w-4 h-4" />}
-                  <SelectValue placeholder="Select section" />
-                </div>
+                <SelectValue placeholder="Select section" />
               </SelectTrigger>
               <SelectContent>
                 {tabsConfig.map((tab) => (
