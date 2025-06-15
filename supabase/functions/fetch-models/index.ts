@@ -17,13 +17,15 @@ interface OpenRouterModel {
   };
   context_length?: number;
   architecture?: {
-    modality: string;
+    input_modalities?: string[];
+    output_modalities?: string[];
     tokenizer: string;
     instruct_type?: string;
   };
   top_provider?: {
-    context_length: number;
+    context_length?: number;
     max_completion_tokens?: number;
+    is_moderated?: boolean;
   };
 }
 
@@ -59,11 +61,14 @@ serve(async (req) => {
 
     const data: OpenRouterModelsResponse = await response.json();
     
-    // Filter to only show chat completion models and sort by name
+    // Filter to only show text-based chat completion models and sort by name
     const filteredModels = data.data
       .filter(model => 
-        model.architecture?.modality === 'text' && 
-        model.id.includes('/') // OpenRouter models have provider/model format
+        // Check if it supports text input and output
+        model.architecture?.input_modalities?.includes('text') &&
+        model.architecture?.output_modalities?.includes('text') &&
+        // OpenRouter models have provider/model format
+        model.id.includes('/')
       )
       .sort((a, b) => a.name.localeCompare(b.name));
 
