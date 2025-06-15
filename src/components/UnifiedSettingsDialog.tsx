@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,11 +174,6 @@ const UnifiedSettingsDialog = ({
     onOpenChange(false);
   };
 
-  // Determine tab configuration based on mode
-  const tabsConfig = mode === 'main' 
-    ? ['agents', 'advanced', 'language', 'ui', 'api', 'account']
-    : ['agents', 'advanced', 'language', 'api'];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden">
@@ -199,13 +195,31 @@ const UnifiedSettingsDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue="agents" className="flex-1 overflow-hidden">
-          <TabsList className={`grid w-full ${mode === 'main' ? 'grid-cols-6' : 'grid-cols-4'}`}>
-            <TabsTrigger value="agents">AI Agents</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
-            <TabsTrigger value="language">Language</TabsTrigger>
-            {mode === 'main' && <TabsTrigger value="ui">UI</TabsTrigger>}
-            <TabsTrigger value="api">API Settings</TabsTrigger>
-            {mode === 'main' && <TabsTrigger value="account">Account</TabsTrigger>}
+          <TabsList className="h-auto p-1 bg-muted overflow-x-auto w-full flex-nowrap justify-start">
+            <div className="flex gap-1 min-w-max">
+              <TabsTrigger value="agents" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                AI Agents
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                Advanced
+              </TabsTrigger>
+              <TabsTrigger value="language" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                Language
+              </TabsTrigger>
+              {mode === 'main' && (
+                <TabsTrigger value="ui" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  UI
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="api" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                API Settings
+              </TabsTrigger>
+              {mode === 'main' && (
+                <TabsTrigger value="account" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  Account
+                </TabsTrigger>
+              )}
+            </div>
           </TabsList>
 
           <div className="overflow-y-auto max-h-[55vh] pr-2">
