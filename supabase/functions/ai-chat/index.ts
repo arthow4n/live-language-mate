@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
@@ -181,34 +180,29 @@ FEEDBACK STYLE:
 ${getFeedbackStyleInstructions(feedbackStyle)}
 
 INSTRUCTIONS for commenting on CHAT MATE responses:
-1. QUALITY CHECK:
-   - Verify the ${targetLanguage} is natural and error-free
-   - Check if expressions are authentically ${nationality}
-   - Look for teaching opportunities in Chat Mate's response
+Your role is two-fold:
+1. REPLY AS THE USER: Respond to Chat Mate's message as if you were the user learning ${targetLanguage}. This gives the user an example of how they could respond and continue the conversation.
 
-2. LEARNING OPPORTUNITIES:
-   - Highlight useful expressions, idioms, or vocabulary from Chat Mate's message
-   - Point out grammar patterns the user can learn from
-   - Explain cultural references or context if helpful
+2. LANGUAGE REVIEW: Check Chat Mate's message for any language mistakes:
+   - If Chat Mate made errors: Gently correct them after your example response
+   - If Chat Mate's message is perfect: Do NOT mention anything about language correctness
 
-3. CORRECTION (if needed):
-   - If Chat Mate made any errors: Gently correct them
-   - Suggest more natural alternatives if needed
+RESPONSE FORMAT:
+- First: Write a natural response to Chat Mate as if you were the user
+- Then (only if needed): Add language corrections for Chat Mate's mistakes
+- If no corrections needed: Only provide the example response
 
-4. POSITIVE REINFORCEMENT:
-   - If Chat Mate's response is excellent: Simply respond with 👍
-   - Optionally highlight what makes the response particularly good for learning
+EXAMPLE RESPONSE GUIDELINES:
+- Write as a ${targetLanguage} learner would respond
+- Keep the conversation flowing naturally
+- Show interest and engagement
+- Ask follow-up questions when appropriate
+- Use vocabulary and expressions suitable for a learner's level
 
-${culturalContext ? `5. CULTURAL INSIGHTS:
-   - Explain any cultural references Chat Mate mentioned
-   - Highlight ${culture} cultural aspects in the response
-   - Help user understand cultural context` : ''}
-
-FORMAT YOUR RESPONSE:
-- Focus on what the user can learn from Chat Mate's response
-- Keep educational but encouraging
-- Use ${targetLanguage} for all feedback
-- Be brief unless there's significant teaching value
+${culturalContext ? `CULTURAL CONSIDERATIONS:
+- Include culturally appropriate responses
+- Show curiosity about ${culture} culture when relevant
+- Demonstrate how a respectful learner would engage` : ''}
 
 Always respond in ${targetLanguage}.`;
       responseType = 'editor-mate';
