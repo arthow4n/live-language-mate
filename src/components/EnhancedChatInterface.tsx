@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -531,6 +530,12 @@ const EnhancedChatInterface = ({
     });
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    // Check if this is a thinking model and prepare reasoning configuration
+    const isThinkingModel = chatSettings.model && chatSettings.model.includes(':thinking');
+    const reasoning = isThinkingModel ? {
+      max_tokens: 2048 // Set appropriate reasoning tokens for thinking models
+    } : undefined;
+
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
       headers: {
@@ -552,7 +557,7 @@ const EnhancedChatInterface = ({
         culturalContext: chatSettings.culturalContext ?? true,
         progressiveComplexity: chatSettings.progressiveComplexity ?? true,
         streaming: chatSettings.streaming ?? true,
-        reasoning: chatSettings.reasoning ?? false,
+        reasoning: reasoning, // Send reasoning object for thinking models, undefined for others
         currentDateTime,
         userTimezone
       })
