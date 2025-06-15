@@ -80,7 +80,6 @@ const EnhancedChatInterface = ({
   const chatMatePrompt = currentConversation?.chat_mate_prompt || chatSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt = currentConversation?.editor_mate_prompt || editorMatePrompt || chatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
-  // Check if we should generate a title - more robust logic
   const shouldGenerateTitle = (messagesList: Message[], convId: string | null) => {
     if (!convId || titleGenerationProcessed.has(convId)) return false;
     
@@ -454,6 +453,9 @@ const EnhancedChatInterface = ({
       endTime
     };
 
+    console.log('💾 Finalizing streaming message with metadata:', metadata);
+
+    // Update local state with final content and metadata
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { 
         ...msg, 
@@ -462,6 +464,16 @@ const EnhancedChatInterface = ({
         metadata 
       } : msg
     ));
+
+    // Ensure the metadata is persisted to storage after streaming completes
+    setTimeout(() => {
+      console.log('💾 Persisting metadata for message:', messageId);
+      updateMessage(messageId, { 
+        content: fullContent, 
+        metadata,
+        isStreaming: false 
+      });
+    }, 100);
 
     return { content: fullContent, metadata };
   };
