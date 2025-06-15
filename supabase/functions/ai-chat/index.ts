@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -127,31 +126,60 @@ Keep responses natural and conversational.`
       
       // Create a transform stream to process the SSE data
       const transformStream = new TransformStream({
+        start() {
+          this.buffer = '';
+        },
         transform(chunk, controller) {
           const decoder = new TextDecoder()
           const text = decoder.decode(chunk)
           
-          // Process each line of the SSE stream
-          const lines = text.split('\n')
-          for (const line of lines) {
-            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-              try {
-                const data = JSON.parse(line.slice(6))
-                if (data.choices?.[0]?.delta?.content) {
-                  // Send the content chunk
-                  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
-                    type: 'content',
-                    content: data.choices[0].delta.content
-                  })}\n\n`))
+          // Add to buffer
+          this.buffer += text;
+          
+          // Process complete SSE events (separated by \n\n)
+          const events = this.buffer.split('\n\n');
+          
+          // Keep the last potentially incomplete event in buffer
+          this.buffer = events.pop() || '';
+          
+          // Process each complete event
+          for (const event of events) {
+            const lines = event.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                try {
+                  const data = JSON.parse(line.slice(6))
+                  if (data.choices?.[0]?.delta?.content) {
+                    // Send each content piece immediately
+                    console.log('📤 Sending content chunk:', data.choices[0].delta.content);
+                    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                      type: 'content',
+                      content: data.choices[0].delta.content
+                    })}\n\n`))
+                  }
+                } catch (e) {
+                  console.error('Error parsing SSE data:', e, 'Line:', line);
                 }
-              } catch (e) {
-                // Skip invalid JSON lines
+              } else if (line === 'data: [DONE]') {
+                // Send completion signal
+                console.log('📤 Sending done signal');
+                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                  type: 'done'
+                })}\n\n`))
               }
-            } else if (line === 'data: [DONE]') {
-              // Send completion signal
-              controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
-                type: 'done'
-              })}\n\n`))
+            }
+          }
+        },
+        flush(controller) {
+          // Process any remaining data in buffer
+          if (this.buffer.trim()) {
+            const lines = this.buffer.split('\n');
+            for (const line of lines) {
+              if (line === 'data: [DONE]') {
+                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                  type: 'done'
+                })}\n\n`))
+              }
             }
           }
         }
