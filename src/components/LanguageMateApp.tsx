@@ -150,7 +150,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           {/* Header with Sidebar Toggle */}
           <div className="flex items-center h-12 px-4 border-b bg-background shrink-0">
             <SidebarTrigger className="mr-2" />
-            <h1 className="text-lg font-semibold">Language Mate</h1>
+            <h1 className="text-lg font-semibold">Live Language Mate</h1>
           </div>
 
           {/* Content Area - Chat + Ask Interface */}
