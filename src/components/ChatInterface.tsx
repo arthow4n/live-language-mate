@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import ChatMessage from './ChatMessage';
+import EnhancedChatMessage from './EnhancedChatMessage';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Message } from '@/types/Message';
 
@@ -265,7 +266,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
             )}
             
             {messages.map((message) => (
-              <ChatMessage
+              <EnhancedChatMessage
                 key={message.id}
                 message={message}
                 onTextSelect={handleTextSelect}
