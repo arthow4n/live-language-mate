@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -205,7 +206,6 @@ const AskInterface = ({
         const reader = response.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
-        let streamingComplete = false;
 
         try {
           while (true) {
@@ -219,11 +219,9 @@ const AskInterface = ({
               if (line.startsWith('data: ')) {
                 const data = line.slice(6);
                 if (data === '[DONE]') {
-                  streamingComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
                   
-                  // Final update with streaming complete
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 
                       ? { 
@@ -243,16 +241,15 @@ const AskInterface = ({
 
                 try {
                   const parsed = JSON.parse(data);
-                  if (parsed.content && !streamingComplete) {
+                  if (parsed.content) {
                     accumulatedContent += parsed.content;
-                    // Only update content if streaming is not complete
+                    // Force immediate state update for word-by-word rendering
                     setConversation(prev => prev.map(msg => 
                       msg.id === editorMessageId 
                         ? { 
                             ...msg, 
                             content: accumulatedContent,
-                            // Keep the current streaming state - don't override to true if already false
-                            isStreaming: msg.isStreaming
+                            isStreaming: true // Ensure streaming state is maintained
                           }
                         : msg
                     ));
@@ -262,9 +259,6 @@ const AskInterface = ({
                 }
               }
             }
-            
-            // Exit outer loop if streaming is complete
-            if (streamingComplete) break;
           }
         } finally {
           reader.releaseLock();
