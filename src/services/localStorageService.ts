@@ -1,4 +1,3 @@
-
 export interface LocalMessage {
   id: string;
   conversation_id: string;
@@ -22,6 +21,15 @@ export interface LocalSettings {
   model: string;
   apiKey: string;
   targetLanguage: string;
+  streaming?: boolean;
+  reasoning?: boolean;
+  chatMateBackground?: string;
+  editorMateExpertise?: string;
+  feedbackStyle?: 'encouraging' | 'gentle' | 'direct' | 'detailed';
+  culturalContext?: boolean;
+  progressiveComplexity?: boolean;
+  chatMatePersonality?: string;
+  editorMatePersonality?: string;
 }
 
 class LocalStorageService {

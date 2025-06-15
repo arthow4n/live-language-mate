@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Settings, MessageSquare, GraduationCap } from 'lucide-react';
@@ -62,7 +61,6 @@ const LanguageMateApp = () => {
       model: newSettings.model,
       apiKey: newSettings.apiKey,
       targetLanguage: newSettings.targetLanguage,
-      streaming: newSettings.streaming,
       chatMatePersonality: newSettings.chatMatePersonality,
       editorMatePersonality: newSettings.editorMatePersonality,
       chatMateBackground: newSettings.chatMateBackground,

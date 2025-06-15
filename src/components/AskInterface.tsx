@@ -13,7 +13,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { useLocalStorage } from '@/contexts/LocalStorageContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message } from '@/types/Message';
 
@@ -42,7 +42,7 @@ const AskInterface = ({
   const [editableSelectedText, setEditableSelectedText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { settings } = useLocalStorage();
+  const { globalSettings, getChatSettings } = useSettings();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -105,6 +105,9 @@ const AskInterface = ({
 
     const startTime = Date.now();
     
+    // Get current chat settings for this context
+    const chatSettings = getChatSettings('default');
+    
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
       headers: {
@@ -117,14 +120,14 @@ const AskInterface = ({
         conversationHistory,
         editorMatePrompt,
         targetLanguage,
-        model: settings.model,
-        apiKey: settings.apiKey,
-        chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
-        editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: settings.feedbackStyle || 'encouraging',
-        culturalContext: settings.culturalContext ?? true,
-        progressiveComplexity: settings.progressiveComplexity ?? true,
-        streaming: settings.streaming ?? true
+        model: globalSettings.model,
+        apiKey: globalSettings.apiKey,
+        chatMateBackground: chatSettings.chatMateBackground || 'young professional, loves local culture',
+        editorMateExpertise: chatSettings.editorMateExpertise || '10+ years teaching experience',
+        feedbackStyle: chatSettings.feedbackStyle || 'encouraging',
+        culturalContext: chatSettings.culturalContext ?? true,
+        progressiveComplexity: chatSettings.progressiveComplexity ?? true,
+        streaming: globalSettings.streaming ?? true
       })
     });
 
@@ -133,8 +136,8 @@ const AskInterface = ({
       throw new Error(errorData.error || 'Failed to get Editor Mate response');
     }
 
-    if (settings.streaming && response.body) {
-      return { response: response.body, startTime, model: settings.model };
+    if (globalSettings.streaming && response.body) {
+      return { response: response.body, startTime, model: globalSettings.model };
     } else {
       const data = await response.json();
       if (!data || !data.response) {
@@ -142,7 +145,7 @@ const AskInterface = ({
       }
       const endTime = Date.now();
       const generationTime = endTime - startTime;
-      return { response: data.response, generationTime, model: settings.model };
+      return { response: data.response, generationTime, model: globalSettings.model };
     }
   };
 
