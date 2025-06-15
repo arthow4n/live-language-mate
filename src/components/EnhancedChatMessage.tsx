@@ -193,21 +193,27 @@ const EnhancedChatMessage = ({
             className="text-sm leading-relaxed select-text prose prose-sm max-w-none"
             onMouseUp={handleTextSelection}
           >
-            <ReactMarkdown
-              components={{
-                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                em: ({ children }) => <em className="italic">{children}</em>,
-                code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-            {message.isStreaming && (
-              <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
+            {message.isStreaming ? (
+              // For streaming messages, render plain text to avoid markdown processing delays
+              <div className="whitespace-pre-wrap">
+                {message.content}
+                <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
+              </div>
+            ) : (
+              // For completed messages, use ReactMarkdown for proper formatting
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
             )}
           </div>
           
