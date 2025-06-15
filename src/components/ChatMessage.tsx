@@ -51,8 +51,8 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
       case 'user':
         return {
           container: 'ml-auto max-w-[80%]',
-          bubble: 'bg-primary text-primary-foreground',
-          avatar: 'bg-primary text-primary-foreground',
+          bubble: 'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
+          avatar: 'bg-user text-white',
           icon: User
         };
       case 'chat-mate':
