@@ -33,7 +33,7 @@ serve(async (req) => {
       messageType,
       targetLanguage,
       model,
-      apiKey: apiKey ? 'Provided by user' : 'Using environment API key',
+      apiKey: apiKey && apiKey.trim() ? 'Provided by user' : 'Using environment API key',
       historyLength: conversationHistory.length,
       hasMessage: !!message,
       hasChatMatePrompt: !!chatMatePrompt,
@@ -42,13 +42,14 @@ serve(async (req) => {
     })
 
     // Use provided API key or fall back to environment variable
-    const openRouterApiKey = apiKey || Deno.env.get('OPENROUTER_API_KEY')
+    // Check if apiKey exists and is not empty/whitespace
+    const openRouterApiKey = (apiKey && apiKey.trim()) ? apiKey.trim() : Deno.env.get('OPENROUTER_API_KEY')
     
     if (!openRouterApiKey) {
       throw new Error('No API key provided. Please set your OpenRouter API key in the settings.')
     }
 
-    console.log('🔑 API key source:', apiKey ? 'User provided' : 'Environment variable')
+    console.log('🔑 API key source:', (apiKey && apiKey.trim()) ? 'User provided' : 'Environment variable')
 
     let systemPrompt = ''
     
