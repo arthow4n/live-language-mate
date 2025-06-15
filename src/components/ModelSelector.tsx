@@ -8,13 +8,13 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -103,10 +103,10 @@ const ModelSelector = ({ value, onValueChange, placeholder = "Select model..." }
       <PopoverContent className="w-[400px] p-0">
         <Command>
           <CommandInput placeholder="Search models..." />
-          <CommandList>
-            <CommandEmpty>
-              {loading ? "Loading models..." : "No models found."}
-            </CommandEmpty>
+          <CommandEmpty>
+            {loading ? "Loading models..." : "No models found."}
+          </CommandEmpty>
+          <ScrollArea className="h-[300px]">
             <CommandGroup>
               {models.map((model) => (
                 <CommandItem
@@ -135,7 +135,7 @@ const ModelSelector = ({ value, onValueChange, placeholder = "Select model..." }
                 </CommandItem>
               ))}
             </CommandGroup>
-          </CommandList>
+          </ScrollArea>
         </Command>
       </PopoverContent>
     </Popover>
