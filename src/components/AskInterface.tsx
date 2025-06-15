@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
@@ -31,13 +30,17 @@ interface AskInterfaceProps {
   onClose?: () => void;
   targetLanguage?: string;
   editorMatePrompt?: string;
+  onTextSelect?: (text: string) => void;
+  selectionSource?: 'main-chat' | 'ask-interface';
 }
 
 const AskInterface = ({ 
   selectedText, 
   onClose, 
   targetLanguage = 'Swedish',
-  editorMatePrompt = 'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.'
+  editorMatePrompt = 'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.',
+  onTextSelect,
+  selectionSource = 'main-chat'
 }: AskInterfaceProps) => {
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
@@ -49,8 +52,9 @@ const AskInterface = ({
   useEffect(() => {
     if (selectedText && selectedText.trim()) {
       setEditableSelectedText(selectedText);
-      // Only reset conversation if there's no existing conversation
-      if (conversation.length === 0) {
+      
+      // Only reset conversation if selection is from main chat OR there's no existing conversation
+      if (selectionSource === 'main-chat' || conversation.length === 0) {
         const welcomeMessage: Message = {
           id: Date.now().toString(),
           type: 'editor',
@@ -58,12 +62,10 @@ const AskInterface = ({
           timestamp: new Date()
         };
         setConversation([welcomeMessage]);
-      } else {
-        // If conversation exists, just update the selected text without clearing chat
-        // This allows selecting text from within the Ask Interface without losing context
       }
+      // If selection is from ask-interface and conversation exists, just update the selected text
     }
-  }, [selectedText]);
+  }, [selectedText, selectionSource]);
 
   const quickLinks = [
     {
@@ -168,6 +170,13 @@ const AskInterface = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim() && onTextSelect) {
+      onTextSelect(selection.toString().trim());
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
@@ -207,10 +216,10 @@ const AskInterface = ({
                   key={link.name}
                   variant="outline"
                   size="sm"
-                  className="justify-start h-7 text-xs px-2"
+                  className="justify-start h-6 text-xs px-2"
                   onClick={() => window.open(link.url(editableSelectedText), '_blank')}
                 >
-                  <link.icon className="w-3 h-3 mr-1" />
+                  <link.icon className="w-2.5 h-2.5 mr-1" />
                   {link.name}
                   <ExternalLink className="w-2 h-2 ml-auto" />
                 </Button>
@@ -222,7 +231,7 @@ const AskInterface = ({
 
       {/* Conversation Area */}
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
+        <div className="space-y-4" onMouseUp={handleTextSelection}>
           {conversation.length === 0 && (
             <div className="text-center py-8">
               <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />

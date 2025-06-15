@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
   const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
   const [refreshSidebar, setRefreshSidebar] = useState(0);
   const [selectedText, setSelectedText] = useState('');
+  const [selectionSource, setSelectionSource] = useState<'main-chat' | 'ask-interface'>('main-chat');
   const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
   
   const { mainSettings, updateMainSettings, getChatSettings, updateChatSettings } = useSettings();
@@ -75,11 +75,16 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
     return [70, 30];
   };
 
-  const handleTextSelect = (text: string) => {
+  const handleTextSelect = (text: string, source: 'main-chat' | 'ask-interface' = 'main-chat') => {
     setSelectedText(text);
+    setSelectionSource(source);
     if (isMobile && text.trim()) {
       setAskInterfaceOpen(true);
     }
+  };
+
+  const handleAskInterfaceTextSelect = (text: string) => {
+    handleTextSelect(text, 'ask-interface');
   };
 
   return (
@@ -126,7 +131,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                       targetLanguage={currentSettings.targetLanguage}
                       onConversationUpdate={handleConversationUpdate}
                       onConversationCreated={setCurrentConversationId}
-                      onTextSelect={handleTextSelect}
+                      onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                     />
                   </ResizablePanel>
                   
@@ -141,6 +146,8 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                       selectedText={selectedText}
                       targetLanguage={currentSettings.targetLanguage}
                       editorMatePrompt={currentSettings.editorMatePersonality}
+                      onTextSelect={handleAskInterfaceTextSelect}
+                      selectionSource={selectionSource}
                     />
                   </ResizablePanel>
                 </ResizablePanelGroup>
@@ -156,17 +163,17 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                   targetLanguage={currentSettings.targetLanguage}
                   onConversationUpdate={handleConversationUpdate}
                   onConversationCreated={setCurrentConversationId}
-                  onTextSelect={handleTextSelect}
+                  onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                   onAskInterfaceOpen={() => setAskInterfaceOpen(true)}
                   selectedText={selectedText}
                   editorMatePrompt={currentSettings.editorMatePersonality}
                 />
 
-                {/* Ask Interface Drawer for Mobile */}
+                {/* Editor Mate Drawer for Mobile */}
                 <Drawer open={askInterfaceOpen} onOpenChange={setAskInterfaceOpen}>
                   <DrawerContent className="h-[80vh]">
                     <DrawerHeader>
-                      <DrawerTitle>Ask Interface</DrawerTitle>
+                      <DrawerTitle>Editor Mate</DrawerTitle>
                     </DrawerHeader>
                     <div className="flex-1 overflow-hidden">
                       <AskInterface
@@ -174,6 +181,8 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                         targetLanguage={currentSettings.targetLanguage}
                         editorMatePrompt={currentSettings.editorMatePersonality}
                         onClose={() => setAskInterfaceOpen(false)}
+                        onTextSelect={handleAskInterfaceTextSelect}
+                        selectionSource={selectionSource}
                       />
                     </div>
                   </DrawerContent>
