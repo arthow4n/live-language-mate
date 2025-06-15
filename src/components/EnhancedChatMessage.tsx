@@ -80,11 +80,12 @@ const EnhancedChatMessage = ({
     switch (message.type) {
       case 'user':
         return {
-          container: 'ml-auto max-w-[80%]',
-          bubble: 'bg-blue-500 text-white',
+          container: 'mr-auto max-w-[80%]',
+          bubble: 'bg-blue-50 border border-blue-200 text-blue-900',
           avatar: 'bg-blue-500 text-white',
           icon: User,
-          label: 'You'
+          label: 'User',
+          badgeClass: 'bg-blue-100 text-blue-700'
         };
       case 'chat-mate':
         return {
@@ -92,7 +93,8 @@ const EnhancedChatMessage = ({
           bubble: 'bg-green-50 border border-green-200 text-green-900',
           avatar: 'bg-green-500 text-white',
           icon: MessageCircle,
-          label: 'Chat Mate'
+          label: 'Chat Mate',
+          badgeClass: 'bg-green-100 text-green-700'
         };
       case 'editor-mate':
         return {
@@ -100,7 +102,8 @@ const EnhancedChatMessage = ({
           bubble: 'bg-orange-50 border border-orange-200 text-orange-900',
           avatar: 'bg-orange-500 text-white',
           icon: GraduationCap,
-          label: 'Editor Mate'
+          label: 'Editor Mate',
+          badgeClass: 'bg-orange-100 text-orange-700'
         };
       default:
         return {
@@ -108,7 +111,8 @@ const EnhancedChatMessage = ({
           bubble: 'bg-gray-100',
           avatar: 'bg-gray-500 text-white',
           icon: MessageCircle,
-          label: 'Unknown'
+          label: 'Unknown',
+          badgeClass: 'bg-gray-100 text-gray-700'
         };
     }
   };
@@ -127,30 +131,21 @@ const EnhancedChatMessage = ({
   if (isEditing) {
     return (
       <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
-        {message.type !== 'user' && (
-          <Avatar className="w-8 h-8 mt-1">
-            <AvatarFallback className={styles.avatar}>
-              <IconComponent className="w-4 h-4" />
-            </AvatarFallback>
-          </Avatar>
-        )}
+        <Avatar className="w-8 h-8 mt-1">
+          <AvatarFallback className={styles.avatar}>
+            <IconComponent className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>
         
         <div className="flex-1 space-y-1">
-          {message.type !== 'user' && (
-            <div className="flex items-center gap-2">
-              <Badge 
-                variant="secondary" 
-                className={`text-xs ${
-                  message.type === 'chat-mate' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                }`}
-              >
-                {styles.label}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                {formatTime(message.timestamp)}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className={`text-xs ${styles.badgeClass}`}>
+              {styles.label}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {formatTime(message.timestamp)}
+            </span>
+          </div>
           
           <div className="space-y-2">
             <Textarea
@@ -171,44 +166,27 @@ const EnhancedChatMessage = ({
             </div>
           </div>
         </div>
-
-        {message.type === 'user' && (
-          <Avatar className="w-8 h-8 mt-1">
-            <AvatarFallback className={styles.avatar}>
-              <IconComponent className="w-4 h-4" />
-            </AvatarFallback>
-          </Avatar>
-        )}
       </div>
     );
   }
 
   return (
     <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
-      {message.type !== 'user' && (
-        <Avatar className="w-8 h-8 mt-1">
-          <AvatarFallback className={styles.avatar}>
-            <IconComponent className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
+      <Avatar className="w-8 h-8 mt-1">
+        <AvatarFallback className={styles.avatar}>
+          <IconComponent className="w-4 h-4" />
+        </AvatarFallback>
+      </Avatar>
       
       <div className="flex-1 space-y-1">
-        {message.type !== 'user' && (
-          <div className="flex items-center gap-2">
-            <Badge 
-              variant="secondary" 
-              className={`text-xs ${
-                message.type === 'chat-mate' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-              }`}
-            >
-              {styles.label}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {formatTime(message.timestamp)}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className={`text-xs ${styles.badgeClass}`}>
+            {styles.label}
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            {formatTime(message.timestamp)}
+          </span>
+        </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
           <div 
@@ -276,23 +254,7 @@ const EnhancedChatMessage = ({
             </DropdownMenu>
           </div>
         </div>
-        
-        {message.type === 'user' && (
-          <div className="text-right">
-            <span className="text-xs text-muted-foreground">
-              {formatTime(message.timestamp)}
-            </span>
-          </div>
-        )}
       </div>
-
-      {message.type === 'user' && (
-        <Avatar className="w-8 h-8 mt-1">
-          <AvatarFallback className={styles.avatar}>
-            <IconComponent className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
     </div>
   );
 };
