@@ -276,6 +276,11 @@ const AskInterface = ({
       });
     } finally {
       setIsLoading(false);
+      // Set all messages' isStreaming to false when loading is done
+      setConversation(prev => prev.map(msg => ({
+        ...msg,
+        isStreaming: false
+      })));
     }
   };
 
