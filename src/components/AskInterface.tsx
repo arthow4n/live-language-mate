@@ -245,13 +245,14 @@ const AskInterface = ({
                   const parsed = JSON.parse(data);
                   if (parsed.content && !streamingComplete) {
                     accumulatedContent += parsed.content;
-                    // Update content while maintaining streaming state
+                    // Only update content if streaming is not complete
                     setConversation(prev => prev.map(msg => 
                       msg.id === editorMessageId 
                         ? { 
                             ...msg, 
                             content: accumulatedContent,
-                            isStreaming: true
+                            // Keep the current streaming state - don't override to true if already false
+                            isStreaming: msg.isStreaming
                           }
                         : msg
                     ));
