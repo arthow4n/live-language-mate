@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Settings, MessageSquare } from 'lucide-react';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from '@/contexts/SettingsContext';
@@ -17,6 +17,7 @@ interface Message {
   isStreaming?: boolean;
   parentMessageId?: string;
   tempId?: string; // Keep track of temporary ID for proper ordering
+  sortOrder?: number; // Add explicit sort order
 }
 
 interface EnhancedChatInterfaceProps {
@@ -49,6 +50,7 @@ const EnhancedChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const [componentReady, setComponentReady] = useState(false);
+  const [sortOrderCounter, setSortOrderCounter] = useState(0); // Track sort order
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -131,15 +133,17 @@ const EnhancedChatInterface = ({
 
       if (error) throw error;
 
-      const formattedMessages = data.map(msg => ({
+      const formattedMessages = data.map((msg, index) => ({
         id: msg.id,
         type: msg.message_type as 'user' | 'chat-mate' | 'editor-mate',
         content: msg.content,
         timestamp: new Date(msg.created_at),
+        sortOrder: index, // Preserve database order
       }));
 
       console.log('📥 Loaded messages:', formattedMessages.length);
       setMessages(formattedMessages);
+      setSortOrderCounter(formattedMessages.length);
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({
@@ -167,7 +171,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const saveMessage = async (message: Omit<Message, 'id' | 'timestamp'>, actualConversationId: string) => {
+  const saveMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'sortOrder'>, actualConversationId: string) => {
     try {
       console.log('💾 Saving message to database:', message.type, message.content.substring(0, 50) + '...');
       const { data, error } = await supabase
@@ -594,9 +598,13 @@ const EnhancedChatInterface = ({
   };
 
   const updateMessageById = (tempId: string, updates: Partial<Message>) => {
-    setMessages(prev => prev.map(msg => 
-      msg.tempId === tempId ? { ...msg, ...updates } : msg
-    ));
+    setMessages(prev => {
+      const updated = prev.map(msg => 
+        msg.tempId === tempId ? { ...msg, ...updates } : msg
+      );
+      // Sort by sortOrder to maintain consistent ordering
+      return updated.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    });
   };
 
   const handleSendMessage = async () => {
@@ -628,9 +636,12 @@ const EnhancedChatInterface = ({
       type: 'user',
       content: inputMessage.trim(),
       timestamp: new Date(),
+      sortOrder: sortOrderCounter,
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setSortOrderCounter(prev => prev + 1);
+    
     const currentInput = inputMessage.trim();
     setInputMessage('');
     setIsLoading(true);
@@ -642,7 +653,7 @@ const EnhancedChatInterface = ({
         // Update the message with the real ID from database
         setMessages(prev => prev.map(msg => 
           msg.id === userMessage.id ? { ...msg, id: savedUserMessage.id } : msg
-        ));
+        ).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
       }
 
       // Prepare conversation history for AI context
@@ -660,13 +671,14 @@ const EnhancedChatInterface = ({
 
       console.log('🔄 Processing AI responses for message:', currentInput);
 
-      // Create temporary streaming messages with consistent ordering
-      const timestamp = Date.now();
-      const editorUserTempId = `temp-editor-user-${timestamp}`;
-      const chatMateTempId = `temp-chat-mate-${timestamp + 1}`;
-      const editorChatMateTempId = `temp-editor-chatmate-${timestamp + 2}`;
+      // Create temporary streaming messages with explicit sort order
+      const editorUserTempId = `temp-editor-user-${Date.now()}`;
+      const chatMateTempId = `temp-chat-mate-${Date.now() + 1}`;
+      const editorChatMateTempId = `temp-editor-chatmate-${Date.now() + 2}`;
 
-      // Add empty streaming messages to the UI in correct order
+      const currentSortOrder = sortOrderCounter;
+
+      // Add empty streaming messages to the UI in correct order with explicit sortOrder
       const editorUserMessage: Message = {
         id: editorUserTempId,
         tempId: editorUserTempId,
@@ -675,6 +687,7 @@ const EnhancedChatInterface = ({
         timestamp: new Date(),
         isStreaming: true,
         parentMessageId: savedUserMessage?.id || userMessage.id,
+        sortOrder: currentSortOrder,
       };
 
       const chatMateMessage: Message = {
@@ -684,6 +697,7 @@ const EnhancedChatInterface = ({
         content: '',
         timestamp: new Date(),
         isStreaming: true,
+        sortOrder: currentSortOrder + 1,
       };
 
       const editorChatMateMessage: Message = {
@@ -693,10 +707,16 @@ const EnhancedChatInterface = ({
         content: '',
         timestamp: new Date(),
         isStreaming: true,
+        sortOrder: currentSortOrder + 2,
       };
 
       // Add all streaming messages at once to maintain order
-      setMessages(prev => [...prev, editorUserMessage, chatMateMessage, editorChatMateMessage]);
+      setMessages(prev => {
+        const updated = [...prev, editorUserMessage, chatMateMessage, editorChatMateMessage];
+        return updated.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      });
+      
+      setSortOrderCounter(prev => prev + 3);
 
       // Process Editor Mate comment on user message and Chat Mate response in parallel
       const [editorUserContent, chatMateContent] = await Promise.all([
@@ -738,19 +758,23 @@ const EnhancedChatInterface = ({
         saveMessage({ ...editorChatMateMessage, content: editorChatMateContent }, currentConversationId)
       ]);
 
-      // Update messages with database IDs while maintaining order
-      setMessages(prev => prev.map(msg => {
-        if (msg.tempId === editorUserTempId && savedEditorUser) {
-          return { ...msg, id: savedEditorUser.id, content: editorUserContent, isStreaming: false };
-        }
-        if (msg.tempId === chatMateTempId && savedChatMate) {
-          return { ...msg, id: savedChatMate.id, content: chatMateContent, isStreaming: false };
-        }
-        if (msg.tempId === editorChatMateTempId && savedEditorChatMate) {
-          return { ...msg, id: savedEditorChatMate.id, content: editorChatMateContent, isStreaming: false };
-        }
-        return msg;
-      }));
+      // Update messages with database IDs while preserving order
+      setMessages(prev => {
+        const updated = prev.map(msg => {
+          if (msg.tempId === editorUserTempId && savedEditorUser) {
+            return { ...msg, id: savedEditorUser.id, content: editorUserContent, isStreaming: false };
+          }
+          if (msg.tempId === chatMateTempId && savedChatMate) {
+            return { ...msg, id: savedChatMate.id, content: chatMateContent, isStreaming: false };
+          }
+          if (msg.tempId === editorChatMateTempId && savedEditorChatMate) {
+            return { ...msg, id: savedEditorChatMate.id, content: editorChatMateContent, isStreaming: false };
+          }
+          return msg;
+        });
+        // Always sort by sortOrder to maintain consistency
+        return updated.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      });
 
       onConversationUpdate();
 
@@ -800,17 +824,19 @@ const EnhancedChatInterface = ({
           </div>
         )}
         
-        {messages.map((message) => (
-          <EnhancedChatMessage
-            key={message.tempId || message.id}
-            message={message}
-            onTextSelect={handleTextSelect}
-            onRegenerateMessage={regenerateMessage}
-            onEditMessage={editMessage}
-            onDeleteMessage={deleteMessage}
-            onForkFrom={forkFromMessage}
-          />
-        ))}
+        {messages
+          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)) // Ensure consistent sorting in render
+          .map((message) => (
+            <EnhancedChatMessage
+              key={message.tempId || message.id}
+              message={message}
+              onTextSelect={handleTextSelect}
+              onRegenerateMessage={regenerateMessage}
+              onEditMessage={editMessage}
+              onDeleteMessage={deleteMessage}
+              onForkFrom={forkFromMessage}
+            />
+          ))}
         
         {isLoading && (
           <div className="flex items-center space-x-2 text-muted-foreground mb-4">
