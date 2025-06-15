@@ -1,10 +1,15 @@
-
 export interface LocalMessage {
   id: string;
   type: 'user' | 'chat-mate' | 'editor-mate';
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  metadata?: {
+    model?: string;
+    generationTime?: number;
+    startTime?: number;
+    endTime?: number;
+  };
 }
 
 export interface LocalConversation {
@@ -117,15 +122,24 @@ class LocalStorageService {
     this.saveData(data);
   }
 
-  addMessage(conversationId: string, message: LocalMessage): void {
+  addMessage(conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>): LocalMessage {
     const data = this.getData();
     const conversation = data.conversations.find(conv => conv.id === conversationId);
     
     if (conversation) {
-      conversation.messages.push(message);
+      const newMessage: LocalMessage = {
+        ...message,
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date()
+      };
+      
+      conversation.messages.push(newMessage);
       conversation.updated_at = new Date();
       this.saveData(data);
+      return newMessage;
     }
+    
+    throw new Error('Conversation not found');
   }
 
   updateConversationTitle(id: string, title: string): void {
