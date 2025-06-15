@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Settings, MessageSquare } from 'lucide-react';
+import { Settings, MessageSquare, GraduationCap } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
@@ -150,10 +150,25 @@ const LanguageMateApp = () => {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 h-full">
-          {/* Header with Sidebar Toggle */}
-          <div className="flex items-center h-12 px-4 border-b bg-background shrink-0">
-            <SidebarTrigger className="mr-2" />
-            <h1 className="text-lg font-semibold">Live Language Mate</h1>
+          {/* Header with Sidebar Toggle and Editor Mate Toggle */}
+          <div className="flex items-center justify-between h-12 px-4 border-b bg-background shrink-0">
+            <div className="flex items-center">
+              <SidebarTrigger className="mr-2" />
+              <h1 className="text-lg font-semibold">Live Language Mate</h1>
+            </div>
+            
+            {/* Editor Mate Toggle Button - visible on mobile */}
+            {isMobile && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAskInterfaceOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <GraduationCap className="w-4 h-4" />
+                Editor Mate
+              </Button>
+            )}
           </div>
 
           {/* Content Area - Chat + Ask Interface */}
