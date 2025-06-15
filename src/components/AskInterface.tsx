@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,8 @@ import {
   Globe,
   Book,
   Play,
-  Loader2
+  Loader2,
+  BookOpen
 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -68,6 +68,11 @@ const AskInterface = ({
       name: 'Wiktionary',
       icon: Book,
       url: (text: string) => `https://en.wiktionary.org/wiki/${encodeURIComponent(text)}`
+    },
+    {
+      name: 'SAOL',
+      icon: BookOpen,
+      url: (text: string) => `https://svenska.se/tre/?sok=${encodeURIComponent(text)}`
     },
     {
       name: 'YouGlish',
@@ -189,18 +194,18 @@ const AskInterface = ({
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
               Quick Tools
             </p>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-2 gap-1">
               {quickLinks.map((link) => (
                 <Button
                   key={link.name}
                   variant="outline"
                   size="sm"
-                  className="justify-start h-8 text-xs"
+                  className="justify-start h-7 text-xs px-2"
                   onClick={() => window.open(link.url(editableSelectedText), '_blank')}
                 >
-                  <link.icon className="w-3 h-3 mr-2" />
+                  <link.icon className="w-3 h-3 mr-1" />
                   {link.name}
-                  <ExternalLink className="w-3 h-3 ml-auto" />
+                  <ExternalLink className="w-2 h-2 ml-auto" />
                 </Button>
               ))}
             </div>
