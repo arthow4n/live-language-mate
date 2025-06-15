@@ -64,8 +64,8 @@ class LocalStorageService {
         feedbackStyle: 'encouraging',
         culturalContext: true,
         progressiveComplexity: true,
-        enableReasoning: false,
-        reasoningExpanded: false,
+        enableReasoning: true,
+        reasoningExpanded: true,
       }
     };
   }

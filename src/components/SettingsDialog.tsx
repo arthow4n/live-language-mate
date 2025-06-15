@@ -21,7 +21,8 @@ import {
   GraduationCap, 
   Brain,
   Globe,
-  Key
+  Key,
+  Monitor
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import ModelSelector from "./ModelSelector";
@@ -66,8 +67,8 @@ const SettingsDialog = ({
   const [model, setModel] = useState(initialSettings.model || 'anthropic/claude-3-5-sonnet');
   const [targetLanguage, setTargetLanguage] = useState(initialSettings.targetLanguage || 'swedish');
   const [streamingEnabled, setStreamingEnabled] = useState(initialSettings.streamingEnabled ?? true);
-  const [enableReasoning, setEnableReasoning] = useState(initialSettings.enableReasoning ?? false);
-  const [reasoningExpanded, setReasoningExpanded] = useState(initialSettings.reasoningExpanded ?? false);
+  const [enableReasoning, setEnableReasoning] = useState(initialSettings.enableReasoning ?? true);
+  const [reasoningExpanded, setReasoningExpanded] = useState(initialSettings.reasoningExpanded ?? true);
   
   const [chatMatePersonality, setChatMatePersonality] = useState(
     initialSettings.chatMatePersonality || "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society."
@@ -159,14 +160,77 @@ const SettingsDialog = ({
           )}
         </DialogHeader>
 
-        <Tabs defaultValue="agents" className="flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="general" className="flex-1 overflow-hidden">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="agents">AI Agents</TabsTrigger>
-            <TabsTrigger value="language">Language</TabsTrigger>
-            <TabsTrigger value="api">API Settings</TabsTrigger>
+            <TabsTrigger value="ui">UI</TabsTrigger>
+            <TabsTrigger value="api">API</TabsTrigger>
           </TabsList>
 
           <div className="overflow-y-auto max-h-[60vh] pr-2">
+            <TabsContent value="general" className="space-y-6 mt-4">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Globe className="w-4 h-4" />
+                  <h3 className="font-semibold">General Settings</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="target-language">Target Language</Label>
+                    <Select value={targetLanguage} onValueChange={handleLanguageChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select language to learn" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.map((lang) => (
+                          <SelectItem key={lang.value} value={lang.value}>
+                            {lang.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="model">AI Model</Label>
+                    <ModelSelector
+                      value={model}
+                      onValueChange={setModel}
+                      placeholder="Select an AI model..."
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label>Live Streaming</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Stream AI responses in real-time as they're generated
+                      </p>
+                    </div>
+                    <Switch
+                      checked={streamingEnabled}
+                      onCheckedChange={setStreamingEnabled}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label>Enable AI Reasoning</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Request reasoning from compatible models (e.g. Claude Sonnet 3.5).
+                      </p>
+                    </div>
+                    <Switch
+                      checked={enableReasoning}
+                      onCheckedChange={setEnableReasoning}
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="agents" className="space-y-6 mt-4">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
@@ -219,61 +283,19 @@ const SettingsDialog = ({
               </div>
             </TabsContent>
 
-            <TabsContent value="language" className="space-y-6 mt-4">
+            <TabsContent value="ui" className="space-y-6 mt-4">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
-                  <Globe className="w-4 h-4" />
-                  <h3 className="font-semibold">Language Learning Settings</h3>
+                  <Monitor className="w-4 h-4" />
+                  <h3 className="font-semibold">User Interface</h3>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="target-language">Target Language</Label>
-                    <Select value={targetLanguage} onValueChange={handleLanguageChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language to learn" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {languages.map((lang) => (
-                          <SelectItem key={lang.value} value={lang.value}>
-                            {lang.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Live Streaming</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Stream AI responses in real-time as they're generated
-                      </p>
-                    </div>
-                    <Switch
-                      checked={streamingEnabled}
-                      onCheckedChange={setStreamingEnabled}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Enable AI Reasoning</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Request reasoning from compatible models (e.g. Claude Sonnet 3.5).
-                      </p>
-                    </div>
-                    <Switch
-                      checked={enableReasoning}
-                      onCheckedChange={setEnableReasoning}
-                    />
-                  </div>
-
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <Label>Expand Reasoning by Default</Label>
                       <p className="text-xs text-muted-foreground">
-                        Show the AI's thinking process by default in chat messages.
+                        Show the AI's thinking process expanded by default in chat messages.
                       </p>
                     </div>
                     <Switch
@@ -307,15 +329,6 @@ const SettingsDialog = ({
                     <p className="text-xs text-muted-foreground">
                       OpenRouter provides access to multiple AI models through a single API.
                     </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="model">Model</Label>
-                    <ModelSelector
-                      value={model}
-                      onValueChange={setModel}
-                      placeholder="Select an AI model..."
-                    />
                   </div>
 
                   <div className="space-y-2">

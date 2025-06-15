@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface GlobalSettings {
@@ -52,8 +53,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     targetLanguage: 'swedish',
     streaming: true,
     theme: 'system',
-    enableReasoning: false,
-    reasoningExpanded: false,
+    enableReasoning: true,
+    reasoningExpanded: true,
   });
   const [chatSettings, setChatSettings] = useState<Record<string, ChatSettings>>({});
 
