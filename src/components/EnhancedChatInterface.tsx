@@ -428,7 +428,7 @@ const EnhancedChatInterface = ({
                   endTime
                 };
                 
-                // Mark streaming as complete and add metadata
+                // Update local state with final content and metadata
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { 
                     ...msg, 
@@ -438,11 +438,13 @@ const EnhancedChatInterface = ({
                   } : msg
                 ));
                 
-                // IMPORTANT: Update the message in storage with the final metadata
-                updateMessage(messageId, { 
-                  content: fullContent, 
-                  metadata: finalMetadata 
-                });
+                // Save final content and metadata to storage - but don't reload from storage immediately
+                setTimeout(() => {
+                  updateMessage(messageId, { 
+                    content: fullContent, 
+                    metadata: finalMetadata 
+                  });
+                }, 100);
                 
                 return fullContent;
               }
@@ -467,6 +469,7 @@ const EnhancedChatInterface = ({
       endTime
     };
     
+    // Update local state
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { 
         ...msg, 
@@ -476,11 +479,13 @@ const EnhancedChatInterface = ({
       } : msg
     ));
 
-    // IMPORTANT: Update the message in storage with the final metadata
-    updateMessage(messageId, { 
-      content: fullContent, 
-      metadata: finalMetadata 
-    });
+    // Save to storage with delay
+    setTimeout(() => {
+      updateMessage(messageId, { 
+        content: fullContent, 
+        metadata: finalMetadata 
+      });
+    }, 100);
 
     return fullContent;
   };
@@ -601,8 +606,10 @@ const EnhancedChatInterface = ({
         } : msg
       ));
       
-      // IMPORTANT: Update the message in storage with the final metadata
-      updateMessage(streamingMessageId, { metadata: finalMetadata });
+      // Save to storage with delay
+      setTimeout(() => {
+        updateMessage(streamingMessageId, { metadata: finalMetadata });
+      }, 100);
       
       return data.response;
     }
@@ -790,7 +797,10 @@ const EnhancedChatInterface = ({
         savedEditorChatMateMessage?.id || editorChatMateTempId
       );
 
-      onConversationUpdate();
+      // Don't trigger onConversationUpdate immediately to avoid reloading during streaming
+      setTimeout(() => {
+        onConversationUpdate();
+      }, 1000);
 
     } catch (error) {
       console.error('❌ Error sending message:', error);
