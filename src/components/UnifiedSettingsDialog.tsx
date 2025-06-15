@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,8 @@ import {
   Brain,
   Globe,
   Key,
-  Zap
+  Zap,
+  LogOut
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -55,6 +55,7 @@ interface UnifiedSettingsDialogProps {
   initialSettings?: Partial<SettingsData>;
   onSave: (settings: SettingsData) => void;
   conversationTitle?: string;
+  onSignOut?: () => void;
 }
 
 const UnifiedSettingsDialog = ({ 
@@ -63,7 +64,8 @@ const UnifiedSettingsDialog = ({
   mode,
   initialSettings = {},
   onSave,
-  conversationTitle
+  conversationTitle,
+  onSignOut
 }: UnifiedSettingsDialogProps) => {
   const [settings, setSettings] = useState<SettingsData>({
     chatMatePersonality: initialSettings.chatMatePersonality || "You are a friendly local who loves helping newcomers feel welcome. You're enthusiastic about culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into society.",
@@ -187,6 +189,13 @@ const UnifiedSettingsDialog = ({
       provider,
       model: providerModels[0]?.value || ''
     });
+  };
+
+  const handleSignOut = () => {
+    if (onSignOut) {
+      onSignOut();
+    }
+    onOpenChange(false);
   };
 
   return (
@@ -447,13 +456,28 @@ const UnifiedSettingsDialog = ({
           </div>
         </Tabs>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Save Settings
-          </Button>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          {mode === 'main' && onSignOut && (
+            <div className="flex w-full sm:w-auto">
+              <Button 
+                variant="destructive" 
+                onClick={handleSignOut}
+                className="w-full sm:w-auto"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          )}
+          
+          <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">
+              Cancel
+            </Button>
+            <Button onClick={handleSave} className="flex-1 sm:flex-none">
+              Save Settings
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

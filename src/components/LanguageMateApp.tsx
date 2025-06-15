@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -63,40 +64,11 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           onNewConversation={handleNewConversation}
           targetLanguage={currentSettings.targetLanguage}
           refreshTrigger={refreshSidebar}
+          onChatSettingsOpen={() => setChatSettingsOpen(true)}
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 h-full">
-          {/* Header */}
-          <header className="border-b bg-card h-14 flex items-center justify-between px-4 flex-shrink-0">
-            <div className="flex items-center space-x-3">
-              <SidebarTrigger />
-              <h1 className="text-xl font-bold">Language Mate</h1>
-              <span className="text-sm text-muted-foreground">
-                for {currentSettings.targetLanguage.charAt(0).toUpperCase() + currentSettings.targetLanguage.slice(1)} learners
-              </span>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setMainSettingsOpen(true)}
-                title="Main Settings"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleSignOut}
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
-          </header>
-
+        <div className="flex-1 flex min-w-0 h-full">
           {/* Content Area - Chat + Ask Interface */}
           <div className="flex-1 flex overflow-hidden min-h-0">
             {/* Chat Interface */}
@@ -130,6 +102,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           mode="main"
           initialSettings={mainSettings}
           onSave={handleMainSettingsSave}
+          onSignOut={handleSignOut}
         />
 
         {/* Chat Settings Dialog */}
@@ -143,6 +116,17 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
             conversationTitle="Current Chat"
           />
         )}
+
+        {/* Floating Settings Button */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setMainSettingsOpen(true)}
+          className="fixed top-4 right-4 z-50 shadow-lg"
+          title="Main Settings"
+        >
+          <Settings className="w-4 h-4" />
+        </Button>
       </div>
     </SidebarProvider>
   );
