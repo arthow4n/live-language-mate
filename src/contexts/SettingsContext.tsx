@@ -1,10 +1,10 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface MainSettings {
   model: string;
   apiKey: string;
   targetLanguage: string;
+  streaming: boolean;
 }
 
 interface ChatSettings {
@@ -34,7 +34,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [mainSettings, setMainSettings] = useState<MainSettings>({
     model: 'anthropic/claude-3-5-sonnet',
     apiKey: '',
-    targetLanguage: 'swedish'
+    targetLanguage: 'swedish',
+    streaming: true
   });
   const [chatSettings, setChatSettings] = useState<Record<string, ChatSettings>>({});
 
