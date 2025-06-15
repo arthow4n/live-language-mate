@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +8,7 @@ import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { generateChatTitle, updateConversationTitle } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface Message {
   id: string;
@@ -56,6 +58,7 @@ const EnhancedChatInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
+  const { getChatSettings } = useSettings();
   const { 
     settings, 
     getConversation, 
@@ -70,8 +73,9 @@ const EnhancedChatInterface = ({
 
   // Get current conversation settings
   const currentConversation = conversationId ? getConversation(conversationId) : null;
-  const chatMatePrompt = currentConversation?.chat_mate_prompt || settings.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
-  const currentEditorMatePrompt = currentConversation?.editor_mate_prompt || editorMatePrompt || settings.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
+  const chatSettings = conversationId ? getChatSettings(conversationId) : getChatSettings('default');
+  const chatMatePrompt = currentConversation?.chat_mate_prompt || chatSettings.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
+  const currentEditorMatePrompt = currentConversation?.editor_mate_prompt || editorMatePrompt || chatSettings.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   // Check if we should generate a title - more robust logic
   const shouldGenerateTitle = (messagesList: Message[], convId: string | null) => {
@@ -203,6 +207,7 @@ const EnhancedChatInterface = ({
         id: msg.id,
         type: msg.type,
         content: msg.content,
+        thinking: msg.thinking,
         timestamp: msg.timestamp,
       }));
 
@@ -229,6 +234,7 @@ const EnhancedChatInterface = ({
       const savedMessage = addMessage(actualConversationId, {
         content: message.content,
         type: message.type,
+        thinking: message.thinking,
       });
       console.log('✅ Message saved successfully with ID:', savedMessage.id);
       return savedMessage;
@@ -346,14 +352,21 @@ const EnhancedChatInterface = ({
         messageType = isUserComment ? 'editor-mate-user-comment' : 'editor-mate-chatmate-comment';
       }
 
-      const response = await callAI(userMessage, messageType, conversationHistory, messageId);
+      const aiResult = await callAI(userMessage, messageType, conversationHistory, messageId);
 
       // Update the message in the database
-      updateMessage(messageId, { content: response });
+      updateMessage(messageId, { 
+        content: aiResult.content,
+        thinking: aiResult.thinking 
+      });
 
       // Update the message in the local state
       setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? { ...msg, content: response } : msg
+        msg.id === messageId ? { 
+          ...msg, 
+          content: aiResult.content,
+          thinking: aiResult.thinking 
+        } : msg
       ));
 
       toast({
@@ -481,6 +494,7 @@ const EnhancedChatInterface = ({
         addMessage(newConversation.id, {
           content: msg.content,
           type: msg.type,
+          thinking: msg.thinking,
         });
       }
 
@@ -530,15 +544,15 @@ const EnhancedChatInterface = ({
         chatMatePrompt,
         editorMatePrompt: currentEditorMatePrompt,
         targetLanguage,
-        model: settings.model,
-        apiKey: settings.apiKey,
-        chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
-        editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: settings.feedbackStyle || 'encouraging',
-        culturalContext: settings.culturalContext ?? true,
-        progressiveComplexity: settings.progressiveComplexity ?? true,
-        streaming: settings.streaming ?? true,
-        reasoning: settings.reasoning ?? false,
+        model: chatSettings.model,
+        apiKey: chatSettings.apiKey,
+        chatMateBackground: chatSettings.chatMateBackground || 'young professional, loves local culture',
+        editorMateExpertise: chatSettings.editorMateExpertise || '10+ years teaching experience',
+        feedbackStyle: chatSettings.feedbackStyle || 'encouraging',
+        culturalContext: chatSettings.culturalContext ?? true,
+        progressiveComplexity: chatSettings.progressiveComplexity ?? true,
+        streaming: chatSettings.streaming ?? true,
+        reasoning: chatSettings.reasoning ?? false,
         currentDateTime,
         userTimezone
       })
@@ -669,6 +683,7 @@ const EnhancedChatInterface = ({
       const savedEditorUserMessage = saveMessage({
         type: 'editor-mate',
         content: editorUserResult.content,
+        thinking: editorUserResult.thinking,
         parentMessageId: savedUserMessage?.id || userMessage.id,
       }, currentConversationId);
 
@@ -705,6 +720,7 @@ const EnhancedChatInterface = ({
       const savedChatMateMessage = saveMessage({
         type: 'chat-mate',
         content: chatMateResult.content,
+        thinking: chatMateResult.thinking,
       }, currentConversationId);
 
       if (savedChatMateMessage) {
@@ -741,6 +757,7 @@ const EnhancedChatInterface = ({
       const savedEditorChatMateMessage = saveMessage({
         type: 'editor-mate',
         content: editorChatMateResult.content,
+        thinking: editorChatMateResult.thinking,
         parentMessageId: savedChatMateMessage?.id || chatMateTempId,
       }, currentConversationId);
 
