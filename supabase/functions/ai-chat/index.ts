@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -117,7 +118,10 @@ Keep responses natural and conversational.${dateTimeContext}`
     };
 
     if (enableReasoning) {
-        payload.tools = [{ type: "reasoning" }];
+        console.log('🧠 Reasoning enabled. Modifying payload for OpenRouter.');
+        payload.reasoning = {
+            max_tokens: 2000,
+        };
         payload.max_tokens = 4096;
     }
 
@@ -160,14 +164,11 @@ Keep responses natural and conversational.${dateTimeContext}`
                   })}\n\n`))
                 }
                 
-                if (delta?.tool_calls) {
-                  const toolCall = delta.tool_calls[0];
-                  if (toolCall?.function?.arguments) {
-                     controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
-                      type: 'reasoning',
-                      content: toolCall.function.arguments
-                    })}\n\n`))
-                  }
+                if (delta?.reasoning) {
+                   controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                    type: 'reasoning',
+                    content: delta.reasoning
+                  })}\n\n`))
                 }
               } catch (e) {
                 console.error('Error parsing stream chunk:', e, 'line:', line);
@@ -196,8 +197,8 @@ Keep responses natural and conversational.${dateTimeContext}`
       const aiResponse = message.content;
       
       let reasoning = null;
-      if (message.tool_calls) {
-        reasoning = message.tool_calls.map((tc: any) => tc.function.arguments).join('\n');
+      if (message.reasoning) {
+        reasoning = message.reasoning;
       }
 
       console.log('✅ OpenRouter response received successfully:', {
