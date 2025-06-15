@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
@@ -179,55 +180,92 @@ const AskInterface = ({
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="font-semibold flex items-center gap-2">
-            <Search className="w-4 h-4" />
-            Editor Mate
-          </h2>
-          {onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
+      {/* Header - only show when not in mobile drawer (onClose indicates mobile drawer) */}
+      {!onClose && (
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              Editor Mate
+            </h2>
+          </div>
+          
+          {/* Always visible selected text input */}
+          <div className="bg-gray-50 rounded-lg p-3 mb-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">Selected text:</p>
+            <Input
+              value={editableSelectedText}
+              onChange={(e) => setEditableSelectedText(e.target.value)}
+              placeholder="Enter or paste text you want to ask about..."
+              className="bg-white"
+            />
+          </div>
+
+          {/* Quick Links */}
+          {editableSelectedText && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Quick Tools
+              </p>
+              <div className="grid grid-cols-2 gap-1">
+                {quickLinks.map((link) => (
+                  <Button
+                    key={link.name}
+                    variant="outline"
+                    size="sm"
+                    className="justify-start h-6 text-xs px-2"
+                    onClick={() => window.open(link.url(editableSelectedText), '_blank')}
+                  >
+                    <link.icon className="w-2.5 h-2.5 mr-1" />
+                    {link.name}
+                    <ExternalLink className="w-2 h-2 ml-auto" />
+                  </Button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
-        
-        {/* Always visible selected text input */}
-        <div className="bg-gray-50 rounded-lg p-3 mb-3">
-          <p className="text-sm font-medium text-gray-700 mb-2">Selected text:</p>
-          <Input
-            value={editableSelectedText}
-            onChange={(e) => setEditableSelectedText(e.target.value)}
-            placeholder="Enter or paste text you want to ask about..."
-            className="bg-white"
-          />
-        </div>
+      )}
 
-        {/* Quick Links */}
-        {editableSelectedText && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              Quick Tools
-            </p>
-            <div className="grid grid-cols-2 gap-1">
-              {quickLinks.map((link) => (
-                <Button
-                  key={link.name}
-                  variant="outline"
-                  size="sm"
-                  className="justify-start h-6 text-xs px-2"
-                  onClick={() => window.open(link.url(editableSelectedText), '_blank')}
-                >
-                  <link.icon className="w-2.5 h-2.5 mr-1" />
-                  {link.name}
-                  <ExternalLink className="w-2 h-2 ml-auto" />
-                </Button>
-              ))}
-            </div>
+      {/* Mobile header - only show when in mobile drawer */}
+      {onClose && (
+        <div className="p-4 border-b">
+          {/* Always visible selected text input */}
+          <div className="bg-gray-50 rounded-lg p-3 mb-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">Selected text:</p>
+            <Input
+              value={editableSelectedText}
+              onChange={(e) => setEditableSelectedText(e.target.value)}
+              placeholder="Enter or paste text you want to ask about..."
+              className="bg-white"
+            />
           </div>
-        )}
-      </div>
+
+          {/* Quick Links */}
+          {editableSelectedText && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Quick Tools
+              </p>
+              <div className="grid grid-cols-2 gap-1">
+                {quickLinks.map((link) => (
+                  <Button
+                    key={link.name}
+                    variant="outline"
+                    size="sm"
+                    className="justify-start h-6 text-xs px-2"
+                    onClick={() => window.open(link.url(editableSelectedText), '_blank')}
+                  >
+                    <link.icon className="w-2.5 h-2.5 mr-1" />
+                    {link.name}
+                    <ExternalLink className="w-2 h-2 ml-auto" />
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Conversation Area */}
       <ScrollArea className="flex-1 p-4">
