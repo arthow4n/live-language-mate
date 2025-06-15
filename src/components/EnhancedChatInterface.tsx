@@ -17,7 +17,7 @@ interface Message {
   isStreaming?: boolean;
   parentMessageId?: string;
   tempId?: string; // Keep track of temporary ID for proper ordering
-  sortOrder?: number; // Add explicit sort order
+  sortOrder: number; // Make sortOrder required and always present
 }
 
 interface EnhancedChatInterfaceProps {
@@ -50,7 +50,7 @@ const EnhancedChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const [componentReady, setComponentReady] = useState(false);
-  const [sortOrderCounter, setSortOrderCounter] = useState(0); // Track sort order
+  const [sortOrderCounter, setSortOrderCounter] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -171,7 +171,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const saveMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'sortOrder'>, actualConversationId: string) => {
+  const saveMessage = async (message: Omit<Message, 'id' | 'timestamp'>, actualConversationId: string) => {
     try {
       console.log('💾 Saving message to database:', message.type, message.content.substring(0, 50) + '...');
       const { data, error } = await supabase
@@ -597,13 +597,14 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const updateMessageById = (tempId: string, updates: Partial<Message>) => {
+  // Helper function to update message content while preserving sort order
+  const updateMessageByTempId = (tempId: string, updates: Partial<Message>) => {
     setMessages(prev => {
-      const updated = prev.map(msg => 
+      const newMessages = prev.map(msg => 
         msg.tempId === tempId ? { ...msg, ...updates } : msg
       );
-      // Sort by sortOrder to maintain consistent ordering
-      return updated.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      // Always sort by sortOrder to maintain consistent ordering
+      return newMessages.sort((a, b) => a.sortOrder - b.sortOrder);
     });
   };
 
@@ -639,7 +640,7 @@ const EnhancedChatInterface = ({
       sortOrder: sortOrderCounter,
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage].sort((a, b) => a.sortOrder - b.sortOrder));
     setSortOrderCounter(prev => prev + 1);
     
     const currentInput = inputMessage.trim();
@@ -653,7 +654,7 @@ const EnhancedChatInterface = ({
         // Update the message with the real ID from database
         setMessages(prev => prev.map(msg => 
           msg.id === userMessage.id ? { ...msg, id: savedUserMessage.id } : msg
-        ).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
+        ).sort((a, b) => a.sortOrder - b.sortOrder));
       }
 
       // Prepare conversation history for AI context
@@ -671,51 +672,46 @@ const EnhancedChatInterface = ({
 
       console.log('🔄 Processing AI responses for message:', currentInput);
 
-      // Create temporary streaming messages with explicit sort order
+      // Create temporary IDs and assign sequential sort orders
+      const baseSortOrder = sortOrderCounter;
       const editorUserTempId = `temp-editor-user-${Date.now()}`;
       const chatMateTempId = `temp-chat-mate-${Date.now() + 1}`;
       const editorChatMateTempId = `temp-editor-chatmate-${Date.now() + 2}`;
 
-      const currentSortOrder = sortOrderCounter;
+      // Add empty streaming messages with explicit sort order assignment
+      const streamingMessages: Message[] = [
+        {
+          id: editorUserTempId,
+          tempId: editorUserTempId,
+          type: 'editor-mate',
+          content: '',
+          timestamp: new Date(),
+          isStreaming: true,
+          parentMessageId: savedUserMessage?.id || userMessage.id,
+          sortOrder: baseSortOrder, // First after user message
+        },
+        {
+          id: chatMateTempId,
+          tempId: chatMateTempId,
+          type: 'chat-mate',
+          content: '',
+          timestamp: new Date(),
+          isStreaming: true,
+          sortOrder: baseSortOrder + 1, // Second
+        },
+        {
+          id: editorChatMateTempId,
+          tempId: editorChatMateTempId,
+          type: 'editor-mate',
+          content: '',
+          timestamp: new Date(),
+          isStreaming: true,
+          sortOrder: baseSortOrder + 2, // Third
+        }
+      ];
 
-      // Add empty streaming messages to the UI in correct order with explicit sortOrder
-      const editorUserMessage: Message = {
-        id: editorUserTempId,
-        tempId: editorUserTempId,
-        type: 'editor-mate',
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        parentMessageId: savedUserMessage?.id || userMessage.id,
-        sortOrder: currentSortOrder,
-      };
-
-      const chatMateMessage: Message = {
-        id: chatMateTempId,
-        tempId: chatMateTempId,
-        type: 'chat-mate',
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        sortOrder: currentSortOrder + 1,
-      };
-
-      const editorChatMateMessage: Message = {
-        id: editorChatMateTempId,
-        tempId: editorChatMateTempId,
-        type: 'editor-mate',
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        sortOrder: currentSortOrder + 2,
-      };
-
-      // Add all streaming messages at once to maintain order
-      setMessages(prev => {
-        const updated = [...prev, editorUserMessage, chatMateMessage, editorChatMateMessage];
-        return updated.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-      });
-      
+      // Add all streaming messages at once and sort immediately
+      setMessages(prev => [...prev, ...streamingMessages].sort((a, b) => a.sortOrder - b.sortOrder));
       setSortOrderCounter(prev => prev + 3);
 
       // Process Editor Mate comment on user message and Chat Mate response in parallel
@@ -726,7 +722,7 @@ const EnhancedChatInterface = ({
           'editor-mate-user-comment', 
           fullHistory,
           (content) => {
-            updateMessageById(editorUserTempId, { content, isStreaming: content === '' });
+            updateMessageByTempId(editorUserTempId, { content, isStreaming: content === '' });
           }
         ),
         
@@ -736,29 +732,45 @@ const EnhancedChatInterface = ({
           'chat-mate-response', 
           chatMateHistory,
           (content) => {
-            updateMessageById(chatMateTempId, { content, isStreaming: content === '' });
+            updateMessageByTempId(chatMateTempId, { content, isStreaming: content === '' });
           }
         )
       ]);
 
-      // Now get Editor Mate comment on Chat Mate's response using the actual content
+      // Now get Editor Mate comment on Chat Mate's response
       const editorChatMateContent = await callAIWithStreaming(
         chatMateContent, 
         'editor-mate-chatmate-comment', 
         [...fullHistory, { role: 'assistant', content: `[chat-mate]: ${chatMateContent}` }],
         (content) => {
-          updateMessageById(editorChatMateTempId, { content, isStreaming: content === '' });
+          updateMessageByTempId(editorChatMateTempId, { content, isStreaming: content === '' });
         }
       );
 
-      // Save all final messages to database and update with real IDs
+      // Save all messages to database
       const [savedEditorUser, savedChatMate, savedEditorChatMate] = await Promise.all([
-        saveMessage({ ...editorUserMessage, content: editorUserContent }, currentConversationId),
-        saveMessage({ ...chatMateMessage, content: chatMateContent }, currentConversationId),
-        saveMessage({ ...editorChatMateMessage, content: editorChatMateContent }, currentConversationId)
+        saveMessage({ 
+          type: 'editor-mate', 
+          content: editorUserContent, 
+          parentMessageId: savedUserMessage?.id || userMessage.id,
+          sortOrder: baseSortOrder,
+          tempId: editorUserTempId
+        }, currentConversationId),
+        saveMessage({ 
+          type: 'chat-mate', 
+          content: chatMateContent,
+          sortOrder: baseSortOrder + 1,
+          tempId: chatMateTempId
+        }, currentConversationId),
+        saveMessage({ 
+          type: 'editor-mate', 
+          content: editorChatMateContent,
+          sortOrder: baseSortOrder + 2,
+          tempId: editorChatMateTempId
+        }, currentConversationId)
       ]);
 
-      // Update messages with database IDs while preserving order
+      // Final update with database IDs in a single atomic operation
       setMessages(prev => {
         const updated = prev.map(msg => {
           if (msg.tempId === editorUserTempId && savedEditorUser) {
@@ -772,8 +784,8 @@ const EnhancedChatInterface = ({
           }
           return msg;
         });
-        // Always sort by sortOrder to maintain consistency
-        return updated.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        // Final sort to ensure consistent order
+        return updated.sort((a, b) => a.sortOrder - b.sortOrder);
       });
 
       onConversationUpdate();
@@ -825,7 +837,7 @@ const EnhancedChatInterface = ({
         )}
         
         {messages
-          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)) // Ensure consistent sorting in render
+          .sort((a, b) => a.sortOrder - b.sortOrder) // Ensure consistent sorting in render
           .map((message) => (
             <EnhancedChatMessage
               key={message.tempId || message.id}
