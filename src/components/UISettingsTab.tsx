@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTheme } from '@/components/ThemeProvider';
 
 interface UISettingsTabProps {
   settings: {
@@ -17,11 +16,9 @@ interface UISettingsTabProps {
 }
 
 const UISettingsTab = ({ settings, onSettingChange }: UISettingsTabProps) => {
-  const { setTheme } = useTheme();
-
   const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
     onSettingChange('theme', value);
-    setTheme(value);
+    // Remove the immediate setTheme call to prevent conflicts
   };
 
   return (
