@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -368,9 +369,9 @@ const EnhancedChatInterface = ({
               
               if (data.type === 'content') {
                 fullContent += data.content;
-                console.log('📝 Updating message content:', messageId, 'Current length:', fullContent.length);
+                console.log('📝 Updating message content immediately:', messageId, 'New chunk:', data.content);
                 
-                // Update message content in real-time
+                // Update message content immediately for each chunk
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { ...msg, content: fullContent, isStreaming: true } : msg
                 ));
