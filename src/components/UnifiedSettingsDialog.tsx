@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,9 +23,13 @@ import {
   Key,
   Zap,
   LogOut,
-  User
+  User,
+  Monitor,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface SettingsData {
   // AI Agent settings
@@ -42,6 +45,9 @@ interface SettingsData {
   
   // User profile
   userDescription: string;
+  
+  // UI settings
+  darkMode: 'system' | 'light' | 'dark';
   
   // Language settings
   targetLanguage: string;
@@ -81,6 +87,7 @@ const UnifiedSettingsDialog = ({
     culturalContext: initialSettings.culturalContext ?? true,
     progressiveComplexity: initialSettings.progressiveComplexity ?? true,
     userDescription: initialSettings.userDescription || '',
+    darkMode: initialSettings.darkMode || 'system',
     targetLanguage: initialSettings.targetLanguage || 'swedish',
     streamingEnabled: initialSettings.streamingEnabled ?? true,
     provider: initialSettings.provider || 'openrouter',
@@ -89,6 +96,7 @@ const UnifiedSettingsDialog = ({
   });
 
   const { toast } = useToast();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     if (open) {
@@ -101,6 +109,7 @@ const UnifiedSettingsDialog = ({
         culturalContext: initialSettings.culturalContext ?? true,
         progressiveComplexity: initialSettings.progressiveComplexity ?? true,
         userDescription: initialSettings.userDescription || '',
+        darkMode: initialSettings.darkMode || 'system',
         targetLanguage: initialSettings.targetLanguage || 'swedish',
         streamingEnabled: initialSettings.streamingEnabled ?? true,
         provider: initialSettings.provider || 'openrouter',
@@ -111,6 +120,8 @@ const UnifiedSettingsDialog = ({
   }, [open, initialSettings]);
 
   const handleSave = () => {
+    // Apply theme change immediately
+    setTheme(settings.darkMode);
     onSave(settings);
     toast({
       title: mode === 'main' ? "Settings template saved" : "Chat settings saved",
@@ -207,7 +218,7 @@ const UnifiedSettingsDialog = ({
 
   // Determine tab configuration based on mode
   const tabsConfig = mode === 'main' 
-    ? ['agents', 'advanced', 'language', 'api', 'account']
+    ? ['agents', 'advanced', 'language', 'ui', 'api', 'account']
     : ['agents', 'advanced', 'language', 'api'];
 
   return (
@@ -231,10 +242,11 @@ const UnifiedSettingsDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue="agents" className="flex-1 overflow-hidden">
-          <TabsList className={`grid w-full ${mode === 'main' ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${mode === 'main' ? 'grid-cols-6' : 'grid-cols-4'}`}>
             <TabsTrigger value="agents">AI Agents</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
             <TabsTrigger value="language">Language</TabsTrigger>
+            {mode === 'main' && <TabsTrigger value="ui">UI</TabsTrigger>}
             <TabsTrigger value="api">API Settings</TabsTrigger>
             {mode === 'main' && <TabsTrigger value="account">Account</TabsTrigger>}
           </TabsList>
@@ -426,6 +438,51 @@ const UnifiedSettingsDialog = ({
                 </div>
               </div>
             </TabsContent>
+
+            {mode === 'main' && (
+              <TabsContent value="ui" className="space-y-6 mt-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <Monitor className="w-4 h-4" />
+                    <h3 className="font-semibold">User Interface Settings</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="dark-mode">Theme</Label>
+                      <Select value={settings.darkMode} onValueChange={(value: 'system' | 'light' | 'dark') => setSettings({ ...settings, darkMode: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select theme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="system">
+                            <div className="flex items-center gap-2">
+                              <Monitor className="w-4 h-4" />
+                              System
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="light">
+                            <div className="flex items-center gap-2">
+                              <Sun className="w-4 h-4" />
+                              Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="dark">
+                            <div className="flex items-center gap-2">
+                              <Moon className="w-4 h-4" />
+                              Dark
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Choose your preferred color theme. System automatically matches your device settings.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            )}
 
             <TabsContent value="api" className="space-y-6 mt-4">
               <div className="space-y-4">

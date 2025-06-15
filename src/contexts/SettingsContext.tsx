@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface SettingsData {
@@ -14,6 +13,9 @@ interface SettingsData {
   
   // User profile
   userDescription: string;
+  
+  // UI settings
+  darkMode: 'system' | 'light' | 'dark';
   
   targetLanguage: string;
   streamingEnabled: boolean;
@@ -38,6 +40,7 @@ const defaultSettings: SettingsData = {
   culturalContext: true,
   progressiveComplexity: true,
   userDescription: '',
+  darkMode: 'system',
   targetLanguage: 'swedish',
   streamingEnabled: true,
   provider: 'openrouter',
