@@ -1,8 +1,9 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, MessageSquare } from 'lucide-react';
+import { Send, Loader2, Settings, MessageSquare } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from '@/contexts/SettingsContext';
@@ -16,8 +17,6 @@ interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   parentMessageId?: string;
-  tempId?: string; // Keep track of temporary ID for proper ordering
-  sortOrder: number; // Make sortOrder required and always present
 }
 
 interface EnhancedChatInterfaceProps {
@@ -50,7 +49,6 @@ const EnhancedChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const [componentReady, setComponentReady] = useState(false);
-  const [sortOrderCounter, setSortOrderCounter] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -133,17 +131,15 @@ const EnhancedChatInterface = ({
 
       if (error) throw error;
 
-      const formattedMessages = data.map((msg, index) => ({
+      const formattedMessages = data.map(msg => ({
         id: msg.id,
         type: msg.message_type as 'user' | 'chat-mate' | 'editor-mate',
         content: msg.content,
         timestamp: new Date(msg.created_at),
-        sortOrder: index, // Preserve database order
       }));
 
       console.log('📥 Loaded messages:', formattedMessages.length);
       setMessages(formattedMessages);
-      setSortOrderCounter(formattedMessages.length);
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({
@@ -414,59 +410,6 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAIWithStreaming = async (
-    message: string, 
-    messageType: string, 
-    history: any[], 
-    onStreamUpdate: (content: string) => void
-  ): Promise<string> => {
-    if (!mainSettings) {
-      throw new Error('Main settings not loaded');
-    }
-
-    console.log('🚀 Calling AI with streaming for real-time display');
-
-    const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
-      },
-      body: JSON.stringify({
-        message,
-        messageType,
-        conversationHistory: history,
-        chatMatePrompt,
-        editorMatePrompt: currentEditorMatePrompt,
-        targetLanguage,
-        model: mainSettings.model,
-        apiKey: mainSettings.apiKey,
-        chatMateBackground: currentChatSettings?.chatMateBackground || 'young professional, loves local culture',
-        editorMateExpertise: currentChatSettings?.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
-        culturalContext: currentChatSettings?.culturalContext ?? true,
-        progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true,
-        streaming: true // Force streaming for real-time display
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to get AI response');
-    }
-
-    // Check if the response is streaming
-    const contentType = response.headers.get('content-type');
-    if (contentType?.includes('text/event-stream')) {
-      return await handleStreamingResponseWithCallback(response, onStreamUpdate);
-    } else {
-      // Fallback to non-streaming
-      const data = await response.json();
-      onStreamUpdate(data.response);
-      return data.response;
-    }
-  };
-
   const handleStreamingResponse = async (response: Response): Promise<string> => {
     if (!response.body) {
       throw new Error('No response body for streaming');
@@ -496,57 +439,7 @@ const EnhancedChatInterface = ({
               
               if (data.type === 'content') {
                 fullContent += data.content;
-              } else if (data.type === 'done') {
-                console.log('✅ Streaming completed');
-                return fullContent;
-              }
-            } catch (e) {
-              console.error('Error parsing streaming data:', e);
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
-
-    return fullContent;
-  };
-
-  const handleStreamingResponseWithCallback = async (
-    response: Response, 
-    onStreamUpdate: (content: string) => void
-  ): Promise<string> => {
-    if (!response.body) {
-      throw new Error('No response body for streaming');
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullContent = '';
-    let buffer = '';
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        
-        // Keep the last potentially incomplete line in the buffer
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              if (data.type === 'content') {
-                fullContent += data.content;
-                // Call the callback with updated content for real-time display
-                onStreamUpdate(fullContent);
+                // You could update the UI here to show streaming content if desired
               } else if (data.type === 'done') {
                 console.log('✅ Streaming completed');
                 return fullContent;
@@ -597,21 +490,10 @@ const EnhancedChatInterface = ({
     }
   };
 
-  // Helper function to update message content while preserving sort order
-  const updateMessageByTempId = (tempId: string, updates: Partial<Message>) => {
-    setMessages(prev => {
-      const newMessages = prev.map(msg => 
-        msg.tempId === tempId ? { ...msg, ...updates } : msg
-      );
-      // Always sort by sortOrder to maintain consistent ordering
-      return newMessages.sort((a, b) => a.sortOrder - b.sortOrder);
-    });
-  };
-
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading || !mainSettings) return;
 
-    console.log('📤 Sending message with real-time streaming display');
+    console.log('📤 Sending message with streaming enabled');
 
     let currentConversationId = conversationId;
 
@@ -633,16 +515,13 @@ const EnhancedChatInterface = ({
     }
 
     const userMessage: Message = {
-      id: `temp-user-${Date.now()}`,
+      id: `temp-${Date.now()}`,
       type: 'user',
       content: inputMessage.trim(),
       timestamp: new Date(),
-      sortOrder: sortOrderCounter,
     };
 
-    setMessages(prev => [...prev, userMessage].sort((a, b) => a.sortOrder - b.sortOrder));
-    setSortOrderCounter(prev => prev + 1);
-    
+    setMessages(prev => [...prev, userMessage]);
     const currentInput = inputMessage.trim();
     setInputMessage('');
     setIsLoading(true);
@@ -654,7 +533,7 @@ const EnhancedChatInterface = ({
         // Update the message with the real ID from database
         setMessages(prev => prev.map(msg => 
           msg.id === userMessage.id ? { ...msg, id: savedUserMessage.id } : msg
-        ).sort((a, b) => a.sortOrder - b.sortOrder));
+        ));
       }
 
       // Prepare conversation history for AI context
@@ -672,121 +551,61 @@ const EnhancedChatInterface = ({
 
       console.log('🔄 Processing AI responses for message:', currentInput);
 
-      // Create temporary IDs and assign sequential sort orders
-      const baseSortOrder = sortOrderCounter;
-      const editorUserTempId = `temp-editor-user-${Date.now()}`;
-      const chatMateTempId = `temp-chat-mate-${Date.now() + 1}`;
-      const editorChatMateTempId = `temp-editor-chatmate-${Date.now() + 2}`;
+      // Get Editor Mate comment on user message first
+      const editorUserComment = await callAI(currentInput, 'editor-mate-user-comment', fullHistory);
+      
+      const editorUserMessage: Message = {
+        id: `temp-${Date.now() + 1}`,
+        type: 'editor-mate',
+        content: editorUserComment,
+        timestamp: new Date(),
+        parentMessageId: savedUserMessage?.id || userMessage.id,
+      };
 
-      // Add empty streaming messages with explicit sort order assignment
-      const streamingMessages: Message[] = [
-        {
-          id: editorUserTempId,
-          tempId: editorUserTempId,
-          type: 'editor-mate',
-          content: '',
-          timestamp: new Date(),
-          isStreaming: true,
-          parentMessageId: savedUserMessage?.id || userMessage.id,
-          sortOrder: baseSortOrder, // First after user message
-        },
-        {
-          id: chatMateTempId,
-          tempId: chatMateTempId,
-          type: 'chat-mate',
-          content: '',
-          timestamp: new Date(),
-          isStreaming: true,
-          sortOrder: baseSortOrder + 1, // Second
-        },
-        {
-          id: editorChatMateTempId,
-          tempId: editorChatMateTempId,
-          type: 'editor-mate',
-          content: '',
-          timestamp: new Date(),
-          isStreaming: true,
-          sortOrder: baseSortOrder + 2, // Third
-        }
-      ];
+      setMessages(prev => [...prev, editorUserMessage]);
+      const savedEditorUserMessage = await saveMessage(editorUserMessage, currentConversationId);
+      if (savedEditorUserMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === editorUserMessage.id ? { ...msg, id: savedEditorUserMessage.id } : msg
+        ));
+      }
 
-      // Add all streaming messages at once and sort immediately
-      setMessages(prev => [...prev, ...streamingMessages].sort((a, b) => a.sortOrder - b.sortOrder));
-      setSortOrderCounter(prev => prev + 3);
+      // Get Chat Mate response
+      const chatMateResponse = await callAI(currentInput, 'chat-mate-response', chatMateHistory);
+      
+      const chatMateMessage: Message = {
+        id: `temp-${Date.now() + 2}`,
+        type: 'chat-mate',
+        content: chatMateResponse,
+        timestamp: new Date(),
+      };
 
-      // Process Editor Mate comment on user message and Chat Mate response in parallel
-      const [editorUserContent, chatMateContent] = await Promise.all([
-        // Editor Mate comment on user message
-        callAIWithStreaming(
-          currentInput, 
-          'editor-mate-user-comment', 
-          fullHistory,
-          (content) => {
-            updateMessageByTempId(editorUserTempId, { content, isStreaming: content === '' });
-          }
-        ),
-        
-        // Chat Mate response
-        callAIWithStreaming(
-          currentInput, 
-          'chat-mate-response', 
-          chatMateHistory,
-          (content) => {
-            updateMessageByTempId(chatMateTempId, { content, isStreaming: content === '' });
-          }
-        )
-      ]);
+      setMessages(prev => [...prev, chatMateMessage]);
+      const savedChatMateMessage = await saveMessage(chatMateMessage, currentConversationId);
+      if (savedChatMateMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === chatMateMessage.id ? { ...msg, id: savedChatMateMessage.id } : msg
+        ));
+      }
 
-      // Now get Editor Mate comment on Chat Mate's response
-      const editorChatMateContent = await callAIWithStreaming(
-        chatMateContent, 
-        'editor-mate-chatmate-comment', 
-        [...fullHistory, { role: 'assistant', content: `[chat-mate]: ${chatMateContent}` }],
-        (content) => {
-          updateMessageByTempId(editorChatMateTempId, { content, isStreaming: content === '' });
-        }
-      );
+      // Get Editor Mate comment on Chat Mate response
+      const editorChatMateComment = await callAI(chatMateResponse, 'editor-mate-chatmate-comment', fullHistory);
+      
+      const editorChatMateMessage: Message = {
+        id: `temp-${Date.now() + 3}`,
+        type: 'editor-mate',
+        content: editorChatMateComment,
+        timestamp: new Date(),
+        parentMessageId: savedChatMateMessage?.id || chatMateMessage.id,
+      };
 
-      // Save all messages to database
-      const [savedEditorUser, savedChatMate, savedEditorChatMate] = await Promise.all([
-        saveMessage({ 
-          type: 'editor-mate', 
-          content: editorUserContent, 
-          parentMessageId: savedUserMessage?.id || userMessage.id,
-          sortOrder: baseSortOrder,
-          tempId: editorUserTempId
-        }, currentConversationId),
-        saveMessage({ 
-          type: 'chat-mate', 
-          content: chatMateContent,
-          sortOrder: baseSortOrder + 1,
-          tempId: chatMateTempId
-        }, currentConversationId),
-        saveMessage({ 
-          type: 'editor-mate', 
-          content: editorChatMateContent,
-          sortOrder: baseSortOrder + 2,
-          tempId: editorChatMateTempId
-        }, currentConversationId)
-      ]);
-
-      // Final update with database IDs in a single atomic operation
-      setMessages(prev => {
-        const updated = prev.map(msg => {
-          if (msg.tempId === editorUserTempId && savedEditorUser) {
-            return { ...msg, id: savedEditorUser.id, content: editorUserContent, isStreaming: false };
-          }
-          if (msg.tempId === chatMateTempId && savedChatMate) {
-            return { ...msg, id: savedChatMate.id, content: chatMateContent, isStreaming: false };
-          }
-          if (msg.tempId === editorChatMateTempId && savedEditorChatMate) {
-            return { ...msg, id: savedEditorChatMate.id, content: editorChatMateContent, isStreaming: false };
-          }
-          return msg;
-        });
-        // Final sort to ensure consistent order
-        return updated.sort((a, b) => a.sortOrder - b.sortOrder);
-      });
+      setMessages(prev => [...prev, editorChatMateMessage]);
+      const savedEditorChatMateMessage = await saveMessage(editorChatMateMessage, currentConversationId);
+      if (savedEditorChatMateMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === editorChatMateMessage.id ? { ...msg, id: savedEditorChatMateMessage.id } : msg
+        ));
+      }
 
       onConversationUpdate();
 
@@ -836,19 +655,17 @@ const EnhancedChatInterface = ({
           </div>
         )}
         
-        {messages
-          .sort((a, b) => a.sortOrder - b.sortOrder) // Ensure consistent sorting in render
-          .map((message) => (
-            <EnhancedChatMessage
-              key={message.tempId || message.id}
-              message={message}
-              onTextSelect={handleTextSelect}
-              onRegenerateMessage={regenerateMessage}
-              onEditMessage={editMessage}
-              onDeleteMessage={deleteMessage}
-              onForkFrom={forkFromMessage}
-            />
-          ))}
+        {messages.map((message) => (
+          <EnhancedChatMessage
+            key={message.id}
+            message={message}
+            onTextSelect={handleTextSelect}
+            onRegenerateMessage={regenerateMessage}
+            onEditMessage={editMessage}
+            onDeleteMessage={deleteMessage}
+            onForkFrom={forkFromMessage}
+          />
+        ))}
         
         {isLoading && (
           <div className="flex items-center space-x-2 text-muted-foreground mb-4">
