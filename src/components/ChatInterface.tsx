@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { getChatSettings, getMainSettings } = useSettings();
+  const { getChatSettings, getGlobalSettings } = useSettings();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -96,12 +95,12 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
 
       // Get settings for this conversation
       const chatSettings = getChatSettings(conversationId);
-      const mainSettings = getMainSettings();
+      const globalSettings = getGlobalSettings();
       
       console.log('Using settings:', {
-        model: mainSettings.model,
-        targetLanguage: mainSettings.targetLanguage,
-        apiKey: mainSettings.apiKey ? 'Set' : 'Not set'
+        model: globalSettings.model,
+        targetLanguage: globalSettings.targetLanguage,
+        apiKey: globalSettings.apiKey ? 'Set' : 'Not set'
       });
 
       // Prepare conversation history for AI context
@@ -114,8 +113,8 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         message: currentInput, 
         aiMode, 
         conversationHistory,
-        model: mainSettings.model,
-        targetLanguage: mainSettings.targetLanguage
+        model: globalSettings.model,
+        targetLanguage: globalSettings.targetLanguage
       });
 
       // Call AI edge function with settings
@@ -126,9 +125,9 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
           conversationHistory: conversationHistory,
           chatMatePrompt: chatSettings.chatMatePersonality,
           editorMatePrompt: chatSettings.editorMatePersonality,
-          targetLanguage: mainSettings.targetLanguage,
-          model: mainSettings.model,
-          apiKey: mainSettings.apiKey,
+          targetLanguage: globalSettings.targetLanguage,
+          model: globalSettings.model,
+          apiKey: globalSettings.apiKey,
           // Advanced settings
           chatMateBackground: chatSettings.chatMateBackground,
           editorMateExpertise: chatSettings.editorMateExpertise,
