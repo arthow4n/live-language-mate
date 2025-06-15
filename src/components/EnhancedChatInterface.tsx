@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Settings, PanelRight } from 'lucide-react';
+import { Send, Loader2, Settings, MessageSquare } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from '@/contexts/SettingsContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import EnhancedChatMessage from './EnhancedChatMessage';
 
 interface Message {
@@ -25,6 +26,9 @@ interface EnhancedChatInterfaceProps {
   onConversationCreated: (id: string) => void;
   onTextSelect: (text: string) => void;
   onChatSettingsOpen?: () => void;
+  onAskInterfaceOpen?: () => void;
+  selectedText?: string;
+  editorMatePrompt?: string;
 }
 
 const EnhancedChatInterface = ({ 
@@ -34,7 +38,10 @@ const EnhancedChatInterface = ({
   onConversationUpdate,
   onConversationCreated,
   onTextSelect,
-  onChatSettingsOpen
+  onChatSettingsOpen,
+  onAskInterfaceOpen,
+  selectedText,
+  editorMatePrompt
 }: EnhancedChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -42,11 +49,12 @@ const EnhancedChatInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { getChatSettings } = useSettings();
+  const isMobile = useIsMobile();
 
   // Get current conversation settings
   const currentSettings = conversationId ? getChatSettings(conversationId) : null;
   const chatMatePrompt = currentSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
-  const editorMatePrompt = currentSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
+  const currentEditorMatePrompt = currentSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -269,7 +277,7 @@ const EnhancedChatInterface = ({
           title: `Forked Chat - ${targetLanguage}`,
           language: targetLanguage.toLowerCase(),
           chat_mate_prompt: chatMatePrompt,
-          editor_mate_prompt: editorMatePrompt
+          editor_mate_prompt: currentEditorMatePrompt
         })
         .select()
         .single();
@@ -313,7 +321,7 @@ const EnhancedChatInterface = ({
         messageType,
         conversationHistory: history,
         chatMatePrompt,
-        editorMatePrompt,
+        editorMatePrompt: currentEditorMatePrompt,
         targetLanguage,
         // Pass new advanced settings
         chatMateBackground: currentSettings?.chatMateBackground || 'young professional, loves local culture',
@@ -345,7 +353,7 @@ const EnhancedChatInterface = ({
           title: `${targetLanguage} Practice`,
           language: targetLanguage.toLowerCase(),
           chat_mate_prompt: chatMatePrompt,
-          editor_mate_prompt: editorMatePrompt
+          editor_mate_prompt: currentEditorMatePrompt
         })
         .select()
         .single();
@@ -560,6 +568,16 @@ const EnhancedChatInterface = ({
             disabled={isLoading}
             rows={1}
           />
+          {isMobile && onAskInterfaceOpen && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onAskInterfaceOpen}
+              className="h-10 w-10 flex-shrink-0"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+          )}
           <Button
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading}
