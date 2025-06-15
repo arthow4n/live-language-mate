@@ -26,7 +26,9 @@ serve(async (req) => {
       feedbackStyle = 'encouraging',
       culturalContext = true,
       progressiveComplexity = true,
-      streaming = true
+      streaming = true,
+      currentDateTime = null,
+      userTimezone = null
     } = await req.json()
 
     console.log('🔍 AI Chat request received:', {
@@ -38,7 +40,9 @@ serve(async (req) => {
       hasMessage: !!message,
       hasChatMatePrompt: !!chatMatePrompt,
       hasEditorMatePrompt: !!editorMatePrompt,
-      streaming
+      streaming,
+      currentDateTime,
+      userTimezone
     })
 
     // Use provided API key or fall back to environment variable
@@ -51,6 +55,11 @@ serve(async (req) => {
 
     console.log('🔑 API key source:', (apiKey && apiKey.trim()) ? 'User provided' : 'Environment variable')
 
+    // Format datetime information for the prompt
+    const dateTimeContext = currentDateTime && userTimezone 
+      ? `\n\nCurrent date and time: ${currentDateTime} (${userTimezone})`
+      : '';
+
     let systemPrompt = ''
     
     if (messageType === 'chat-mate-response') {
@@ -61,7 +70,7 @@ Background: ${chatMateBackground}
 You respond naturally in ${targetLanguage}, treating the conversation as if speaking with a local friend. You assume the user is already part of the community and don't focus on language learning explicitly - just have a natural conversation.
 
 ${culturalContext ? `Include cultural context and local references when relevant to make the conversation authentic.` : ''}
-${progressiveComplexity ? `Gradually increase complexity based on the user's demonstrated language level.` : ''}`
+${progressiveComplexity ? `Gradually increase complexity based on the user's demonstrated language level.` : ''}${dateTimeContext}`
     } else if (messageType === 'editor-mate-user-comment') {
       systemPrompt = `You are an experienced ${targetLanguage} language teacher. ${editorMatePrompt || 'You provide helpful feedback on language use.'} 
 
@@ -76,13 +85,13 @@ Review the user's message and provide constructive feedback. If the message is w
 
 ${culturalContext ? `Include cultural context in your feedback when relevant.` : ''}
 
-Keep your feedback ${feedbackStyle} and encouraging.`
+Keep your feedback ${feedbackStyle} and encouraging.${dateTimeContext}`
     } else if (messageType === 'editor-mate-chatmate-comment') {
       systemPrompt = `You are an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker.
 
 As if you were the student, provide a natural response to the chat mate's message in ${targetLanguage}. Then optionally add any helpful language notes about the chat mate's message if there are interesting expressions or cultural references worth explaining.
 
-Keep responses natural and conversational.`
+Keep responses natural and conversational.${dateTimeContext}`
     }
 
     const messages = [

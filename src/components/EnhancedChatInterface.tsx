@@ -482,6 +482,20 @@ const EnhancedChatInterface = ({
   const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string) => {
     console.log('🚀 Calling AI with streaming enabled for message:', streamingMessageId);
 
+    // Get current date, time and timezone from frontend
+    const now = new Date();
+    const currentDateTime = now.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
       headers: {
@@ -502,7 +516,9 @@ const EnhancedChatInterface = ({
         feedbackStyle: settings.feedbackStyle || 'encouraging',
         culturalContext: settings.culturalContext ?? true,
         progressiveComplexity: settings.progressiveComplexity ?? true,
-        streaming: settings.streaming ?? true
+        streaming: settings.streaming ?? true,
+        currentDateTime,
+        userTimezone
       })
     });
 
