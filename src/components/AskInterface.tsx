@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,6 +186,13 @@ const AskInterface = ({
         const endTime = Date.now();
         const generationTime = endTime - startTime;
         
+        console.log('Saving metadata for non-streaming response:', {
+          model,
+          generationTime,
+          startTime,
+          endTime
+        });
+        
         setConversation(prev => prev.map(msg => 
           msg.id === editorMessageId 
             ? { 
@@ -222,6 +230,13 @@ const AskInterface = ({
                   isStreamingComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
+                  
+                  console.log('Saving metadata for streaming response:', {
+                    model,
+                    generationTime,
+                    startTime,
+                    endTime
+                  });
                   
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 

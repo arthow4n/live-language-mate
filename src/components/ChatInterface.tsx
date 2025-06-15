@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -87,14 +88,20 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         message_type: 'user',
       });
 
-      // Get settings for this conversation
+      // Get settings - prioritize chat-specific settings over global
       const chatSettings = getChatSettings(conversationId);
       const globalSettings = getGlobalSettings();
       
-      console.log('Using settings:', {
-        model: globalSettings.model,
-        targetLanguage: globalSettings.targetLanguage,
-        apiKey: globalSettings.apiKey ? 'Set' : 'Not set'
+      // Use chat-specific model if available, otherwise fall back to global
+      const modelToUse = chatSettings.model || globalSettings.model;
+      const apiKeyToUse = chatSettings.apiKey || globalSettings.apiKey;
+      const targetLanguageToUse = chatSettings.targetLanguage || globalSettings.targetLanguage;
+      
+      console.log('Using chat settings:', {
+        model: modelToUse,
+        targetLanguage: targetLanguageToUse,
+        apiKey: apiKeyToUse ? 'Set' : 'Not set',
+        conversationId
       });
 
       // Prepare conversation history for AI context
@@ -107,11 +114,11 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         message: currentInput, 
         aiMode, 
         conversationHistory,
-        model: globalSettings.model,
-        targetLanguage: globalSettings.targetLanguage
+        model: modelToUse,
+        targetLanguage: targetLanguageToUse
       });
 
-      // Call AI edge function with settings
+      // Call AI edge function with chat-specific settings
       const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
         body: {
           message: currentInput,
@@ -119,9 +126,9 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
           conversationHistory: conversationHistory,
           chatMatePrompt: chatSettings.chatMatePersonality,
           editorMatePrompt: chatSettings.editorMatePersonality,
-          targetLanguage: globalSettings.targetLanguage,
-          model: globalSettings.model,
-          apiKey: globalSettings.apiKey,
+          targetLanguage: targetLanguageToUse,
+          model: modelToUse,
+          apiKey: apiKeyToUse,
           // Advanced settings
           chatMateBackground: chatSettings.chatMateBackground,
           editorMateExpertise: chatSettings.editorMateExpertise,
@@ -144,6 +151,12 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
       const generationTime = endTime - startTime;
 
       console.log('Received AI response:', aiData.response);
+      console.log('Saving metadata:', {
+        model: modelToUse,
+        generationTime,
+        startTime,
+        endTime
+      });
 
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -151,7 +164,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         content: aiData.response,
         timestamp: new Date(),
         metadata: {
-          model: globalSettings.model,
+          model: modelToUse,
           generationTime,
           startTime,
           endTime
