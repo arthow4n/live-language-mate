@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,8 @@ import {
   Globe,
   Key,
   Zap,
-  LogOut
+  LogOut,
+  User
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -37,6 +39,9 @@ interface SettingsData {
   feedbackStyle: 'gentle' | 'direct' | 'encouraging' | 'detailed';
   culturalContext: boolean;
   progressiveComplexity: boolean;
+  
+  // User profile
+  userDescription: string;
   
   // Language settings
   targetLanguage: string;
@@ -75,6 +80,7 @@ const UnifiedSettingsDialog = ({
     feedbackStyle: initialSettings.feedbackStyle || 'encouraging',
     culturalContext: initialSettings.culturalContext ?? true,
     progressiveComplexity: initialSettings.progressiveComplexity ?? true,
+    userDescription: initialSettings.userDescription || '',
     targetLanguage: initialSettings.targetLanguage || 'swedish',
     streamingEnabled: initialSettings.streamingEnabled ?? true,
     provider: initialSettings.provider || 'openrouter',
@@ -94,6 +100,7 @@ const UnifiedSettingsDialog = ({
         feedbackStyle: initialSettings.feedbackStyle || 'encouraging',
         culturalContext: initialSettings.culturalContext ?? true,
         progressiveComplexity: initialSettings.progressiveComplexity ?? true,
+        userDescription: initialSettings.userDescription || '',
         targetLanguage: initialSettings.targetLanguage || 'swedish',
         streamingEnabled: initialSettings.streamingEnabled ?? true,
         provider: initialSettings.provider || 'openrouter',
@@ -198,6 +205,11 @@ const UnifiedSettingsDialog = ({
     onOpenChange(false);
   };
 
+  // Determine tab configuration based on mode
+  const tabsConfig = mode === 'main' 
+    ? ['agents', 'advanced', 'language', 'api', 'account']
+    : ['agents', 'advanced', 'language', 'api'];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden">
@@ -219,15 +231,38 @@ const UnifiedSettingsDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue="agents" className="flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${mode === 'main' ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="agents">AI Agents</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
             <TabsTrigger value="language">Language</TabsTrigger>
             <TabsTrigger value="api">API Settings</TabsTrigger>
+            {mode === 'main' && <TabsTrigger value="account">Account</TabsTrigger>}
           </TabsList>
 
           <div className="overflow-y-auto max-h-[55vh] pr-2">
             <TabsContent value="agents" className="space-y-6 mt-4">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <User className="w-4 h-4 text-green-600" />
+                  <h3 className="font-semibold">Your Profile</h3>
+                  <Badge variant="secondary">Help AI understand you</Badge>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="user-description">About You</Label>
+                  <Textarea
+                    id="user-description"
+                    value={settings.userDescription}
+                    onChange={(e) => setSettings({ ...settings, userDescription: e.target.value })}
+                    placeholder="Tell the AI agents about yourself: your background, interests, learning goals, current language level, etc. This helps them personalize their responses."
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This information helps both Chat Mate and Editor Mate provide more personalized and relevant responses.
+                  </p>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b">
                   <MessageCircle className="w-4 h-4 text-blue-600" />
@@ -453,23 +488,41 @@ const UnifiedSettingsDialog = ({
                 </div>
               </div>
             </TabsContent>
+
+            {mode === 'main' && (
+              <TabsContent value="account" className="space-y-6 mt-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <User className="w-4 h-4" />
+                    <h3 className="font-semibold">Account Management</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">Sign Out</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Sign out of your account and return to the login screen
+                          </p>
+                        </div>
+                        <Button 
+                          variant="destructive" 
+                          onClick={handleSignOut}
+                        >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sign Out
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            )}
           </div>
         </Tabs>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
-          {mode === 'main' && onSignOut && (
-            <div className="flex w-full sm:w-auto">
-              <Button 
-                variant="destructive" 
-                onClick={handleSignOut}
-                className="w-full sm:w-auto"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          )}
-          
           <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">
               Cancel

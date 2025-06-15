@@ -12,6 +12,9 @@ interface SettingsData {
   culturalContext: boolean;
   progressiveComplexity: boolean;
   
+  // User profile
+  userDescription: string;
+  
   targetLanguage: string;
   streamingEnabled: boolean;
   provider: string;
@@ -34,6 +37,7 @@ const defaultSettings: SettingsData = {
   feedbackStyle: 'encouraging',
   culturalContext: true,
   progressiveComplexity: true,
+  userDescription: '',
   targetLanguage: 'swedish',
   streamingEnabled: true,
   provider: 'openrouter',
