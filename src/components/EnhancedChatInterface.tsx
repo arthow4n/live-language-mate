@@ -365,15 +365,15 @@ const EnhancedChatInterface = ({
       throw new Error('Main settings not loaded');
     }
 
-    console.log('🚀 Calling AI with settings:', {
-      messageType,
-      model: mainSettings.model,
-      apiKey: mainSettings.apiKey ? 'Set' : 'Not set',
-      targetLanguage
-    });
+    console.log('🚀 Calling AI with streaming enabled');
 
-    const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
-      body: {
+    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabase.supabaseKey}`,
+      },
+      body: JSON.stringify({
         message,
         messageType,
         conversationHistory: history,
@@ -387,22 +387,73 @@ const EnhancedChatInterface = ({
         editorMateExpertise: currentChatSettings?.editorMateExpertise || '10+ years teaching experience',
         feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
         culturalContext: currentChatSettings?.culturalContext ?? true,
-        progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true
-      }
+        progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true,
+        streaming: true
+      })
     });
 
-    if (aiError) {
-      console.error('❌ AI function error:', aiError);
-      throw new Error(aiError.message || 'Failed to get AI response');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get AI response');
     }
 
-    if (!aiData || !aiData.response) {
-      console.error('❌ No response from AI:', aiData);
-      throw new Error('No response from AI');
+    // Check if the response is streaming
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('text/event-stream')) {
+      // Handle streaming response
+      return await handleStreamingResponse(response);
+    } else {
+      // Handle non-streaming response (fallback)
+      const data = await response.json();
+      return data.response;
+    }
+  };
+
+  const handleStreamingResponse = async (response: Response): Promise<string> => {
+    if (!response.body) {
+      throw new Error('No response body for streaming');
     }
 
-    console.log('✅ AI response received successfully');
-    return aiData.response;
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        
+        // Keep the last potentially incomplete line in the buffer
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'content') {
+                fullContent += data.content;
+                // You could update the UI here to show streaming content if desired
+              } else if (data.type === 'done') {
+                console.log('✅ Streaming completed');
+                return fullContent;
+              }
+            } catch (e) {
+              console.error('Error parsing streaming data:', e);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return fullContent;
   };
 
   const createNewConversation = async () => {
@@ -441,11 +492,7 @@ const EnhancedChatInterface = ({
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading || !mainSettings) return;
 
-    console.log('📤 Sending message with current settings:', {
-      conversationId,
-      model: mainSettings.model,
-      apiKey: mainSettings.apiKey ? 'Set' : 'Not set'
-    });
+    console.log('📤 Sending message with streaming enabled');
 
     let currentConversationId = conversationId;
 
