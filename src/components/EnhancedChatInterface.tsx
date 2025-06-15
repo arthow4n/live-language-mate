@@ -8,21 +8,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { generateChatTitle, updateConversationTitle } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
-
-interface Message {
-  id: string;
-  type: 'user' | 'chat-mate' | 'editor-mate';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-  parentMessageId?: string;
-  metadata?: {
-    model?: string;
-    generationTime?: number;
-    startTime?: number;
-    endTime?: number;
-  };
-}
+import { Message } from '@/types/Message';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string | null;
@@ -212,6 +198,7 @@ const EnhancedChatInterface = ({
         timestamp: msg.timestamp,
         isStreaming: msg.isStreaming,
         parentMessageId: msg.parentMessageId,
+        reasoning: msg.reasoning,
         metadata: msg.metadata
       }));
 
@@ -233,11 +220,12 @@ const EnhancedChatInterface = ({
 
   const saveMessage = (message: Omit<Message, 'id' | 'timestamp'>, actualConversationId: string) => {
     try {
-      console.log('💾 Saving message to local storage:', message.type, message.content.substring(0, 50) + '...', 'Metadata:', message.metadata);
+      console.log('💾 Saving message to local storage:', message.type, message.content.substring(0, 50) + '...', 'Reasoning:', !!message.reasoning, 'Metadata:', message.metadata);
       const savedMessage = addMessage(actualConversationId, {
         content: message.content,
         type: message.type,
         parentMessageId: message.parentMessageId,
+        reasoning: message.reasoning,
         metadata: message.metadata
       });
       console.log('✅ Message saved successfully with ID:', savedMessage.id, 'Metadata:', savedMessage.metadata);
@@ -356,10 +344,10 @@ const EnhancedChatInterface = ({
 
       const response = await callAI(userMessage, messageType, conversationHistory, messageId, controller.signal);
 
-      updateMessage(messageId, { content: response.content, metadata: response.metadata });
+      updateMessage(messageId, { content: response.content, reasoning: response.reasoning, metadata: response.metadata });
 
       setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? { ...msg, content: response.content, metadata: response.metadata } : msg
+        msg.id === messageId ? { ...msg, content: response.content, reasoning: response.reasoning, metadata: response.metadata } : msg
       ));
 
       toast({
@@ -387,7 +375,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleStreamingResponse = async (response: Response, messageId: string, startTime: number): Promise<{ content: string; metadata: any }> => {
+  const handleStreamingResponse = async (response: Response, messageId: string, startTime: number): Promise<{ content: string; reasoning: string; metadata: any }> => {
     if (!response.body) {
       throw new Error('No response body for streaming');
     }
@@ -395,6 +383,7 @@ const EnhancedChatInterface = ({
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let fullContent = '';
+    let reasoningContent = '';
     let buffer = '';
 
     try {
@@ -423,6 +412,15 @@ const EnhancedChatInterface = ({
                     isStreaming: true 
                   } : msg
                 ));
+              } else if (data.type === 'reasoning' && data.content) {
+                reasoningContent += data.content;
+                setMessages(prev => prev.map(msg =>
+                  msg.id === messageId ? {
+                    ...msg,
+                    reasoning: reasoningContent,
+                    isStreaming: true
+                  } : msg
+                ));
               } else if (data.type === 'done') {
                 console.log('✅ Streaming completed for message:', messageId);
                 
@@ -438,13 +436,14 @@ const EnhancedChatInterface = ({
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { 
                     ...msg, 
-                    content: fullContent, 
+                    content: fullContent,
+                    reasoning: reasoningContent,
                     isStreaming: false,
                     metadata 
                   } : msg
                 ));
                 
-                return { content: fullContent, metadata };
+                return { content: fullContent, reasoning: reasoningContent, metadata };
               }
             } catch (e) {
               console.error('Error parsing streaming data:', e, 'Line:', line);
@@ -471,7 +470,8 @@ const EnhancedChatInterface = ({
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { 
         ...msg, 
-        content: fullContent, 
+        content: fullContent,
+        reasoning: reasoningContent,
         isStreaming: false,
         metadata 
       } : msg
@@ -482,12 +482,13 @@ const EnhancedChatInterface = ({
       console.log('💾 Persisting metadata for message:', messageId);
       updateMessage(messageId, { 
         content: fullContent, 
+        reasoning: reasoningContent,
         metadata,
         isStreaming: false 
       });
     }, 100);
 
-    return { content: fullContent, metadata };
+    return { content: fullContent, reasoning: reasoningContent, metadata };
   };
 
   const forkFromMessage = async (messageId: string) => {
@@ -512,6 +513,7 @@ const EnhancedChatInterface = ({
           content: msg.content,
           type: msg.type,
           parentMessageId: msg.parentMessageId,
+          reasoning: msg.reasoning,
           metadata: msg.metadata
         });
       }
@@ -532,7 +534,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string, signal: AbortSignal): Promise<{ content: string; metadata: any }> => {
+  const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string, signal: AbortSignal): Promise<{ content: string; reasoning: string | null; metadata: any }> => {
     console.log('🚀 Calling AI with model:', effectiveModel);
 
     const startTime = Date.now();
@@ -569,9 +571,10 @@ const EnhancedChatInterface = ({
         feedbackStyle: chatSettings?.feedbackStyle || 'encouraging',
         culturalContext: chatSettings?.culturalContext ?? true,
         progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
-        streaming: globalSettings.streaming ?? true,
+        streaming: (conversationId ? chatSettings?.streaming : globalSettings.streaming) ?? true,
         currentDateTime,
-        userTimezone
+        userTimezone,
+        enableReasoning: (conversationId ? chatSettings?.enableReasoning : globalSettings.enableReasoning) ?? false,
       }),
       signal,
     });
@@ -594,7 +597,7 @@ const EnhancedChatInterface = ({
         startTime,
         endTime
       };
-      return { content: data.response, metadata };
+      return { content: data.response, reasoning: data.reasoning, metadata };
     }
   };
 
@@ -704,6 +707,7 @@ const EnhancedChatInterface = ({
       const savedEditorUserMessage = saveMessage({
         type: 'editor-mate',
         content: editorUserResult.content,
+        reasoning: editorUserResult.reasoning,
         parentMessageId: savedUserMessage?.id || userMessage.id,
         metadata: editorUserResult.metadata,
       }, currentConversationId);
@@ -714,6 +718,8 @@ const EnhancedChatInterface = ({
             ...msg, 
             id: savedEditorUserMessage.id, 
             isStreaming: false,
+            content: editorUserResult.content,
+            reasoning: editorUserResult.reasoning,
             metadata: editorUserResult.metadata 
           } : msg
         ));
@@ -741,6 +747,7 @@ const EnhancedChatInterface = ({
       const savedChatMateMessage = saveMessage({
         type: 'chat-mate',
         content: chatMateResult.content,
+        reasoning: chatMateResult.reasoning,
         metadata: chatMateResult.metadata,
       }, currentConversationId);
 
@@ -750,6 +757,8 @@ const EnhancedChatInterface = ({
             ...msg, 
             id: savedChatMateMessage.id, 
             isStreaming: false,
+            content: chatMateResult.content,
+            reasoning: chatMateResult.reasoning,
             metadata: chatMateResult.metadata 
           } : msg
         ));
@@ -778,6 +787,7 @@ const EnhancedChatInterface = ({
       const savedEditorChatMateMessage = saveMessage({
         type: 'editor-mate',
         content: editorChatMateResult.content,
+        reasoning: editorChatMateResult.reasoning,
         parentMessageId: savedChatMateMessage?.id || chatMateTempId,
         metadata: editorChatMateResult.metadata,
       }, currentConversationId);
@@ -788,6 +798,8 @@ const EnhancedChatInterface = ({
             ...msg, 
             id: savedEditorChatMateMessage.id, 
             isStreaming: false,
+            content: editorChatMateResult.content,
+            reasoning: editorChatMateResult.reasoning,
             metadata: editorChatMateResult.metadata 
           } : msg
         ));
