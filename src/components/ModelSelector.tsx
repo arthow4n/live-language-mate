@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Command,
   CommandEmpty,
@@ -17,7 +16,27 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { fetchOpenRouterModels, OpenRouterModel } from "@/services/openRouterService";
+import { supabase } from "@/integrations/supabase/client";
+
+interface OpenRouterModel {
+  id: string;
+  name: string;
+  description?: string;
+  pricing?: {
+    prompt: string;
+    completion: string;
+  };
+  context_length?: number;
+  architecture?: {
+    modality: string;
+    tokenizer: string;
+    instruct_type?: string;
+  };
+  top_provider?: {
+    context_length: number;
+    max_completion_tokens?: number;
+  };
+}
 
 interface ModelSelectorProps {
   value: string;
@@ -34,10 +53,30 @@ const ModelSelector = ({ value, onValueChange, placeholder = "Select model..." }
     const loadModels = async () => {
       setLoading(true);
       try {
-        const fetchedModels = await fetchOpenRouterModels();
-        setModels(fetchedModels);
+        console.log('Fetching models from backend...');
+        const { data, error } = await supabase.functions.invoke('fetch-models');
+        
+        if (error) {
+          console.error('Error fetching models:', error);
+          throw error;
+        }
+
+        if (data?.models) {
+          setModels(data.models);
+          console.log(`Loaded ${data.models.length} models${data.fallback ? ' (using fallback)' : ''}`);
+        } else {
+          throw new Error('No models data received');
+        }
       } catch (error) {
         console.error('Failed to load models:', error);
+        // Set fallback models on error
+        setModels([
+          { id: 'anthropic/claude-3-5-sonnet', name: 'Claude 3.5 Sonnet' },
+          { id: 'anthropic/claude-3-5-haiku', name: 'Claude 3.5 Haiku' },
+          { id: 'openai/gpt-4o', name: 'GPT-4o' },
+          { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
+          { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B Instruct' },
+        ]);
       } finally {
         setLoading(false);
       }
@@ -104,3 +143,4 @@ const ModelSelector = ({ value, onValueChange, placeholder = "Select model..." }
 };
 
 export default ModelSelector;
+export type { OpenRouterModel };

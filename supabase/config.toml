@@ -19,3 +19,6 @@ anonymous_users_enabled = false
 
 [functions.ai-chat]
 verify_jwt = false
+
+[functions.fetch-models]
+verify_jwt = false
