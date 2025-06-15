@@ -395,11 +395,16 @@ const EnhancedChatInterface = ({
     let fullThinking = '';
     let buffer = '';
 
+    console.log('🔄 Starting streaming response handling for message:', messageId);
+
     try {
       while (true) {
         const { done, value } = await reader.read();
         
-        if (done) break;
+        if (done) {
+          console.log('✅ Streaming reader completed for message:', messageId);
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
@@ -411,9 +416,11 @@ const EnhancedChatInterface = ({
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
+              console.log('📦 Received streaming data:', { type: data.type, messageId, hasContent: !!data.content });
               
               if (data.type === 'thinking' && data.content) {
                 fullThinking += data.content;
+                console.log('🧠 Updating thinking content, total length:', fullThinking.length);
                 
                 // Update message thinking content immediately
                 setMessages(prev => prev.map(msg => 
@@ -425,6 +432,7 @@ const EnhancedChatInterface = ({
                 ));
               } else if (data.type === 'content' && data.content) {
                 fullContent += data.content;
+                console.log('💬 Updating content, total length:', fullContent.length);
                 
                 // Update message content immediately for word-by-word display
                 setMessages(prev => prev.map(msg => 
@@ -435,7 +443,7 @@ const EnhancedChatInterface = ({
                   } : msg
                 ));
               } else if (data.type === 'done') {
-                console.log('✅ Streaming completed for message:', messageId);
+                console.log('✅ Streaming completed for message:', messageId, { contentLength: fullContent.length, thinkingLength: fullThinking.length });
                 
                 // Mark streaming as complete
                 setMessages(prev => prev.map(msg => 
@@ -448,18 +456,25 @@ const EnhancedChatInterface = ({
                 ));
                 
                 return { content: fullContent, thinking: fullThinking || undefined };
+              } else if (data.type === 'error') {
+                console.error('❌ Streaming error received:', data);
+                throw new Error(data.message || 'Streaming error occurred');
+              } else {
+                console.log('ℹ️ Unknown streaming data type:', data.type, data);
               }
             } catch (e) {
-              console.error('Error parsing streaming data:', e, 'Line:', line);
+              console.error('❌ Error parsing streaming data:', e, 'Line:', line);
             }
           }
         }
       }
     } finally {
       reader.releaseLock();
+      console.log('🔒 Stream reader released for message:', messageId);
     }
 
     // Ensure streaming is marked as complete even if we don't get a 'done' event
+    console.log('⚠️ Streaming ended without done event, marking complete for message:', messageId);
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { 
         ...msg, 
@@ -515,6 +530,7 @@ const EnhancedChatInterface = ({
 
   const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string) => {
     console.log('🚀 Calling AI with streaming enabled for message:', streamingMessageId);
+    console.log('🤖 Model being used:', chatSettings.model);
 
     // Get current date, time and timezone from frontend
     const now = new Date();
@@ -532,9 +548,13 @@ const EnhancedChatInterface = ({
 
     // Check if this is a thinking model and prepare reasoning configuration
     const isThinkingModel = chatSettings.model && chatSettings.model.includes(':thinking');
+    console.log('🧠 Is thinking model:', isThinkingModel);
+    
     const reasoning = isThinkingModel ? {
       max_tokens: 2048 // Set appropriate reasoning tokens for thinking models
     } : undefined;
+
+    console.log('📡 Sending request with reasoning config:', reasoning);
 
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
@@ -563,19 +583,27 @@ const EnhancedChatInterface = ({
       })
     });
 
+    console.log('📨 Response received, status:', response.status, 'headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('❌ API Error:', errorData);
       throw new Error(errorData.error || 'Failed to get AI response');
     }
 
     // Check if the response is streaming
     const contentType = response.headers.get('content-type');
+    console.log('📋 Content type:', contentType);
+    
     if (contentType?.includes('text/event-stream')) {
+      console.log('🌊 Handling streaming response');
       // Handle streaming response with messageId
       return await handleStreamingResponse(response, streamingMessageId);
     } else {
+      console.log('📄 Handling non-streaming response');
       // Handle non-streaming response (fallback)
       const data = await response.json();
+      console.log('💬 Non-streaming response data:', { hasResponse: !!data.response, hasThinking: !!data.thinking });
       return { content: data.response, thinking: data.thinking };
     }
   };
