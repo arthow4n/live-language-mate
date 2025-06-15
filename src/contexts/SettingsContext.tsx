@@ -10,8 +10,17 @@ interface GlobalSettings {
 }
 
 interface ChatSettings {
+  // AI Personalities
   chatMatePersonality: string;
   editorMatePersonality: string;
+  
+  // General settings that can be overridden per chat
+  model: string;
+  apiKey: string;
+  targetLanguage: string;
+  streaming: boolean;
+  
+  // Advanced settings
   chatMateBackground: string;
   editorMateExpertise: string;
   feedbackStyle: 'encouraging' | 'gentle' | 'direct' | 'detailed';
@@ -99,8 +108,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getDefaultChatSettings = (): ChatSettings => ({
+    // Copy global settings as defaults
+    model: globalSettings.model,
+    apiKey: globalSettings.apiKey,
+    targetLanguage: globalSettings.targetLanguage,
+    streaming: globalSettings.streaming,
+    
+    // AI personalities
     chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
     editorMatePersonality: 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+    
+    // Advanced settings
     chatMateBackground: 'young professional, loves local culture',
     editorMateExpertise: '10+ years teaching experience',
     feedbackStyle: 'encouraging',

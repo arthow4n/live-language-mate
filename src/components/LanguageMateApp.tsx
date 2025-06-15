@@ -123,6 +123,17 @@ const LanguageMateApp = () => {
     };
   };
 
+  const getCombinedChatSettings = () => {
+    if (currentConversationId) {
+      const chatSpecificSettings = getChatSettings(currentConversationId);
+      return {
+        ...globalSettings,
+        ...chatSpecificSettings
+      };
+    }
+    return getCombinedGlobalSettings();
+  };
+
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
@@ -237,7 +248,7 @@ const LanguageMateApp = () => {
           open={chatSettingsOpen}
           onOpenChange={setChatSettingsOpen}
           mode="chat"
-          initialSettings={getCurrentChatSettings()}
+          initialSettings={getCombinedChatSettings()}
           onSave={handleChatSettingsSave}
           conversationTitle={currentConversation?.title || "New Chat"}
         />

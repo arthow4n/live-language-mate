@@ -60,16 +60,18 @@ const UnifiedSettingsDialog = ({
 
   // Define which tabs to show based on mode
   const tabs = [];
+  
+  // Both global and chat modes get general and personalities tabs
+  tabs.push(
+    { value: "general", label: "General" },
+    { value: "personalities", label: "AI Personalities" }
+  );
+  
+  // Only global mode gets UI and data tabs
   if (isGlobalMode) {
     tabs.push(
-      { value: "general", label: "General" },
       { value: "ui", label: "UI" },
-      { value: "personalities", label: "AI Personalities" },
       { value: "data", label: "Data" }
-    );
-  } else {
-    tabs.push(
-      { value: "personalities", label: "AI Personalities" }
     );
   }
 
@@ -89,84 +91,143 @@ const UnifiedSettingsDialog = ({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
-          <Tabs defaultValue={tabs[0]?.value} className="h-full flex flex-col">
-            <TabsList className={`grid w-full ${tabs.length === 1 ? 'grid-cols-1' : `grid-cols-${tabs.length}`}`}>
+          <Tabs defaultValue="general" className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
               {tabs.map(tab => (
-                <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+                <TabsTrigger key={tab.value} value={tab.value} className="text-sm">
+                  {tab.label}
+                </TabsTrigger>
               ))}
             </TabsList>
 
             <div className="flex-1 overflow-y-auto mt-4">
-              {isGlobalMode && (
-                <TabsContent value="general" className="space-y-6 mt-0">
+              <TabsContent value="general" className="space-y-6 mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="target-language">Target Language</Label>
+                      <Select
+                        value={settings.targetLanguage}
+                        onValueChange={(value) => handleSettingChange('targetLanguage', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="swedish">Swedish</SelectItem>
+                          <SelectItem value="english">English</SelectItem>
+                          <SelectItem value="spanish">Spanish</SelectItem>
+                          <SelectItem value="french">French</SelectItem>
+                          <SelectItem value="german">German</SelectItem>
+                          <SelectItem value="italian">Italian</SelectItem>
+                          <SelectItem value="portuguese">Portuguese</SelectItem>
+                          <SelectItem value="dutch">Dutch</SelectItem>
+                          <SelectItem value="norwegian">Norwegian</SelectItem>
+                          <SelectItem value="danish">Danish</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="api-key">OpenRouter API Key</Label>
+                      <Input
+                        id="api-key"
+                        type="password"
+                        value={settings.apiKey}
+                        onChange={(e) => handleSettingChange('apiKey', e.target.value)}
+                        placeholder="sk-or-..."
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="streaming"
+                        checked={settings.streaming}
+                        onCheckedChange={(checked) => handleSettingChange('streaming', checked)}
+                      />
+                      <Label htmlFor="streaming">Enable streaming responses</Label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label>AI Model</Label>
+                      <ModelSelector
+                        value={settings.model}
+                        onValueChange={(value) => handleSettingChange('model', value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Advanced Settings - available in both modes */}
+                <div className="border-t pt-6">
+                  <h4 className="text-md font-medium mb-4">Advanced Settings</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="target-language">Target Language</Label>
+                        <Label htmlFor="chat-mate-background">Chat Mate Background</Label>
+                        <Input
+                          id="chat-mate-background"
+                          value={settings.chatMateBackground}
+                          onChange={(e) => handleSettingChange('chatMateBackground', e.target.value)}
+                          placeholder="e.g., young professional, loves local culture"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="editor-mate-expertise">Editor Mate Expertise</Label>
+                        <Input
+                          id="editor-mate-expertise"
+                          value={settings.editorMateExpertise}
+                          onChange={(e) => handleSettingChange('editorMateExpertise', e.target.value)}
+                          placeholder="e.g., 10+ years teaching experience"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="feedback-style">Feedback Style</Label>
                         <Select
-                          value={settings.targetLanguage}
-                          onValueChange={(value) => handleSettingChange('targetLanguage', value)}
+                          value={settings.feedbackStyle}
+                          onValueChange={(value) => handleSettingChange('feedbackStyle', value)}
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="swedish">Swedish</SelectItem>
-                            <SelectItem value="english">English</SelectItem>
-                            <SelectItem value="spanish">Spanish</SelectItem>
-                            <SelectItem value="french">French</SelectItem>
-                            <SelectItem value="german">German</SelectItem>
-                            <SelectItem value="italian">Italian</SelectItem>
-                            <SelectItem value="portuguese">Portuguese</SelectItem>
-                            <SelectItem value="dutch">Dutch</SelectItem>
-                            <SelectItem value="norwegian">Norwegian</SelectItem>
-                            <SelectItem value="danish">Danish</SelectItem>
+                            <SelectItem value="encouraging">Encouraging</SelectItem>
+                            <SelectItem value="gentle">Gentle</SelectItem>
+                            <SelectItem value="direct">Direct</SelectItem>
+                            <SelectItem value="detailed">Detailed</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
-                      <div>
-                        <Label htmlFor="api-key">OpenRouter API Key</Label>
-                        <Input
-                          id="api-key"
-                          type="password"
-                          value={settings.apiKey}
-                          onChange={(e) => handleSettingChange('apiKey', e.target.value)}
-                          placeholder="sk-or-..."
-                        />
-                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="cultural-context"
+                            checked={settings.culturalContext}
+                            onCheckedChange={(checked) => handleSettingChange('culturalContext', checked)}
+                          />
+                          <Label htmlFor="cultural-context">Include cultural context</Label>
+                        </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="streaming"
-                          checked={settings.streaming}
-                          onCheckedChange={(checked) => handleSettingChange('streaming', checked)}
-                        />
-                        <Label htmlFor="streaming">Enable streaming responses</Label>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <Label>AI Model</Label>
-                        <ModelSelector
-                          value={settings.model}
-                          onValueChange={(value) => handleSettingChange('model', value)}
-                        />
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="progressive-complexity"
+                            checked={settings.progressiveComplexity}
+                            onCheckedChange={(checked) => handleSettingChange('progressiveComplexity', checked)}
+                          />
+                          <Label htmlFor="progressive-complexity">Progressive complexity</Label>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </TabsContent>
-              )}
-
-              {isGlobalMode && (
-                <TabsContent value="ui" className="mt-0">
-                  <UISettingsTab
-                    settings={settings}
-                    onSettingChange={handleSettingChange}
-                  />
-                </TabsContent>
-              )}
+                </div>
+              </TabsContent>
 
               <TabsContent value="personalities" className="space-y-6 mt-0">
                 <div className="space-y-6">
@@ -193,74 +254,17 @@ const UnifiedSettingsDialog = ({
                       />
                     </div>
                   </div>
-
-                  {isGlobalMode && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="chat-mate-background">Chat Mate Background</Label>
-                          <Input
-                            id="chat-mate-background"
-                            value={settings.chatMateBackground}
-                            onChange={(e) => handleSettingChange('chatMateBackground', e.target.value)}
-                            placeholder="e.g., young professional, loves local culture"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="editor-mate-expertise">Editor Mate Expertise</Label>
-                          <Input
-                            id="editor-mate-expertise"
-                            value={settings.editorMateExpertise}
-                            onChange={(e) => handleSettingChange('editorMateExpertise', e.target.value)}
-                            placeholder="e.g., 10+ years teaching experience"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="feedback-style">Feedback Style</Label>
-                          <Select
-                            value={settings.feedbackStyle}
-                            onValueChange={(value) => handleSettingChange('feedbackStyle', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="encouraging">Encouraging</SelectItem>
-                              <SelectItem value="gentle">Gentle</SelectItem>
-                              <SelectItem value="direct">Direct</SelectItem>
-                              <SelectItem value="detailed">Detailed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="cultural-context"
-                              checked={settings.culturalContext}
-                              onCheckedChange={(checked) => handleSettingChange('culturalContext', checked)}
-                            />
-                            <Label htmlFor="cultural-context">Include cultural context</Label>
-                          </div>
-
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="progressive-complexity"
-                              checked={settings.progressiveComplexity}
-                              onCheckedChange={(checked) => handleSettingChange('progressiveComplexity', checked)}
-                            />
-                            <Label htmlFor="progressive-complexity">Progressive complexity</Label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </TabsContent>
+
+              {isGlobalMode && (
+                <TabsContent value="ui" className="mt-0">
+                  <UISettingsTab
+                    settings={settings}
+                    onSettingChange={handleSettingChange}
+                  />
+                </TabsContent>
+              )}
 
               {isGlobalMode && (
                 <TabsContent value="data" className="mt-0">
