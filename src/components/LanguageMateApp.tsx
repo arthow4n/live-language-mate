@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -89,28 +90,28 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
   };
 
   // Enhanced handler for conversation updates that includes title generation
-  const handleConversationUpdateWithTitleGeneration = async (conversationId: string, messageCount: number) => {
+  const handleConversationUpdateWithTitleGeneration = async (conversationId: string) => {
     // Trigger sidebar refresh
     setRefreshSidebar(prev => prev + 1);
     
-    // Generate title after Editor Mate's first response (approximately after 3 messages: user, chat mate, editor mate)
-    if (messageCount === 3) {
-      try {
-        // Get conversation messages to generate title
-        const { data: messages, error } = await supabase
-          .from('messages')
-          .select('role, content')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true });
+    // Get conversation messages to check if we should generate a title
+    try {
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('message_type, content')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
 
-        if (error || !messages || messages.length < 2) {
-          console.error('Error fetching messages for title generation:', error);
-          return;
-        }
+      if (error || !messages) {
+        console.error('Error fetching messages for title generation:', error);
+        return;
+      }
 
+      // Generate title after Editor Mate's first response (approximately after 3 messages: user, chat mate, editor mate)
+      if (messages.length === 3) {
         // Convert messages to the format expected by title generator
         const conversationHistory = messages.map(msg => ({
-          role: msg.role,
+          message_type: msg.message_type,
           content: msg.content
         }));
 
@@ -121,9 +122,9 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           // Refresh sidebar again to show the new title
           setRefreshSidebar(prev => prev + 1);
         }
-      } catch (error) {
-        console.error('Error in title generation process:', error);
       }
+    } catch (error) {
+      console.error('Error in title generation process:', error);
     }
   };
 
@@ -223,6 +224,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                         onClose={() => setAskInterfaceOpen(false)}
                         onTextSelect={handleAskInterfaceTextSelect}
                         selectionSource={selectionSource}
+                        hideHeader={true}
                       />
                     </div>
                   </DrawerContent>

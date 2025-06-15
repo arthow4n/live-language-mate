@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const generateChatTitle = async (
-  conversationHistory: Array<{ role: string; content: string }>,
+  conversationHistory: Array<{ message_type: string; content: string }>,
   targetLanguage: string
 ): Promise<string> => {
   try {
