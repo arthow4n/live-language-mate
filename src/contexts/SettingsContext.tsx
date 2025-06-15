@@ -12,7 +12,7 @@ interface ChatSettings {
   editorMatePersonality: string;
   chatMateBackground: string;
   editorMateExpertise: string;
-  feedbackStyle: string;
+  feedbackStyle: 'encouraging' | 'gentle' | 'direct' | 'detailed';
   culturalContext: boolean;
   progressiveComplexity: boolean;
 }
