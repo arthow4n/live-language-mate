@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -136,7 +135,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
           streaming: true // Force streaming
         },
         responseType: 'stream'
-      });
+      } as any);
       
       if (aiError) throw new Error(aiError.message || 'Failed to get AI response');
       if (!stream) throw new Error('No response stream from AI');
