@@ -15,7 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -104,41 +103,39 @@ const ModelSelector = ({ value, onValueChange, placeholder = "Select model..." }
       <PopoverContent className="w-[400px] p-0">
         <Command>
           <CommandInput placeholder="Search models..." />
-          <ScrollArea className="h-[300px]">
-            <CommandList>
-              <CommandEmpty>
-                {loading ? "Loading models..." : "No models found."}
-              </CommandEmpty>
-              <CommandGroup>
-                {models.map((model) => (
-                  <CommandItem
-                    key={model.id}
-                    value={model.id}
-                    onSelect={(currentValue) => {
-                      onValueChange(currentValue === value ? "" : currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === model.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-medium">{model.name}</span>
-                      <span className="text-xs text-muted-foreground">{model.id}</span>
-                      {model.description && (
-                        <span className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {model.description}
-                        </span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </ScrollArea>
+          <CommandList>
+            <CommandEmpty>
+              {loading ? "Loading models..." : "No models found."}
+            </CommandEmpty>
+            <CommandGroup>
+              {models.map((model) => (
+                <CommandItem
+                  key={model.id}
+                  value={model.id}
+                  onSelect={(currentValue) => {
+                    onValueChange(currentValue === value ? "" : currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === model.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-medium">{model.name}</span>
+                    <span className="text-xs text-muted-foreground">{model.id}</span>
+                    {model.description && (
+                      <span className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {model.description}
+                      </span>
+                    )}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
