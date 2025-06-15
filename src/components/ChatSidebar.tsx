@@ -225,7 +225,7 @@ const ChatSidebar = ({
                       isActive={currentConversationId === conversation.id}
                       className={`group relative w-full ${
                         currentConversationId === conversation.id 
-                          ? 'bg-primary/90 text-primary-foreground hover:bg-primary shadow-sm border-l-4 border-primary-foreground/50 font-medium' 
+                          ? 'bg-primary/90 text-primary-foreground hover:bg-primary shadow-sm border-l-4 border-gray-800 dark:border-gray-200 font-medium' 
                           : 'hover:bg-accent/50'
                       }`}
                     >
@@ -239,10 +239,10 @@ const ChatSidebar = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`w-6 h-6 ml-auto flex-shrink-0 opacity-100 ${
+                            className={`w-6 h-6 ml-auto flex-shrink-0 ${
                               currentConversationId === conversation.id 
                                 ? 'hover:bg-primary-foreground/20 text-primary-foreground' 
-                                : 'hover:bg-accent'
+                                : 'hover:bg-accent opacity-100'
                             }`}
                             onClick={(e) => e.stopPropagation()}
                           >
