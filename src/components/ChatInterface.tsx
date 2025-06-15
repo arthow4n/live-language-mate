@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -186,35 +187,37 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center text-muted-foreground py-8">
-              <p>
-                {aiMode === 'chat-mate' 
-                  ? 'Start a conversation in Swedish! Ask about daily life, culture, or practice any topic.'
-                  : 'Submit your Swedish text to get helpful feedback and corrections.'
-                }
-              </p>
-            </div>
-          )}
-          
-          {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              onTextSelect={handleTextSelect}
-            />
-          ))}
-          
-          {isLoading && (
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>{aiMode === 'chat-mate' ? 'Chat Mate' : 'Editor Mate'} is thinking...</span>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
+        <ScrollArea className="flex-1 overflow-hidden">
+          <div className="p-4 space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center text-muted-foreground py-8">
+                <p>
+                  {aiMode === 'chat-mate' 
+                    ? 'Start a conversation in Swedish! Ask about daily life, culture, or practice any topic.'
+                    : 'Submit your Swedish text to get helpful feedback and corrections.'
+                  }
+                </p>
+              </div>
+            )}
+            
+            {messages.map((message) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                onTextSelect={handleTextSelect}
+              />
+            ))}
+            
+            {isLoading && (
+              <div className="flex items-center space-x-2 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>{aiMode === 'chat-mate' ? 'Chat Mate' : 'Editor Mate'} is thinking...</span>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
 
         {/* Input Area */}
         <div className="p-4 border-t">
