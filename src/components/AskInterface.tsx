@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
@@ -48,13 +49,19 @@ const AskInterface = ({
   useEffect(() => {
     if (selectedText && selectedText.trim()) {
       setEditableSelectedText(selectedText);
-      const welcomeMessage: Message = {
-        id: Date.now().toString(),
-        type: 'editor',
-        content: `I can help you understand "${selectedText}". What would you like to know about this text?`,
-        timestamp: new Date()
-      };
-      setConversation([welcomeMessage]);
+      // Only reset conversation if there's no existing conversation
+      if (conversation.length === 0) {
+        const welcomeMessage: Message = {
+          id: Date.now().toString(),
+          type: 'editor',
+          content: `I can help you understand "${selectedText}". What would you like to know about this text?`,
+          timestamp: new Date()
+        };
+        setConversation([welcomeMessage]);
+      } else {
+        // If conversation exists, just update the selected text without clearing chat
+        // This allows selecting text from within the Ask Interface without losing context
+      }
     }
   }, [selectedText]);
 
@@ -168,7 +175,7 @@ const AskInterface = ({
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-semibold flex items-center gap-2">
             <Search className="w-4 h-4" />
-            Ask Interface
+            Editor Mate
           </h2>
           {onClose && (
             <Button variant="ghost" size="icon" onClick={onClose}>
