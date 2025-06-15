@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -65,17 +64,17 @@ export default {
 				},
 				'chat-mate': {
 					DEFAULT: '#16a34a',
-					light: '#dcfce7',
+					light: '#f0fdf4',
 					dark: '#15803d'
 				},
 				'editor-mate': {
 					DEFAULT: '#ea580c',
-					light: '#fed7aa',
+					light: '#fff7ed',
 					dark: '#c2410c'
 				},
 				'user': {
 					DEFAULT: '#6366f1',
-					light: '#e0e7ff',
+					light: '#eef2ff',
 					dark: '#4f46e5'
 				}
 			},
