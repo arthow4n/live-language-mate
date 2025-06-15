@@ -12,6 +12,7 @@ import UnifiedSettingsDialog from './UnifiedSettingsDialog';
 import { SettingsProvider, useSettings } from '@/contexts/SettingsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from "@/integrations/supabase/client";
+import { generateChatTitle, updateConversationTitle } from '@/utils/chatTitleGenerator';
 
 interface LanguageMateAppProps {
   user: User;
@@ -87,6 +88,45 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
     handleTextSelect(text, 'ask-interface');
   };
 
+  // Enhanced handler for conversation updates that includes title generation
+  const handleConversationUpdateWithTitleGeneration = async (conversationId: string, messageCount: number) => {
+    // Trigger sidebar refresh
+    setRefreshSidebar(prev => prev + 1);
+    
+    // Generate title after Editor Mate's first response (approximately after 3 messages: user, chat mate, editor mate)
+    if (messageCount === 3) {
+      try {
+        // Get conversation messages to generate title
+        const { data: messages, error } = await supabase
+          .from('messages')
+          .select('role, content')
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: true });
+
+        if (error || !messages || messages.length < 2) {
+          console.error('Error fetching messages for title generation:', error);
+          return;
+        }
+
+        // Convert messages to the format expected by title generator
+        const conversationHistory = messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+
+        const newTitle = await generateChatTitle(conversationHistory, currentSettings.targetLanguage);
+        
+        if (newTitle && newTitle !== 'Chat') {
+          await updateConversationTitle(conversationId, newTitle);
+          // Refresh sidebar again to show the new title
+          setRefreshSidebar(prev => prev + 1);
+        }
+      } catch (error) {
+        console.error('Error in title generation process:', error);
+      }
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
@@ -129,7 +169,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                       user={user}
                       conversationId={currentConversationId}
                       targetLanguage={currentSettings.targetLanguage}
-                      onConversationUpdate={handleConversationUpdate}
+                      onConversationUpdate={handleConversationUpdateWithTitleGeneration}
                       onConversationCreated={setCurrentConversationId}
                       onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                     />
@@ -161,7 +201,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                   user={user}
                   conversationId={currentConversationId}
                   targetLanguage={currentSettings.targetLanguage}
-                  onConversationUpdate={handleConversationUpdate}
+                  onConversationUpdate={handleConversationUpdateWithTitleGeneration}
                   onConversationCreated={setCurrentConversationId}
                   onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                   onAskInterfaceOpen={() => setAskInterfaceOpen(true)}

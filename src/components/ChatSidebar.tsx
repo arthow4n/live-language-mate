@@ -223,7 +223,11 @@ const ChatSidebar = ({
                     <SidebarMenuButton
                       onClick={() => onConversationSelect(conversation.id)}
                       isActive={currentConversationId === conversation.id}
-                      className="group relative w-full"
+                      className={`group relative w-full ${
+                        currentConversationId === conversation.id 
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                          : ''
+                      }`}
                     >
                       <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
                       <span className="truncate flex-1 text-left">
@@ -235,7 +239,11 @@ const ChatSidebar = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="w-6 h-6 ml-auto flex-shrink-0 opacity-100"
+                            className={`w-6 h-6 ml-auto flex-shrink-0 opacity-100 ${
+                              currentConversationId === conversation.id 
+                                ? 'hover:bg-primary-foreground/20' 
+                                : ''
+                            }`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="w-3 h-3" />
