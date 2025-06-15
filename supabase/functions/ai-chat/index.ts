@@ -30,18 +30,25 @@ serve(async (req) => {
       progressiveComplexity
     } = await req.json();
 
-    console.log('AI Chat request:', {
+    console.log('🔍 AI Chat request received:', {
       messageType,
       targetLanguage,
-      model,
-      historyLength: conversationHistory.length
+      model: model || 'No model specified',
+      apiKey: apiKey ? 'Custom API key provided' : 'Using environment API key',
+      historyLength: conversationHistory.length,
+      hasMessage: !!message,
+      hasChatMatePrompt: !!chatMatePrompt,
+      hasEditorMatePrompt: !!editorMatePrompt
     });
 
     // Use provided API key or fall back to environment variable
     const openrouterApiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
     if (!openrouterApiKey) {
+      console.error('❌ No API key available');
       throw new Error('OpenRouter API key not configured');
     }
+
+    console.log('🔑 API key source:', apiKey ? 'User provided' : 'Environment variable');
 
     // Build system prompt based on message type
     let systemPrompt = '';
@@ -80,7 +87,12 @@ Review the Chat Mate's response and provide an example of how the user could rep
       { role: 'user', content: message }
     ];
 
-    console.log(`Sending request to OpenRouter for ${messageType.split('-')[0]} using model: ${model}`);
+    console.log(`🚀 Sending request to OpenRouter:`, {
+      model: model,
+      messageType: messageType.split('-')[0],
+      systemPromptLength: systemPrompt.length,
+      messagesCount: messages.length
+    });
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -91,7 +103,7 @@ Review the Chat Mate's response and provide an example of how the user could rep
         'X-Title': 'Language Mate'
       },
       body: JSON.stringify({
-        model: model,
+        model: model, // Ensure we're using the provided model
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000
@@ -100,26 +112,39 @@ Review the Chat Mate's response and provide an example of how the user could rep
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenRouter API error:', response.status, errorText);
+      console.error('❌ OpenRouter API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+        model: model
+      });
       throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid OpenRouter response:', data);
+      console.error('❌ Invalid OpenRouter response structure:', data);
       throw new Error('Invalid response from OpenRouter API');
     }
 
     const aiResponse = data.choices[0].message.content;
-    console.log(`OpenRouter response received for ${messageType.split('-')[0]} using model: ${model}`);
+    console.log(`✅ OpenRouter response received successfully:`, {
+      model: model,
+      messageType: messageType.split('-')[0],
+      responseLength: aiResponse ? aiResponse.length : 0,
+      usage: data.usage || 'No usage data'
+    });
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in ai-chat function:', error);
+    console.error('❌ Error in ai-chat function:', {
+      message: error.message,
+      stack: error.stack
+    });
     return new Response(JSON.stringify({ 
       error: error.message || 'An error occurred while processing your request' 
     }), {

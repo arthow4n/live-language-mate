@@ -73,10 +73,21 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       try {
         const parsed = JSON.parse(savedMainSettings);
         // Merge with defaults to handle new settings
-        setMainSettings({ ...defaultSettings, ...parsed });
+        const mergedSettings = { ...defaultSettings, ...parsed };
+        setMainSettings(mergedSettings);
+        console.log('📱 Loaded main settings from localStorage:', {
+          model: mergedSettings.model,
+          apiKey: mergedSettings.apiKey ? 'Set' : 'Not set',
+          targetLanguage: mergedSettings.targetLanguage
+        });
       } catch (error) {
         console.error('Failed to parse main settings from localStorage:', error);
       }
+    } else {
+      console.log('📱 No saved main settings found, using defaults:', {
+        model: defaultSettings.model,
+        targetLanguage: defaultSettings.targetLanguage
+      });
     }
 
     const savedChatSettings = localStorage.getItem('languageMate_chatSettings');
@@ -89,6 +100,7 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
           mergedChatSettings[convId] = { ...defaultSettings, ...settings as SettingsData };
         }
         setChatSettings(mergedChatSettings);
+        console.log('💬 Loaded chat settings from localStorage:', Object.keys(mergedChatSettings).length, 'conversations');
       } catch (error) {
         console.error('Failed to parse chat settings from localStorage:', error);
       }
@@ -96,15 +108,32 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
   }, []);
 
   const updateMainSettings = (settings: SettingsData) => {
+    console.log('📱 Updating main settings:', {
+      model: settings.model,
+      apiKey: settings.apiKey ? 'Set' : 'Not set',
+      targetLanguage: settings.targetLanguage
+    });
     setMainSettings(settings);
     localStorage.setItem('languageMate_mainSettings', JSON.stringify(settings));
   };
 
   const getChatSettings = (conversationId: string): SettingsData => {
-    return chatSettings[conversationId] || mainSettings;
+    const settings = chatSettings[conversationId] || mainSettings;
+    console.log('🔍 Getting chat settings for conversation:', conversationId, {
+      source: chatSettings[conversationId] ? 'conversation-specific' : 'main settings',
+      model: settings.model,
+      apiKey: settings.apiKey ? 'Set' : 'Not set',
+      targetLanguage: settings.targetLanguage
+    });
+    return settings;
   };
 
   const updateChatSettings = (conversationId: string, settings: SettingsData) => {
+    console.log('💬 Updating chat settings for conversation:', conversationId, {
+      model: settings.model,
+      apiKey: settings.apiKey ? 'Set' : 'Not set',
+      targetLanguage: settings.targetLanguage
+    });
     const newChatSettings = {
       ...chatSettings,
       [conversationId]: settings

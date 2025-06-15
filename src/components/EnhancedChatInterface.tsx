@@ -56,6 +56,17 @@ const EnhancedChatInterface = ({
   const chatMatePrompt = currentSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt = currentSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
+  // Add detailed logging for settings
+  console.log('🔧 EnhancedChatInterface settings debug:', {
+    conversationId,
+    currentSettings: currentSettings ? {
+      model: currentSettings.model,
+      apiKey: currentSettings.apiKey ? 'Set' : 'Not set',
+      targetLanguage: currentSettings.targetLanguage
+    } : 'No settings found',
+    fallbackModel: currentSettings?.model || 'No model set'
+  });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -315,6 +326,13 @@ const EnhancedChatInterface = ({
   };
 
   const callAI = async (message: string, messageType: string, history: any[]) => {
+    console.log('🚀 Calling AI with settings:', {
+      messageType,
+      model: currentSettings?.model || 'No model specified',
+      apiKey: currentSettings?.apiKey ? 'Set' : 'Not set',
+      targetLanguage
+    });
+
     const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
       body: {
         message,
@@ -323,6 +341,8 @@ const EnhancedChatInterface = ({
         chatMatePrompt,
         editorMatePrompt: currentEditorMatePrompt,
         targetLanguage,
+        model: currentSettings?.model || 'anthropic/claude-3-5-sonnet',
+        apiKey: currentSettings?.apiKey,
         // Pass new advanced settings
         chatMateBackground: currentSettings?.chatMateBackground || 'young professional, loves local culture',
         editorMateExpertise: currentSettings?.editorMateExpertise || '10+ years teaching experience',
@@ -333,14 +353,16 @@ const EnhancedChatInterface = ({
     });
 
     if (aiError) {
-      console.error('AI function error:', aiError);
+      console.error('❌ AI function error:', aiError);
       throw new Error(aiError.message || 'Failed to get AI response');
     }
 
     if (!aiData || !aiData.response) {
+      console.error('❌ No response from AI:', aiData);
       throw new Error('No response from AI');
     }
 
+    console.log('✅ AI response received successfully');
     return aiData.response;
   };
 
@@ -368,6 +390,12 @@ const EnhancedChatInterface = ({
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
+
+    console.log('📤 Sending message with current settings:', {
+      conversationId,
+      model: currentSettings?.model || 'Default model',
+      apiKey: currentSettings?.apiKey ? 'Set' : 'Not set'
+    });
 
     let currentConversationId = conversationId;
 
@@ -420,6 +448,8 @@ const EnhancedChatInterface = ({
         role: msg.type === 'user' ? 'user' : 'assistant',
         content: `[${msg.type}]: ${msg.content}`
       }));
+
+      console.log('🔄 Processing AI responses for message:', currentInput);
 
       // Get Editor Mate comment on user message first
       const editorUserComment = await callAI(currentInput, 'editor-mate-user-comment', fullHistory);
@@ -480,7 +510,7 @@ const EnhancedChatInterface = ({
       onConversationUpdate();
 
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to send message",
