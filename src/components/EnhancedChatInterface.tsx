@@ -344,11 +344,16 @@ const EnhancedChatInterface = ({
     let fullContent = '';
     let buffer = '';
 
+    console.log('📡 Starting to process streaming response for message:', messageId);
+
     try {
       while (true) {
         const { done, value } = await reader.read();
         
-        if (done) break;
+        if (done) {
+          console.log('✅ Streaming completed for message:', messageId);
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
@@ -363,13 +368,14 @@ const EnhancedChatInterface = ({
               
               if (data.type === 'content') {
                 fullContent += data.content;
+                console.log('📝 Updating message content:', messageId, 'Current length:', fullContent.length);
                 
                 // Update message content in real-time
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { ...msg, content: fullContent, isStreaming: true } : msg
                 ));
               } else if (data.type === 'done') {
-                console.log('✅ Streaming completed for message:', messageId);
+                console.log('✅ Streaming done signal received for message:', messageId);
                 
                 // Mark streaming as complete
                 setMessages(prev => prev.map(msg => 
@@ -379,7 +385,7 @@ const EnhancedChatInterface = ({
                 return fullContent;
               }
             } catch (e) {
-              console.error('Error parsing streaming data:', e);
+              console.error('Error parsing streaming data:', e, 'Line:', line);
             }
           }
         }
@@ -387,6 +393,11 @@ const EnhancedChatInterface = ({
     } finally {
       reader.releaseLock();
     }
+
+    // Mark streaming as complete even if we didn't get a done signal
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId ? { ...msg, content: fullContent, isStreaming: false } : msg
+    ));
 
     return fullContent;
   };
@@ -432,7 +443,7 @@ const EnhancedChatInterface = ({
   };
 
   const callAI = async (message: string, messageType: string, history: any[], messageId: string) => {
-    console.log('🚀 Calling AI with streaming enabled');
+    console.log('🚀 Calling AI with streaming enabled for message:', messageId);
 
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
@@ -466,8 +477,10 @@ const EnhancedChatInterface = ({
 
     // Check if the response is streaming
     const contentType = response.headers.get('content-type');
+    console.log('📡 Response content type:', contentType);
+    
     if (contentType?.includes('text/event-stream')) {
-      // Handle streaming response with the correct messageId
+      // Handle streaming response
       return await handleStreamingResponse(response, messageId);
     } else {
       // Handle non-streaming response (fallback)
@@ -562,6 +575,7 @@ const EnhancedChatInterface = ({
       const editorChatMateTempId = `temp-${Date.now() + 3}`;
 
       // Get Editor Mate comment on user message first
+      console.log('🎓 Starting Editor Mate comment on user message with ID:', editorUserTempId);
       const editorUserMessage: Message = {
         id: editorUserTempId,
         type: 'editor-mate',
@@ -573,7 +587,6 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorUserMessage]);
 
-      // Use callAI for streaming response
       const editorUserComment = await callAI(
         currentInput, 
         'editor-mate-user-comment', 
@@ -595,6 +608,7 @@ const EnhancedChatInterface = ({
       }
 
       // Get Chat Mate response
+      console.log('💬 Starting Chat Mate response with ID:', chatMateTempId);
       const chatMateMessage: Message = {
         id: chatMateTempId,
         type: 'chat-mate',
@@ -605,7 +619,6 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, chatMateMessage]);
 
-      // Use callAI for streaming response
       const chatMateContent = await callAI(
         currentInput, 
         'chat-mate-response', 
@@ -626,6 +639,7 @@ const EnhancedChatInterface = ({
       }
 
       // Get Editor Mate comment on Chat Mate response
+      console.log('🎓 Starting Editor Mate comment on Chat Mate response with ID:', editorChatMateTempId);
       const editorChatMateMessage: Message = {
         id: editorChatMateTempId,
         type: 'editor-mate',
@@ -637,7 +651,6 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorChatMateMessage]);
 
-      // Use callAI for streaming response
       const editorChatMateComment = await callAI(
         chatMateContent, 
         'editor-mate-chatmate-comment', 
