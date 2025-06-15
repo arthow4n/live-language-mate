@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -367,11 +368,11 @@ const EnhancedChatInterface = ({
 
     console.log('🚀 Calling AI with streaming enabled');
 
-    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ai-chat`, {
+    const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.supabaseKey}`,
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
       },
       body: JSON.stringify({
         message,
@@ -388,7 +389,7 @@ const EnhancedChatInterface = ({
         feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
         culturalContext: currentChatSettings?.culturalContext ?? true,
         progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true,
-        streaming: true
+        streaming: mainSettings.streaming ?? true
       })
     });
 
