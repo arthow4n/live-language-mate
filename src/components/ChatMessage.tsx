@@ -50,7 +50,7 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
     switch (message.type) {
       case 'user':
         return {
-          container: 'ml-auto max-w-[80%]',
+          container: 'mr-auto max-w-[80%]',
           bubble: 'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
           avatar: 'bg-user text-white',
           icon: User
@@ -90,27 +90,36 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
     navigator.clipboard.writeText(message.content);
   };
 
+  const getDisplayName = () => {
+    switch (message.type) {
+      case 'user':
+        return 'User';
+      case 'chat-mate':
+        return 'Chat Mate';
+      case 'editor-mate':
+        return 'Editor Mate';
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
     <div className={`flex items-start gap-3 group ${styles.container}`}>
-      {message.type !== 'user' && (
-        <Avatar className="w-8 h-8 mt-1">
-          <AvatarFallback className={styles.avatar}>
-            <IconComponent className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
+      <Avatar className="w-8 h-8 mt-1">
+        <AvatarFallback className={styles.avatar}>
+          <IconComponent className="w-4 h-4" />
+        </AvatarFallback>
+      </Avatar>
       
       <div className="flex-1 space-y-1">
-        {message.type !== 'user' && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {message.type === 'chat-mate' ? 'Chat Mate' : 'Editor Mate'}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {formatTime(message.timestamp)}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-xs">
+            {getDisplayName()}
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            {formatTime(message.timestamp)}
+          </span>
+        </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
           <div 
@@ -163,23 +172,7 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
             </DropdownMenu>
           </div>
         </div>
-        
-        {message.type === 'user' && (
-          <div className="text-right">
-            <span className="text-xs text-muted-foreground">
-              {formatTime(message.timestamp)}
-            </span>
-          </div>
-        )}
       </div>
-
-      {message.type === 'user' && (
-        <Avatar className="w-8 h-8 mt-1">
-          <AvatarFallback className={styles.avatar}>
-            <IconComponent className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
     </div>
   );
 };
