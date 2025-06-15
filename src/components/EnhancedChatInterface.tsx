@@ -15,6 +15,12 @@ interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   parentMessageId?: string;
+  metadata?: {
+    model?: string;
+    generationTime?: number; // in milliseconds
+    startTime?: number;
+    endTime?: number;
+  };
 }
 
 interface EnhancedChatInterfaceProps {
@@ -334,7 +340,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleStreamingResponse = async (response: Response, messageId: string): Promise<string> => {
+  const handleStreamingResponse = async (response: Response, messageId: string, startTime: number, model: string): Promise<string> => {
     if (!response.body) {
       throw new Error('No response body for streaming');
     }
@@ -375,12 +381,25 @@ const EnhancedChatInterface = ({
               } else if (data.type === 'done') {
                 console.log('✅ Streaming completed for message:', messageId);
                 
-                // Mark streaming as complete
+                const endTime = Date.now();
+                const generationTime = endTime - startTime;
+                
+                const finalMetadata = {
+                  model,
+                  generationTime,
+                  startTime,
+                  endTime
+                };
+                
+                console.log('EnhancedChatInterface: Setting streaming metadata:', finalMetadata);
+                
+                // Mark streaming as complete and add metadata
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { 
                     ...msg, 
                     content: fullContent, 
-                    isStreaming: false 
+                    isStreaming: false,
+                    metadata: finalMetadata
                   } : msg
                 ));
                 
@@ -397,11 +416,22 @@ const EnhancedChatInterface = ({
     }
 
     // Ensure streaming is marked as complete even if we don't get a 'done' event
+    const endTime = Date.now();
+    const generationTime = endTime - startTime;
+    
+    const finalMetadata = {
+      model,
+      generationTime,
+      startTime,
+      endTime
+    };
+    
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { 
         ...msg, 
         content: fullContent, 
-        isStreaming: false 
+        isStreaming: false,
+        metadata: finalMetadata
       } : msg
     ));
 
@@ -450,6 +480,8 @@ const EnhancedChatInterface = ({
 
   const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string) => {
     console.log('🚀 Calling AI with streaming enabled for message:', streamingMessageId);
+    
+    const startTime = Date.now();
 
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
@@ -483,11 +515,31 @@ const EnhancedChatInterface = ({
     // Check if the response is streaming
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
-      // Handle streaming response with messageId
-      return await handleStreamingResponse(response, streamingMessageId);
+      // Handle streaming response with messageId, startTime, and model
+      return await handleStreamingResponse(response, streamingMessageId, startTime, settings.model);
     } else {
       // Handle non-streaming response (fallback)
       const data = await response.json();
+      const endTime = Date.now();
+      const generationTime = endTime - startTime;
+      
+      const finalMetadata = {
+        model: settings.model,
+        generationTime,
+        startTime,
+        endTime
+      };
+      
+      console.log('EnhancedChatInterface: Setting non-streaming metadata:', finalMetadata);
+      
+      // Update the message with metadata for non-streaming response
+      setMessages(prev => prev.map(msg => 
+        msg.id === streamingMessageId ? { 
+          ...msg, 
+          metadata: finalMetadata
+        } : msg
+      ));
+      
       return data.response;
     }
   };

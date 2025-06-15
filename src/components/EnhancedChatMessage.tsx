@@ -14,7 +14,8 @@ import {
   RotateCcw,
   Copy,
   Clock,
-  Cpu
+  Cpu,
+  GitBranch
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -27,9 +28,20 @@ import { Message } from '@/types/Message';
 interface EnhancedChatMessageProps {
   message: Message;
   onTextSelect: (text: string) => void;
+  onRegenerateMessage?: (messageId: string) => Promise<void>;
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  onForkFrom?: (messageId: string) => Promise<void>;
 }
 
-const EnhancedChatMessage = ({ message, onTextSelect }: EnhancedChatMessageProps) => {
+const EnhancedChatMessage = ({ 
+  message, 
+  onTextSelect,
+  onRegenerateMessage,
+  onEditMessage,
+  onDeleteMessage,
+  onForkFrom
+}: EnhancedChatMessageProps) => {
   const [selectedText, setSelectedText] = useState('');
 
   const handleTextSelection = () => {
@@ -108,7 +120,7 @@ const EnhancedChatMessage = ({ message, onTextSelect }: EnhancedChatMessageProps
   console.log('EnhancedChatMessage: Rendering message with metadata:', message.id, message.metadata);
 
   return (
-    <div className={`flex items-start gap-3 group ${styles.container}`}>
+    <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
       <Avatar className="w-8 h-8 mt-1">
         <AvatarFallback className={styles.avatar}>
           <IconComponent className="w-4 h-4" />
@@ -160,18 +172,30 @@ const EnhancedChatMessage = ({ message, onTextSelect }: EnhancedChatMessageProps
                   <Copy className="w-3 h-3 mr-2" />
                   Copy
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Edit3 className="w-3 h-3 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <RotateCcw className="w-3 h-3 mr-2" />
-                  Regenerate
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">
-                  <Trash2 className="w-3 h-3 mr-2" />
-                  Delete
-                </DropdownMenuItem>
+                {onEditMessage && (
+                  <DropdownMenuItem onClick={() => onEditMessage(message.id, message.content)}>
+                    <Edit3 className="w-3 h-3 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                {onRegenerateMessage && (
+                  <DropdownMenuItem onClick={() => onRegenerateMessage(message.id)}>
+                    <RotateCcw className="w-3 h-3 mr-2" />
+                    Regenerate
+                  </DropdownMenuItem>
+                )}
+                {onForkFrom && (
+                  <DropdownMenuItem onClick={() => onForkFrom(message.id)}>
+                    <GitBranch className="w-3 h-3 mr-2" />
+                    Fork from here
+                  </DropdownMenuItem>
+                )}
+                {onDeleteMessage && (
+                  <DropdownMenuItem className="text-destructive" onClick={() => onDeleteMessage(message.id)}>
+                    <Trash2 className="w-3 h-3 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
