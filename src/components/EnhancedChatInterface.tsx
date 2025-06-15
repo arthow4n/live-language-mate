@@ -16,6 +16,7 @@ interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   parentMessageId?: string;
+  tempId?: string; // Keep track of temporary ID for proper ordering
 }
 
 interface EnhancedChatInterfaceProps {
@@ -592,6 +593,12 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const updateMessageById = (tempId: string, updates: Partial<Message>) => {
+    setMessages(prev => prev.map(msg => 
+      msg.tempId === tempId ? { ...msg, ...updates } : msg
+    ));
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading || !mainSettings) return;
 
@@ -617,7 +624,7 @@ const EnhancedChatInterface = ({
     }
 
     const userMessage: Message = {
-      id: `temp-${Date.now()}`,
+      id: `temp-user-${Date.now()}`,
       type: 'user',
       content: inputMessage.trim(),
       timestamp: new Date(),
@@ -653,14 +660,16 @@ const EnhancedChatInterface = ({
 
       console.log('🔄 Processing AI responses for message:', currentInput);
 
-      // Create temporary streaming messages
-      const editorUserMessageId = `temp-${Date.now() + 1}`;
-      const chatMateMessageId = `temp-${Date.now() + 2}`;
-      const editorChatMateMessageId = `temp-${Date.now() + 3}`;
+      // Create temporary streaming messages with consistent ordering
+      const timestamp = Date.now();
+      const editorUserTempId = `temp-editor-user-${timestamp}`;
+      const chatMateTempId = `temp-chat-mate-${timestamp + 1}`;
+      const editorChatMateTempId = `temp-editor-chatmate-${timestamp + 2}`;
 
-      // Add empty streaming messages to the UI
+      // Add empty streaming messages to the UI in correct order
       const editorUserMessage: Message = {
-        id: editorUserMessageId,
+        id: editorUserTempId,
+        tempId: editorUserTempId,
         type: 'editor-mate',
         content: '',
         timestamp: new Date(),
@@ -669,7 +678,8 @@ const EnhancedChatInterface = ({
       };
 
       const chatMateMessage: Message = {
-        id: chatMateMessageId,
+        id: chatMateTempId,
+        tempId: chatMateTempId,
         type: 'chat-mate',
         content: '',
         timestamp: new Date(),
@@ -677,29 +687,26 @@ const EnhancedChatInterface = ({
       };
 
       const editorChatMateMessage: Message = {
-        id: editorChatMateMessageId,
+        id: editorChatMateTempId,
+        tempId: editorChatMateTempId,
         type: 'editor-mate',
         content: '',
         timestamp: new Date(),
         isStreaming: true,
       };
 
-      // Add the streaming messages to UI
+      // Add all streaming messages at once to maintain order
       setMessages(prev => [...prev, editorUserMessage, chatMateMessage, editorChatMateMessage]);
 
-      // Process all three AI responses in parallel with streaming
-      const [editorUserContent, chatMateContent, editorChatMateContent] = await Promise.all([
+      // Process Editor Mate comment on user message and Chat Mate response in parallel
+      const [editorUserContent, chatMateContent] = await Promise.all([
         // Editor Mate comment on user message
         callAIWithStreaming(
           currentInput, 
           'editor-mate-user-comment', 
           fullHistory,
           (content) => {
-            setMessages(prev => prev.map(msg => 
-              msg.id === editorUserMessageId 
-                ? { ...msg, content, isStreaming: content === '' }
-                : msg
-            ));
+            updateMessageById(editorUserTempId, { content, isStreaming: content === '' });
           }
         ),
         
@@ -709,65 +716,38 @@ const EnhancedChatInterface = ({
           'chat-mate-response', 
           chatMateHistory,
           (content) => {
-            setMessages(prev => prev.map(msg => 
-              msg.id === chatMateMessageId 
-                ? { ...msg, content, isStreaming: content === '' }
-                : msg
-            ));
+            updateMessageById(chatMateTempId, { content, isStreaming: content === '' });
           }
-        ),
-        
-        // Editor Mate comment on Chat Mate response (will be updated after chat mate responds)
-        new Promise<string>((resolve) => {
-          // We'll start this after getting the chat mate response
-          setTimeout(async () => {
-            try {
-              const content = await callAIWithStreaming(
-                '', // We'll update this with the actual chat mate response
-                'editor-mate-chatmate-comment', 
-                fullHistory,
-                (content) => {
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === editorChatMateMessageId 
-                      ? { ...msg, content, isStreaming: content === '' }
-                      : msg
-                  ));
-                }
-              );
-              resolve(content);
-            } catch (error) {
-              console.error('Error getting editor chat mate comment:', error);
-              resolve('');
-            }
-          }, 1000); // Small delay to let chat mate response start
-        })
+        )
       ]);
 
-      // Update the final messages and save to database
-      const finalEditorUserMessage = { ...editorUserMessage, content: editorUserContent, isStreaming: false };
-      const finalChatMateMessage = { ...chatMateMessage, content: chatMateContent, isStreaming: false };
-      
-      // Get Editor Mate comment on the actual Chat Mate response
-      const actualEditorChatMateContent = await callAI(chatMateContent, 'editor-mate-chatmate-comment', fullHistory);
-      const finalEditorChatMateMessage = { ...editorChatMateMessage, content: actualEditorChatMateContent, isStreaming: false };
+      // Now get Editor Mate comment on Chat Mate's response using the actual content
+      const editorChatMateContent = await callAIWithStreaming(
+        chatMateContent, 
+        'editor-mate-chatmate-comment', 
+        [...fullHistory, { role: 'assistant', content: `[chat-mate]: ${chatMateContent}` }],
+        (content) => {
+          updateMessageById(editorChatMateTempId, { content, isStreaming: content === '' });
+        }
+      );
 
-      // Save the final messages to database
+      // Save all final messages to database and update with real IDs
       const [savedEditorUser, savedChatMate, savedEditorChatMate] = await Promise.all([
-        saveMessage(finalEditorUserMessage, currentConversationId),
-        saveMessage(finalChatMateMessage, currentConversationId),
-        saveMessage(finalEditorChatMateMessage, currentConversationId)
+        saveMessage({ ...editorUserMessage, content: editorUserContent }, currentConversationId),
+        saveMessage({ ...chatMateMessage, content: chatMateContent }, currentConversationId),
+        saveMessage({ ...editorChatMateMessage, content: editorChatMateContent }, currentConversationId)
       ]);
 
-      // Update messages with database IDs
+      // Update messages with database IDs while maintaining order
       setMessages(prev => prev.map(msg => {
-        if (msg.id === editorUserMessageId && savedEditorUser) {
+        if (msg.tempId === editorUserTempId && savedEditorUser) {
           return { ...msg, id: savedEditorUser.id, content: editorUserContent, isStreaming: false };
         }
-        if (msg.id === chatMateMessageId && savedChatMate) {
-          return { ...msg, id: savedChatMate.id, content: chatMateContent, isStreaming: false, parentMessageId: savedChatMate.id };
+        if (msg.tempId === chatMateTempId && savedChatMate) {
+          return { ...msg, id: savedChatMate.id, content: chatMateContent, isStreaming: false };
         }
-        if (msg.id === editorChatMateMessageId && savedEditorChatMate) {
-          return { ...msg, id: savedEditorChatMate.id, content: actualEditorChatMateContent, isStreaming: false };
+        if (msg.tempId === editorChatMateTempId && savedEditorChatMate) {
+          return { ...msg, id: savedEditorChatMate.id, content: editorChatMateContent, isStreaming: false };
         }
         return msg;
       }));
@@ -822,7 +802,7 @@ const EnhancedChatInterface = ({
         
         {messages.map((message) => (
           <EnhancedChatMessage
-            key={message.id}
+            key={message.tempId || message.id}
             message={message}
             onTextSelect={handleTextSelect}
             onRegenerateMessage={regenerateMessage}
