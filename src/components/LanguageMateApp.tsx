@@ -102,6 +102,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           refreshTrigger={refreshSidebar}
           onChatSettingsOpen={() => setChatSettingsOpen(true)}
           onMainSettingsOpen={() => setMainSettingsOpen(true)}
+          isNewConversation={currentConversationId === null}
         />
 
         {/* Main Content */}
