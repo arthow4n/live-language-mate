@@ -421,20 +421,28 @@ const EnhancedChatInterface = ({
                 
                 console.log('✅ Streaming completed for message:', messageId, 'Generation time:', generationTime + 'ms');
                 
+                const finalMetadata = {
+                  model,
+                  generationTime,
+                  startTime,
+                  endTime
+                };
+                
                 // Mark streaming as complete and add metadata
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { 
                     ...msg, 
                     content: fullContent, 
                     isStreaming: false,
-                    metadata: {
-                      model,
-                      generationTime,
-                      startTime,
-                      endTime
-                    }
+                    metadata: finalMetadata
                   } : msg
                 ));
+                
+                // IMPORTANT: Update the message in storage with the final metadata
+                updateMessage(messageId, { 
+                  content: fullContent, 
+                  metadata: finalMetadata 
+                });
                 
                 return fullContent;
               }
@@ -452,19 +460,27 @@ const EnhancedChatInterface = ({
     const endTime = Date.now();
     const generationTime = endTime - startTime;
     
+    const finalMetadata = {
+      model,
+      generationTime,
+      startTime,
+      endTime
+    };
+    
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { 
         ...msg, 
         content: fullContent, 
         isStreaming: false,
-        metadata: {
-          model,
-          generationTime,
-          startTime,
-          endTime
-        }
+        metadata: finalMetadata
       } : msg
     ));
+
+    // IMPORTANT: Update the message in storage with the final metadata
+    updateMessage(messageId, { 
+      content: fullContent, 
+      metadata: finalMetadata 
+    });
 
     return fullContent;
   };
@@ -570,18 +586,23 @@ const EnhancedChatInterface = ({
       const endTime = Date.now();
       const generationTime = endTime - startTime;
       
+      const finalMetadata = {
+        model: chatSettings.model,
+        generationTime,
+        startTime,
+        endTime
+      };
+      
       // Update message with metadata for non-streaming responses
       setMessages(prev => prev.map(msg => 
         msg.id === streamingMessageId ? { 
           ...msg, 
-          metadata: {
-            model: chatSettings.model,
-            generationTime,
-            startTime,
-            endTime
-          }
+          metadata: finalMetadata
         } : msg
       ));
+      
+      // IMPORTANT: Update the message in storage with the final metadata
+      updateMessage(streamingMessageId, { metadata: finalMetadata });
       
       return data.response;
     }
@@ -684,26 +705,26 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorUserMessage]);
 
+      // Save the placeholder message to storage first
+      const savedEditorUserMessage = saveMessage({
+        type: 'editor-mate',
+        content: '', // Start with empty content
+        parentMessageId: savedUserMessage?.id || userMessage.id,
+      }, currentConversationId);
+
+      // Update the message ID in local state
+      if (savedEditorUserMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === editorUserTempId ? { ...msg, id: savedEditorUserMessage.id } : msg
+        ));
+      }
+
       const editorUserComment = await callAI(
         currentInput,
         'editor-mate-user-comment',
         fullHistory,
-        editorUserTempId
+        savedEditorUserMessage?.id || editorUserTempId
       );
-      
-      // Save the completed message with metadata
-      const savedEditorUserMessage = saveMessage({
-        type: 'editor-mate',
-        content: editorUserComment,
-        parentMessageId: savedUserMessage?.id || userMessage.id,
-        metadata: messages.find(m => m.id === editorUserTempId)?.metadata
-      }, currentConversationId);
-
-      if (savedEditorUserMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === editorUserTempId ? { ...msg, id: savedEditorUserMessage.id, isStreaming: false } : msg
-        ));
-      }
 
       // Get Chat Mate response
       const chatMateMessage: Message = {
@@ -716,25 +737,25 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, chatMateMessage]);
 
+      // Save the placeholder message to storage first
+      const savedChatMateMessage = saveMessage({
+        type: 'chat-mate',
+        content: '', // Start with empty content
+      }, currentConversationId);
+
+      // Update the message ID in local state
+      if (savedChatMateMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === chatMateTempId ? { ...msg, id: savedChatMateMessage.id } : msg
+        ));
+      }
+
       const chatMateContent = await callAI(
         currentInput,
         'chat-mate-response',
         chatMateHistory,
-        chatMateTempId
+        savedChatMateMessage?.id || chatMateTempId
       );
-      
-      // Save the completed message with metadata
-      const savedChatMateMessage = saveMessage({
-        type: 'chat-mate',
-        content: chatMateContent,
-        metadata: messages.find(m => m.id === chatMateTempId)?.metadata
-      }, currentConversationId);
-
-      if (savedChatMateMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === chatMateTempId ? { ...msg, id: savedChatMateMessage.id, isStreaming: false } : msg
-        ));
-      }
 
       // Get Editor Mate comment on Chat Mate response
       const editorChatMateMessage: Message = {
@@ -748,26 +769,26 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorChatMateMessage]);
 
+      // Save the placeholder message to storage first
+      const savedEditorChatMateMessage = saveMessage({
+        type: 'editor-mate',
+        content: '', // Start with empty content
+        parentMessageId: savedChatMateMessage?.id || chatMateTempId,
+      }, currentConversationId);
+
+      // Update the message ID in local state
+      if (savedEditorChatMateMessage) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === editorChatMateTempId ? { ...msg, id: savedEditorChatMateMessage.id } : msg
+        ));
+      }
+
       const editorChatMateComment = await callAI(
         chatMateContent,
         'editor-mate-chatmate-comment',
         fullHistory,
-        editorChatMateTempId
+        savedEditorChatMateMessage?.id || editorChatMateTempId
       );
-      
-      // Save the completed message with metadata
-      const savedEditorChatMateMessage = saveMessage({
-        type: 'editor-mate',
-        content: editorChatMateComment,
-        parentMessageId: savedChatMateMessage?.id || chatMateTempId,
-        metadata: messages.find(m => m.id === editorChatMateTempId)?.metadata
-      }, currentConversationId);
-
-      if (savedEditorChatMateMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === editorChatMateTempId ? { ...msg, id: savedEditorChatMateMessage.id, isStreaming: false } : msg
-        ));
-      }
 
       onConversationUpdate();
 
