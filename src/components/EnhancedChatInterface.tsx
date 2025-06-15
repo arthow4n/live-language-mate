@@ -308,7 +308,7 @@ const EnhancedChatInterface = ({
         messageType = isUserComment ? 'editor-mate-user-comment' : 'editor-mate-chatmate-comment';
       }
 
-      const response = await callAI(userMessage, messageType, conversationHistory);
+      const response = await callAI(userMessage, messageType, conversationHistory, messageId);
 
       // Update the message in the database
       updateMessage(messageId, { content: response });
@@ -431,7 +431,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAI = async (message: string, messageType: string, history: any[]) => {
+  const callAI = async (message: string, messageType: string, history: any[], messageId: string) => {
     console.log('🚀 Calling AI with streaming enabled');
 
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
@@ -467,8 +467,8 @@ const EnhancedChatInterface = ({
     // Check if the response is streaming
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
-      // Handle streaming response - this shouldn't happen as it expects 2 params but let's return empty string for fallback
-      return '';
+      // Handle streaming response with the correct messageId
+      return await handleStreamingResponse(response, messageId);
     } else {
       // Handle non-streaming response (fallback)
       const data = await response.json();
