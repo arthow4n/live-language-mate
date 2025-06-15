@@ -143,7 +143,7 @@ const AskInterface = ({
       }
       const endTime = Date.now();
       const generationTime = endTime - startTime;
-      return { response: data.response, generationTime, model: settings.model };
+      return { response: data.response, generationTime, model: settings.model, startTime, endTime };
     }
   };
 
@@ -179,18 +179,18 @@ const AskInterface = ({
     setConversation(prev => [...prev, initialEditorMessage]);
 
     try {
-      const { response, startTime, model } = await callEditorMateStreaming(currentQuestion);
+      const { response, startTime, model, generationTime, endTime } = await callEditorMateStreaming(currentQuestion);
       
       if (typeof response === 'string') {
         // Non-streaming response
-        const endTime = Date.now();
-        const generationTime = endTime - startTime;
+        const finalGenerationTime = generationTime || (Date.now() - startTime);
+        const finalEndTime = endTime || Date.now();
         
         console.log('Saving metadata for non-streaming response:', {
           model,
-          generationTime,
+          generationTime: finalGenerationTime,
           startTime,
-          endTime
+          endTime: finalEndTime
         });
         
         setConversation(prev => prev.map(msg => 
@@ -201,9 +201,9 @@ const AskInterface = ({
                 isStreaming: false,
                 metadata: {
                   model,
-                  generationTime,
+                  generationTime: finalGenerationTime,
                   startTime,
-                  endTime
+                  endTime: finalEndTime
                 }
               }
             : msg

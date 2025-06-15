@@ -101,7 +101,9 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         model: modelToUse,
         targetLanguage: targetLanguageToUse,
         apiKey: apiKeyToUse ? 'Set' : 'Not set',
-        conversationId
+        conversationId,
+        chatMatePersonality: chatSettings.chatMatePersonality,
+        editorMatePersonality: chatSettings.editorMatePersonality
       });
 
       // Prepare conversation history for AI context
@@ -134,7 +136,8 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
           editorMateExpertise: chatSettings.editorMateExpertise,
           feedbackStyle: chatSettings.feedbackStyle,
           culturalContext: chatSettings.culturalContext,
-          progressiveComplexity: chatSettings.progressiveComplexity
+          progressiveComplexity: chatSettings.progressiveComplexity,
+          streaming: chatSettings.streaming
         }
       });
 
