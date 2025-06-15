@@ -7,6 +7,8 @@ interface GlobalSettings {
   targetLanguage: string;
   streaming: boolean;
   theme: 'light' | 'dark' | 'system';
+  enableReasoning: boolean;
+  reasoningExpanded: boolean;
 }
 
 interface ChatSettings {
@@ -19,6 +21,8 @@ interface ChatSettings {
   apiKey: string;
   targetLanguage: string;
   streaming: boolean;
+  enableReasoning: boolean;
+  reasoningExpanded: boolean;
   
   // Advanced settings
   chatMateBackground: string;
@@ -48,7 +52,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     apiKey: '',
     targetLanguage: 'swedish',
     streaming: true,
-    theme: 'system'
+    theme: 'system',
+    enableReasoning: false,
+    reasoningExpanded: false,
   });
   const [chatSettings, setChatSettings] = useState<Record<string, ChatSettings>>({});
 
@@ -113,6 +119,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     apiKey: globalSettings.apiKey,
     targetLanguage: globalSettings.targetLanguage,
     streaming: globalSettings.streaming,
+    enableReasoning: globalSettings.enableReasoning,
+    reasoningExpanded: globalSettings.reasoningExpanded,
     
     // AI personalities
     chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',

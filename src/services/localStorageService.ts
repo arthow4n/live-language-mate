@@ -1,3 +1,4 @@
+
 export interface LocalMessage {
   id: string;
   type: 'user' | 'chat-mate' | 'editor-mate';
@@ -5,6 +6,7 @@ export interface LocalMessage {
   timestamp: Date;
   isStreaming?: boolean;
   parentMessageId?: string;
+  reasoning?: string;
   metadata?: {
     model?: string;
     generationTime?: number; // in milliseconds
@@ -39,6 +41,8 @@ export interface LocalAppData {
     feedbackStyle: 'encouraging' | 'gentle' | 'direct' | 'detailed';
     culturalContext: boolean;
     progressiveComplexity: boolean;
+    enableReasoning: boolean;
+    reasoningExpanded: boolean;
   };
 }
 
@@ -60,6 +64,8 @@ class LocalStorageService {
         feedbackStyle: 'encouraging',
         culturalContext: true,
         progressiveComplexity: true,
+        enableReasoning: false,
+        reasoningExpanded: false,
       }
     };
   }

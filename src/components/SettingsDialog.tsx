@@ -39,6 +39,9 @@ interface SettingsData {
   provider: string;
   model: string;
   apiKey: string;
+
+  enableReasoning: boolean;
+  reasoningExpanded: boolean;
 }
 
 interface SettingsDialogProps {
@@ -63,6 +66,8 @@ const SettingsDialog = ({
   const [model, setModel] = useState(initialSettings.model || 'anthropic/claude-3-5-sonnet');
   const [targetLanguage, setTargetLanguage] = useState(initialSettings.targetLanguage || 'swedish');
   const [streamingEnabled, setStreamingEnabled] = useState(initialSettings.streamingEnabled ?? true);
+  const [enableReasoning, setEnableReasoning] = useState(initialSettings.enableReasoning ?? false);
+  const [reasoningExpanded, setReasoningExpanded] = useState(initialSettings.reasoningExpanded ?? false);
   
   const [chatMatePersonality, setChatMatePersonality] = useState(
     initialSettings.chatMatePersonality || "You are a friendly Swedish local who loves helping newcomers feel welcome. You're enthusiastic about Swedish culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into Swedish society."
@@ -82,7 +87,9 @@ const SettingsDialog = ({
       streamingEnabled,
       provider: 'openrouter',
       model,
-      apiKey
+      apiKey,
+      enableReasoning,
+      reasoningExpanded
     };
     
     if (onSave) {
@@ -246,6 +253,33 @@ const SettingsDialog = ({
                     <Switch
                       checked={streamingEnabled}
                       onCheckedChange={setStreamingEnabled}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label>Enable AI Reasoning</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Request reasoning from compatible models (e.g. Claude Sonnet 3.5).
+                      </p>
+                    </div>
+                    <Switch
+                      checked={enableReasoning}
+                      onCheckedChange={setEnableReasoning}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label>Expand Reasoning by Default</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Show the AI's thinking process by default in chat messages.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={reasoningExpanded}
+                      onCheckedChange={setReasoningExpanded}
+                      disabled={!enableReasoning}
                     />
                   </div>
                 </div>

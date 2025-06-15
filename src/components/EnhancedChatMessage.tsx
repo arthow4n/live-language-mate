@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
+  Brain,
   MessageCircle, 
   GraduationCap, 
   User, 
@@ -25,7 +26,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Message } from '@/types/Message';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface EnhancedChatMessageProps {
   message: Message;
@@ -49,6 +56,7 @@ const EnhancedChatMessage = ({
   const [selectedText, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
+  const { globalSettings } = useSettings();
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -174,6 +182,25 @@ const EnhancedChatMessage = ({
         </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
+          {message.reasoning && globalSettings.enableReasoning && (
+            <Collapsible
+              defaultOpen={globalSettings.reasoningExpanded}
+              className="mb-3 border-b pb-2"
+            >
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center gap-2 text-xs text-muted-foreground font-semibold w-full hover:text-foreground transition-colors">
+                  <Brain className="w-3.5 h-3.5" />
+                  AI Reasoning
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-2 p-2 bg-background/30 rounded-md text-xs prose prose-sm max-w-none dark:prose-invert font-mono prose-p:my-1">
+                  <ReactMarkdown>{message.reasoning}</ReactMarkdown>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
           {isEditing ? (
             <div className="space-y-2">
               <textarea

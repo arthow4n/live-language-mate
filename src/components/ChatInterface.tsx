@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -127,7 +128,8 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
           editorMateExpertise: chatSettings.editorMateExpertise,
           feedbackStyle: chatSettings.feedbackStyle,
           culturalContext: chatSettings.culturalContext,
-          progressiveComplexity: chatSettings.progressiveComplexity
+          progressiveComplexity: chatSettings.progressiveComplexity,
+          enableReasoning: chatSettings.enableReasoning,
         }
       });
 
@@ -150,6 +152,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         type: aiMode,
         content: aiData.response,
         timestamp: new Date(),
+        reasoning: aiData.reasoning,
         metadata: {
           model: globalSettings.model,
           generationTime,

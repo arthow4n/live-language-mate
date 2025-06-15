@@ -6,6 +6,7 @@ export interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   parentMessageId?: string;
+  reasoning?: string;
   metadata?: {
     model?: string;
     generationTime?: number; // in milliseconds
