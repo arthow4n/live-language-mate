@@ -603,7 +603,7 @@ const EnhancedChatInterface = ({
         callAI(currentInput, 'editor-mate-user-comment', fullHistory, editorUserMessage.id),
         callAI(currentInput, 'chat-mate-response', chatMateHistory, chatMateMessage.id),
         // For editor mate chat comment, we'll call it after chat mate response starts
-        new Promise(resolve => {
+        new Promise<string>(resolve => {
           setTimeout(async () => {
             const response = await callAI(chatMateMessage.content || currentInput, 'editor-mate-chatmate-comment', fullHistory, editorChatMateMessage.id);
             resolve(response);
@@ -649,7 +649,7 @@ const EnhancedChatInterface = ({
       console.error('❌ Error sending message:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to send message",
+        description: error instanceof Error ? error.message : "Failed to send message",
         variant: "destructive",
       });
     } finally {
