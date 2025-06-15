@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,14 +111,20 @@ const SettingsDialog = ({
   };
 
   const languages = [
-    { value: 'swedish', label: 'Swedish' },
+    { value: 'chinese-simplified', label: 'Chinese (Simplified)' },
+    { value: 'chinese-traditional', label: 'Chinese (Traditional)' },
+    { value: 'danish', label: 'Danish' },
+    { value: 'dutch', label: 'Dutch' },
     { value: 'english', label: 'English' },
-    { value: 'german', label: 'German' },
     { value: 'french', label: 'French' },
-    { value: 'spanish', label: 'Spanish' },
+    { value: 'german', label: 'German' },
     { value: 'italian', label: 'Italian' },
+    { value: 'japanese', label: 'Japanese' },
+    { value: 'korean', label: 'Korean' },
+    { value: 'norwegian', label: 'Norwegian' },
     { value: 'portuguese', label: 'Portuguese' },
-    { value: 'dutch', label: 'Dutch' }
+    { value: 'spanish', label: 'Spanish' },
+    { value: 'swedish', label: 'Swedish' }
   ];
 
   const handleLanguageChange = (newLanguage: string) => {

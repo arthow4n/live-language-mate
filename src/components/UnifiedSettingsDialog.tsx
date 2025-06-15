@@ -167,16 +167,20 @@ const UnifiedSettingsDialog = ({
   };
 
   const languages = [
-    { value: 'swedish', label: 'Swedish' },
-    { value: 'english', label: 'English' },
-    { value: 'german', label: 'German' },
-    { value: 'french', label: 'French' },
-    { value: 'spanish', label: 'Spanish' },
-    { value: 'italian', label: 'Italian' },
-    { value: 'portuguese', label: 'Portuguese' },
+    { value: 'chinese-simplified', label: 'Chinese (Simplified)' },
+    { value: 'chinese-traditional', label: 'Chinese (Traditional)' },
+    { value: 'danish', label: 'Danish' },
     { value: 'dutch', label: 'Dutch' },
+    { value: 'english', label: 'English' },
+    { value: 'french', label: 'French' },
+    { value: 'german', label: 'German' },
+    { value: 'italian', label: 'Italian' },
+    { value: 'japanese', label: 'Japanese' },
+    { value: 'korean', label: 'Korean' },
     { value: 'norwegian', label: 'Norwegian' },
-    { value: 'danish', label: 'Danish' }
+    { value: 'portuguese', label: 'Portuguese' },
+    { value: 'spanish', label: 'Spanish' },
+    { value: 'swedish', label: 'Swedish' }
   ];
 
   const feedbackStyles = [
