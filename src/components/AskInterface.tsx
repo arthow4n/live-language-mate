@@ -41,7 +41,6 @@ const AskInterface = ({
   const [conversation, setConversation] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editableSelectedText, setEditableSelectedText] = useState('');
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { settings } = useLocalStorage();
@@ -135,16 +134,15 @@ const AskInterface = ({
       throw new Error(errorData.error || 'Failed to get Editor Mate response');
     }
 
-    const endTime = Date.now();
-    const generationTime = endTime - startTime;
-
     if (settings.streaming && response.body) {
-      return { response: response.body, generationTime, model: settings.model };
+      return { response: response.body, startTime, model: settings.model };
     } else {
       const data = await response.json();
       if (!data || !data.response) {
         throw new Error('No response from Editor Mate');
       }
+      const endTime = Date.now();
+      const generationTime = endTime - startTime;
       return { response: data.response, generationTime, model: settings.model };
     }
   };
@@ -165,7 +163,6 @@ const AskInterface = ({
     setIsLoading(true);
 
     const editorMessageId = (Date.now() + 1).toString();
-    setStreamingMessageId(editorMessageId);
 
     // Create initial streaming message
     const initialEditorMessage: Message = {
@@ -182,10 +179,13 @@ const AskInterface = ({
     setConversation(prev => [...prev, initialEditorMessage]);
 
     try {
-      const { response, generationTime, model } = await callEditorMateStreaming(currentQuestion);
+      const { response, startTime, model } = await callEditorMateStreaming(currentQuestion);
       
       if (typeof response === 'string') {
         // Non-streaming response
+        const endTime = Date.now();
+        const generationTime = endTime - startTime;
+        
         setConversation(prev => prev.map(msg => 
           msg.id === editorMessageId 
             ? { 
@@ -195,8 +195,8 @@ const AskInterface = ({
                 metadata: {
                   model,
                   generationTime,
-                  startTime: msg.metadata?.startTime,
-                  endTime: Date.now()
+                  startTime,
+                  endTime
                 }
               }
             : msg
@@ -219,6 +219,9 @@ const AskInterface = ({
               if (line.startsWith('data: ')) {
                 const data = line.slice(6);
                 if (data === '[DONE]') {
+                  const endTime = Date.now();
+                  const generationTime = endTime - startTime;
+                  
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 
                       ? { 
@@ -226,9 +229,9 @@ const AskInterface = ({
                           isStreaming: false,
                           metadata: {
                             model,
-                            generationTime: Date.now() - (msg.metadata?.startTime || 0),
-                            startTime: msg.metadata?.startTime,
-                            endTime: Date.now()
+                            generationTime,
+                            startTime,
+                            endTime
                           }
                         }
                       : msg
@@ -266,7 +269,6 @@ const AskInterface = ({
       });
     } finally {
       setIsLoading(false);
-      setStreamingMessageId(null);
     }
   };
 
