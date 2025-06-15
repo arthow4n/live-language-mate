@@ -46,6 +46,7 @@ const EnhancedChatInterface = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { getChatSettings } = useSettings();
@@ -77,19 +78,22 @@ const EnhancedChatInterface = ({
 
   // Load messages and prompts when conversation changes
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && !isCreatingNewConversation) {
+      console.log('🔄 Loading messages for conversation:', conversationId);
       loadMessages();
       loadConversationPrompts();
-    } else {
+    } else if (!conversationId) {
+      console.log('🆕 New conversation - clearing messages');
       setMessages([]);
       // Reset to default prompts for new conversation
     }
-  }, [conversationId]);
+  }, [conversationId, isCreatingNewConversation]);
 
   const loadMessages = async () => {
     if (!conversationId) return;
 
     try {
+      console.log('📥 Loading messages from database for conversation:', conversationId);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -105,6 +109,7 @@ const EnhancedChatInterface = ({
         timestamp: new Date(msg.created_at),
       }));
 
+      console.log('📥 Loaded messages:', formattedMessages.length);
       setMessages(formattedMessages);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -135,6 +140,7 @@ const EnhancedChatInterface = ({
 
   const saveMessage = async (message: Omit<Message, 'id' | 'timestamp'>, actualConversationId: string) => {
     try {
+      console.log('💾 Saving message to database:', message.type, message.content.substring(0, 50) + '...');
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -147,6 +153,7 @@ const EnhancedChatInterface = ({
         .single();
 
       if (error) throw error;
+      console.log('✅ Message saved successfully with ID:', data.id);
       return data;
     } catch (error) {
       console.error('Error saving message:', error);
@@ -368,6 +375,12 @@ const EnhancedChatInterface = ({
 
   const createNewConversation = async () => {
     try {
+      console.log('🆕 Creating new conversation with settings:', {
+        targetLanguage,
+        chatMatePrompt: chatMatePrompt.substring(0, 50) + '...',
+        editorMatePrompt: currentEditorMatePrompt.substring(0, 50) + '...'
+      });
+      
       const { data, error } = await supabase
         .from('conversations')
         .insert({
@@ -381,6 +394,7 @@ const EnhancedChatInterface = ({
         .single();
 
       if (error) throw error;
+      console.log('✅ New conversation created with ID:', data.id);
       return data.id;
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -402,6 +416,7 @@ const EnhancedChatInterface = ({
     // Create conversation only when first message is sent
     if (!currentConversationId) {
       try {
+        setIsCreatingNewConversation(true);
         currentConversationId = await createNewConversation();
         onConversationCreated(currentConversationId);
       } catch (error) {
@@ -410,6 +425,7 @@ const EnhancedChatInterface = ({
           description: "Failed to create conversation",
           variant: "destructive",
         });
+        setIsCreatingNewConversation(false);
         return;
       }
     }
@@ -518,6 +534,7 @@ const EnhancedChatInterface = ({
       });
     } finally {
       setIsLoading(false);
+      setIsCreatingNewConversation(false);
     }
   };
 
