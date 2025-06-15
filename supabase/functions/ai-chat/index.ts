@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
@@ -21,6 +22,7 @@ serve(async (req) => {
       chatMatePrompt, 
       editorMatePrompt, 
       targetLanguage = 'Swedish',
+      model = 'anthropic/claude-3-5-sonnet', // Use selected model
       // New advanced settings
       chatMateBackground = 'young professional, loves local culture',
       editorMateExpertise = '10+ years teaching experience',
@@ -29,7 +31,12 @@ serve(async (req) => {
       progressiveComplexity = true
     } = await req.json();
     
-    console.log('AI Chat request:', { messageType, targetLanguage, historyLength: conversationHistory?.length });
+    console.log('AI Chat request:', { 
+      messageType, 
+      targetLanguage, 
+      model,
+      historyLength: conversationHistory?.length 
+    });
 
     const openrouterApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openrouterApiKey) {
@@ -218,7 +225,7 @@ Always respond in ${targetLanguage}.`;
       { role: 'user', content: message }
     ];
 
-    console.log('Sending request to OpenRouter for', responseType);
+    console.log('Sending request to OpenRouter for', responseType, 'using model:', model);
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -229,7 +236,7 @@ Always respond in ${targetLanguage}.`;
         'X-Title': 'Language Mate',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet',
+        model: model, // Use the selected model
         messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -243,7 +250,7 @@ Always respond in ${targetLanguage}.`;
     }
 
     const data = await response.json();
-    console.log('OpenRouter response received for', responseType);
+    console.log('OpenRouter response received for', responseType, 'using model:', model);
 
     const aiResponse = data.choices[0]?.message?.content;
     if (!aiResponse) {

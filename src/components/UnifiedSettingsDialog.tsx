@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ThemeProvider";
+import ModelSelector from "./ModelSelector";
 
 interface SettingsData {
   // AI Agent settings
@@ -90,7 +91,7 @@ const UnifiedSettingsDialog = ({
     darkMode: initialSettings.darkMode || 'system',
     targetLanguage: initialSettings.targetLanguage || 'swedish',
     streamingEnabled: initialSettings.streamingEnabled ?? true,
-    provider: initialSettings.provider || 'openrouter',
+    provider: 'openrouter', // Always OpenRouter
     model: initialSettings.model || 'anthropic/claude-3-5-sonnet',
     apiKey: initialSettings.apiKey || ''
   });
@@ -112,7 +113,7 @@ const UnifiedSettingsDialog = ({
         darkMode: initialSettings.darkMode || 'system',
         targetLanguage: initialSettings.targetLanguage || 'swedish',
         streamingEnabled: initialSettings.streamingEnabled ?? true,
-        provider: initialSettings.provider || 'openrouter',
+        provider: 'openrouter', // Always OpenRouter
         model: initialSettings.model || 'anthropic/claude-3-5-sonnet',
         apiKey: initialSettings.apiKey || ''
       });
@@ -145,39 +146,6 @@ const UnifiedSettingsDialog = ({
     });
   };
 
-  const providers = [
-    { value: 'openrouter', label: 'OpenRouter' },
-    { value: 'openai', label: 'OpenAI' },
-    { value: 'anthropic', label: 'Anthropic' },
-    { value: 'local', label: 'Local LLM' }
-  ];
-
-  const modelsByProvider = {
-    openrouter: [
-      { value: 'anthropic/claude-3-5-sonnet', label: 'Claude 3.5 Sonnet' },
-      { value: 'anthropic/claude-3-5-haiku', label: 'Claude 3.5 Haiku' },
-      { value: 'openai/gpt-4o', label: 'GPT-4o' },
-      { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini' },
-      { value: 'meta-llama/llama-3.1-8b-instruct', label: 'Llama 3.1 8B' }
-    ],
-    openai: [
-      { value: 'gpt-4o', label: 'GPT-4o' },
-      { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-      { value: 'gpt-4', label: 'GPT-4' },
-      { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
-    ],
-    anthropic: [
-      { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
-      { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku' },
-      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' }
-    ],
-    local: [
-      { value: 'llama-3.1', label: 'Llama 3.1' },
-      { value: 'mistral', label: 'Mistral' },
-      { value: 'custom', label: 'Custom Model' }
-    ]
-  };
-
   const languages = [
     { value: 'swedish', label: 'Swedish' },
     { value: 'english', label: 'English' },
@@ -197,17 +165,6 @@ const UnifiedSettingsDialog = ({
     { value: 'direct', label: 'Direct & Clear' },
     { value: 'detailed', label: 'Detailed & Comprehensive' }
   ];
-
-  const currentModels = modelsByProvider[settings.provider as keyof typeof modelsByProvider] || [];
-
-  const handleProviderChange = (provider: string) => {
-    const providerModels = modelsByProvider[provider as keyof typeof modelsByProvider];
-    setSettings({
-      ...settings,
-      provider,
-      model: providerModels[0]?.value || ''
-    });
-  };
 
   const handleSignOut = () => {
     if (onSignOut) {
@@ -494,52 +451,47 @@ const UnifiedSettingsDialog = ({
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="provider">Provider</Label>
-                    <Select value={settings.provider} onValueChange={handleProviderChange}>
+                    <Select value="openrouter" disabled>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select LLM provider" />
+                        <SelectValue placeholder="OpenRouter (only supported provider)" />
                       </SelectTrigger>
                       <SelectContent>
-                        {providers.map((p) => (
-                          <SelectItem key={p.value} value={p.value}>
-                            {p.label}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="openrouter">OpenRouter</SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">
+                      OpenRouter provides access to multiple AI models through a single API.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="model">Model</Label>
-                    <Select value={settings.model} onValueChange={(value) => setSettings({ ...settings, model: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currentModels.map((m) => (
-                          <SelectItem key={m.value} value={m.value}>
-                            {m.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ModelSelector
+                      value={settings.model}
+                      onValueChange={(value) => setSettings({ ...settings, model: value })}
+                      placeholder="Select an AI model..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Choose the AI model that will power your conversations. Different models have varying capabilities and costs.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="api-key">API Key</Label>
+                    <Label htmlFor="api-key">OpenRouter API Key</Label>
                     <div className="flex gap-2">
                       <Input
                         id="api-key"
                         type="password"
                         value={settings.apiKey}
                         onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
-                        placeholder="Enter your API key..."
+                        placeholder="Enter your OpenRouter API key..."
                       />
                       <Button variant="outline" size="icon">
                         <Key className="w-4 h-4" />
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Your API key is stored locally and never sent to our servers.
+                      Your API key is stored locally and never sent to our servers. Get your key from OpenRouter.ai.
                     </p>
                   </div>
                 </div>

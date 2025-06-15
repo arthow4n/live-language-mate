@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Send, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from './ChatMessage';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface Message {
   id: string;
@@ -29,6 +29,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { getChatSettings } = useSettings();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -92,20 +93,39 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         message_type: 'user',
       });
 
+      // Get chat settings for this conversation
+      const chatSettings = getChatSettings(conversationId);
+
       // Prepare conversation history for AI context
       const conversationHistory = messages.map(msg => ({
         role: msg.type === 'user' ? 'user' : 'assistant',
         content: msg.content
       }));
 
-      console.log('Sending message to AI:', { message: currentInput, aiMode, conversationHistory });
+      console.log('Sending message to AI:', { 
+        message: currentInput, 
+        aiMode, 
+        conversationHistory,
+        model: chatSettings.model,
+        targetLanguage: chatSettings.targetLanguage
+      });
 
-      // Call AI edge function
+      // Call AI edge function with chat settings
       const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
         body: {
           message: currentInput,
-          aiMode: aiMode,
-          conversationHistory: conversationHistory
+          messageType: aiMode === 'chat-mate' ? 'chat-mate-response' : 'editor-mate-user-comment',
+          conversationHistory: conversationHistory,
+          chatMatePrompt: chatSettings.chatMatePersonality,
+          editorMatePrompt: chatSettings.editorMatePersonality,
+          targetLanguage: chatSettings.targetLanguage,
+          model: chatSettings.model,
+          // Advanced settings
+          chatMateBackground: chatSettings.chatMateBackground,
+          editorMateExpertise: chatSettings.editorMateExpertise,
+          feedbackStyle: chatSettings.feedbackStyle,
+          culturalContext: chatSettings.culturalContext,
+          progressiveComplexity: chatSettings.progressiveComplexity
         }
       });
 
