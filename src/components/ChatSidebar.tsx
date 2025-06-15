@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, MessageSquare, MoreVertical, Trash2, Edit2, GitBranch, Settings } from 'lucide-react';
+import { Plus, MessageSquare, MoreVertical, Trash2, Edit2, GitBranch } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -38,7 +37,6 @@ interface ChatSidebarProps {
   onNewConversation: () => void;
   targetLanguage: string;
   refreshTrigger?: number;
-  onChatSettingsOpen: () => void;
 }
 
 const ChatSidebar = ({
@@ -48,7 +46,6 @@ const ChatSidebar = ({
   onNewConversation,
   targetLanguage,
   refreshTrigger = 0,
-  onChatSettingsOpen,
 }: ChatSidebarProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -200,17 +197,6 @@ const ChatSidebar = ({
           <Plus className="w-4 h-4 mr-2" />
           New Chat
         </Button>
-        
-        {currentConversationId && (
-          <Button
-            variant="outline"
-            onClick={onChatSettingsOpen}
-            className="w-full justify-start"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Chat Settings
-          </Button>
-        )}
       </SidebarHeader>
 
       <SidebarContent>

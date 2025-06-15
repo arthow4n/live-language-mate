@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -64,7 +63,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           onNewConversation={handleNewConversation}
           targetLanguage={currentSettings.targetLanguage}
           refreshTrigger={refreshSidebar}
-          onChatSettingsOpen={() => setChatSettingsOpen(true)}
         />
 
         {/* Main Content */}
