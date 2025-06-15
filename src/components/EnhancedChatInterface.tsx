@@ -30,6 +30,7 @@ interface EnhancedChatInterfaceProps {
   onAskInterfaceOpen?: () => void;
   selectedText?: string;
   editorMatePrompt?: string;
+  pendingChatSettings?: any;
 }
 
 const EnhancedChatInterface = ({ 
@@ -42,7 +43,8 @@ const EnhancedChatInterface = ({
   onChatSettingsOpen,
   onAskInterfaceOpen,
   selectedText,
-  editorMatePrompt
+  editorMatePrompt,
+  pendingChatSettings
 }: EnhancedChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -59,8 +61,12 @@ const EnhancedChatInterface = ({
   // Get current conversation settings only after settings are loaded
   const currentChatSettings = conversationId && isLoaded ? getChatSettings(conversationId) : null;
   const mainSettings = isLoaded ? getMainSettings() : null;
-  const chatMatePrompt = currentChatSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
-  const currentEditorMatePrompt = currentChatSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
+  
+  // Use pending settings for new conversations, otherwise use saved settings
+  const effectiveSettings = conversationId ? currentChatSettings : pendingChatSettings;
+  
+  const chatMatePrompt = effectiveSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
+  const currentEditorMatePrompt = effectiveSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   // Check if we should generate a title - more robust logic
   const shouldGenerateTitle = (messagesList: Message[], convId: string | null) => {
@@ -142,10 +148,11 @@ const EnhancedChatInterface = ({
         chatSettings: currentChatSettings ? {
           chatMatePersonality: currentChatSettings.chatMatePersonality.substring(0, 50) + '...',
           editorMatePersonality: currentChatSettings.editorMatePersonality.substring(0, 50) + '...'
-        } : 'No chat settings found'
+        } : 'No chat settings found',
+        pendingSettings: pendingChatSettings ? 'Present' : 'None'
       });
     }
-  }, [conversationId, currentChatSettings, mainSettings, isLoaded]);
+  }, [conversationId, currentChatSettings, mainSettings, isLoaded, pendingChatSettings]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -468,11 +475,11 @@ const EnhancedChatInterface = ({
         model: mainSettings.model,
         apiKey: mainSettings.apiKey,
         // Pass new advanced settings
-        chatMateBackground: currentChatSettings?.chatMateBackground || 'young professional, loves local culture',
-        editorMateExpertise: currentChatSettings?.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
-        culturalContext: currentChatSettings?.culturalContext ?? true,
-        progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true,
+        chatMateBackground: effectiveSettings?.chatMateBackground || 'young professional, loves local culture',
+        editorMateExpertise: effectiveSettings?.editorMateExpertise || '10+ years teaching experience',
+        feedbackStyle: effectiveSettings?.feedbackStyle || 'encouraging',
+        culturalContext: effectiveSettings?.culturalContext ?? true,
+        progressiveComplexity: effectiveSettings?.progressiveComplexity ?? true,
         streaming: mainSettings.streaming ?? true
       })
     });
@@ -677,11 +684,11 @@ const EnhancedChatInterface = ({
           targetLanguage,
           model: mainSettings.model,
           apiKey: mainSettings.apiKey,
-          chatMateBackground: currentChatSettings?.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: currentChatSettings?.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
-          culturalContext: currentChatSettings?.culturalContext ?? true,
-          progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true,
+          chatMateBackground: effectiveSettings?.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: effectiveSettings?.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: effectiveSettings?.feedbackStyle || 'encouraging',
+          culturalContext: effectiveSettings?.culturalContext ?? true,
+          progressiveComplexity: effectiveSettings?.progressiveComplexity ?? true,
           streaming: mainSettings.streaming ?? true
         })
       });
@@ -731,11 +738,11 @@ const EnhancedChatInterface = ({
           targetLanguage,
           model: mainSettings.model,
           apiKey: mainSettings.apiKey,
-          chatMateBackground: currentChatSettings?.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: currentChatSettings?.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
-          culturalContext: currentChatSettings?.culturalContext ?? true,
-          progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true,
+          chatMateBackground: effectiveSettings?.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: effectiveSettings?.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: effectiveSettings?.feedbackStyle || 'encouraging',
+          culturalContext: effectiveSettings?.culturalContext ?? true,
+          progressiveComplexity: effectiveSettings?.progressiveComplexity ?? true,
           streaming: mainSettings.streaming ?? true
         })
       });
@@ -785,11 +792,11 @@ const EnhancedChatInterface = ({
           targetLanguage,
           model: mainSettings.model,
           apiKey: mainSettings.apiKey,
-          chatMateBackground: currentChatSettings?.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: currentChatSettings?.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
-          culturalContext: currentChatSettings?.culturalContext ?? true,
-          progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true,
+          chatMateBackground: effectiveSettings?.chatMateBackground || 'young professional, loves local culture',
+          editorMateExpertise: effectiveSettings?.editorMateExpertise || '10+ years teaching experience',
+          feedbackStyle: effectiveSettings?.feedbackStyle || 'encouraging',
+          culturalContext: effectiveSettings?.culturalContext ?? true,
+          progressiveComplexity: effectiveSettings?.progressiveComplexity ?? true,
           streaming: mainSettings.streaming ?? true
         })
       });
