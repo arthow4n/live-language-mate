@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,22 +185,18 @@ const AskInterface = ({
         const endTime = Date.now();
         const generationTime = endTime - startTime;
         
-        const finalMetadata = {
-          model,
-          generationTime,
-          startTime,
-          endTime
-        };
-        
-        console.log('AskInterface: Setting non-streaming metadata:', finalMetadata);
-        
         setConversation(prev => prev.map(msg => 
           msg.id === editorMessageId 
             ? { 
                 ...msg, 
                 content: response, 
                 isStreaming: false,
-                metadata: finalMetadata
+                metadata: {
+                  model,
+                  generationTime,
+                  startTime,
+                  endTime
+                }
               }
             : msg
         ));
@@ -228,21 +223,17 @@ const AskInterface = ({
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
                   
-                  const finalMetadata = {
-                    model,
-                    generationTime,
-                    startTime,
-                    endTime
-                  };
-                  
-                  console.log('AskInterface: Setting streaming metadata:', finalMetadata);
-                  
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 
                       ? { 
                           ...msg, 
                           isStreaming: false,
-                          metadata: finalMetadata
+                          metadata: {
+                            model,
+                            generationTime,
+                            startTime,
+                            endTime
+                          }
                         }
                       : msg
                   ));
@@ -404,16 +395,13 @@ const AskInterface = ({
             </div>
           )}
           
-          {conversation.map((msg) => {
-            console.log('AskInterface: Rendering message with metadata:', msg.id, msg.metadata);
-            return (
-              <EnhancedChatMessage
-                key={msg.id}
-                message={msg}
-                onTextSelect={onTextSelect || (() => {})}
-              />
-            );
-          })}
+          {conversation.map((msg) => (
+            <EnhancedChatMessage
+              key={msg.id}
+              message={msg}
+              onTextSelect={onTextSelect || (() => {})}
+            />
+          ))}
           
           <div ref={messagesEndRef} />
         </div>

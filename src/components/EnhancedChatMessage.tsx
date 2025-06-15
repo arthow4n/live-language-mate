@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   MessageCircle, 
   GraduationCap, 
@@ -13,9 +14,11 @@ import {
   Trash2,
   RotateCcw,
   Copy,
+  GitBranch,
+  Check,
+  X,
   Clock,
-  Cpu,
-  GitBranch
+  Cpu
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -28,10 +31,10 @@ import { Message } from '@/types/Message';
 interface EnhancedChatMessageProps {
   message: Message;
   onTextSelect: (text: string) => void;
-  onRegenerateMessage?: (messageId: string) => Promise<void>;
+  onRegenerateMessage?: (messageId: string) => void;
   onEditMessage?: (messageId: string, newContent: string) => void;
   onDeleteMessage?: (messageId: string) => void;
-  onForkFrom?: (messageId: string) => Promise<void>;
+  onForkFrom?: (messageId: string) => void;
 }
 
 const EnhancedChatMessage = ({ 
@@ -43,6 +46,8 @@ const EnhancedChatMessage = ({
   onForkFrom
 }: EnhancedChatMessageProps) => {
   const [selectedText, setSelectedText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content);
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -53,35 +58,55 @@ const EnhancedChatMessage = ({
     }
   };
 
+  const handleEditSave = () => {
+    if (onEditMessage && editContent.trim() !== message.content) {
+      onEditMessage(message.id, editContent.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleEditCancel = () => {
+    setEditContent(message.content);
+    setIsEditing(false);
+  };
+
   const getMessageStyles = () => {
     switch (message.type) {
       case 'user':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
-          avatar: 'bg-user text-white',
-          icon: User
+          bubble: 'bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100',
+          avatar: 'bg-blue-500 text-white',
+          icon: User,
+          label: 'User',
+          badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
         };
       case 'chat-mate':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-chat-mate-light border border-chat-mate/20 dark:bg-chat-mate/10 dark:border-chat-mate/30',
-          avatar: 'bg-chat-mate text-white',
-          icon: MessageCircle
+          bubble: 'bg-green-50 border border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100',
+          avatar: 'bg-green-500 text-white',
+          icon: MessageCircle,
+          label: 'Chat Mate',
+          badgeClass: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
         };
       case 'editor-mate':
         return {
-          container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-editor-mate-light border border-editor-mate/20 dark:bg-editor-mate/10 dark:border-editor-mate/30',
-          avatar: 'bg-editor-mate text-white',
-          icon: GraduationCap
+          container: 'mr-auto max-w-[70%] ml-10',
+          bubble: 'bg-orange-50 border border-orange-200 text-orange-900 dark:bg-orange-950 dark:border-orange-800 dark:text-orange-100',
+          avatar: 'bg-orange-500 text-white',
+          icon: GraduationCap,
+          label: 'Editor Mate',
+          badgeClass: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
         };
       default:
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-muted',
-          avatar: 'bg-muted-foreground text-background',
-          icon: MessageCircle
+          bubble: 'bg-gray-100 dark:bg-gray-800',
+          avatar: 'bg-gray-500 text-white',
+          icon: MessageCircle,
+          label: 'Unknown',
+          badgeClass: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
         };
     }
   };
@@ -104,20 +129,47 @@ const EnhancedChatMessage = ({
     navigator.clipboard.writeText(message.content);
   };
 
-  const getDisplayName = () => {
-    switch (message.type) {
-      case 'user':
-        return 'User';
-      case 'chat-mate':
-        return 'Chat Mate';
-      case 'editor-mate':
-        return 'Editor Mate';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  console.log('EnhancedChatMessage: Rendering message with metadata:', message.id, message.metadata);
+  if (isEditing) {
+    return (
+      <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
+        <Avatar className="w-8 h-8 mt-1">
+          <AvatarFallback className={styles.avatar}>
+            <IconComponent className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex-1 space-y-1">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className={`text-xs ${styles.badgeClass}`}>
+              {styles.label}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {formatTime(message.timestamp)}
+            </span>
+          </div>
+          
+          <div className="space-y-2">
+            <Textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="min-h-[100px]"
+              placeholder="Edit your message..."
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleEditSave}>
+                <Check className="w-3 h-3 mr-1" />
+                Save
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleEditCancel}>
+                <X className="w-3 h-3 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-start gap-3 group ${styles.container} mb-4`}>
@@ -129,12 +181,30 @@ const EnhancedChatMessage = ({
       
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className="text-xs">
-            {getDisplayName()}
+          <Badge variant="secondary" className={`text-xs ${styles.badgeClass}`}>
+            {styles.label}
           </Badge>
           <span className="text-xs text-muted-foreground">
             {formatTime(message.timestamp)}
           </span>
+          
+          {/* Metadata display */}
+          {message.metadata && (message.metadata.model || message.metadata.generationTime) && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {message.metadata.model && (
+                <div className="flex items-center gap-1">
+                  <Cpu className="w-3 h-3" />
+                  <span>{message.metadata.model}</span>
+                </div>
+              )}
+              {message.metadata.generationTime && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>{formatGenerationTime(message.metadata.generationTime)}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
@@ -150,7 +220,7 @@ const EnhancedChatMessage = ({
                 li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                 em: ({ children }) => <em className="italic">{children}</em>,
-                code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
               }}
             >
               {message.content}
@@ -173,12 +243,12 @@ const EnhancedChatMessage = ({
                   Copy
                 </DropdownMenuItem>
                 {onEditMessage && (
-                  <DropdownMenuItem onClick={() => onEditMessage(message.id, message.content)}>
+                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
                     <Edit3 className="w-3 h-3 mr-2" />
                     Edit
                   </DropdownMenuItem>
                 )}
-                {onRegenerateMessage && (
+                {onRegenerateMessage && message.type !== 'user' && (
                   <DropdownMenuItem onClick={() => onRegenerateMessage(message.id)}>
                     <RotateCcw className="w-3 h-3 mr-2" />
                     Regenerate
@@ -191,7 +261,10 @@ const EnhancedChatMessage = ({
                   </DropdownMenuItem>
                 )}
                 {onDeleteMessage && (
-                  <DropdownMenuItem className="text-destructive" onClick={() => onDeleteMessage(message.id)}>
+                  <DropdownMenuItem 
+                    className="text-destructive"
+                    onClick={() => onDeleteMessage(message.id)}
+                  >
                     <Trash2 className="w-3 h-3 mr-2" />
                     Delete
                   </DropdownMenuItem>
@@ -200,24 +273,6 @@ const EnhancedChatMessage = ({
             </DropdownMenu>
           </div>
         </div>
-
-        {/* Metadata display - rendered below the message bubble */}
-        {message.metadata && (
-          <div className="flex items-center gap-3 text-xs text-muted-foreground ml-1 mt-1">
-            {message.metadata.model && (
-              <div className="flex items-center gap-1">
-                <Cpu className="w-3 h-3" />
-                <span>{message.metadata.model}</span>
-              </div>
-            )}
-            {message.metadata.generationTime && (
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>{formatGenerationTime(message.metadata.generationTime)}</span>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
