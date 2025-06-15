@@ -12,9 +12,16 @@ interface Message {
   id: string;
   type: 'user' | 'chat-mate' | 'editor-mate';
   content: string;
+  thinking?: string;
   timestamp: Date;
   isStreaming?: boolean;
   parentMessageId?: string;
+  metadata?: {
+    model?: string;
+    generationTime?: number;
+    startTime?: number;
+    endTime?: number;
+  };
 }
 
 interface EnhancedChatInterfaceProps {
@@ -365,7 +372,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleStreamingResponse = async (response: Response, messageId: string): Promise<string> => {
+  const handleStreamingResponse = async (response: Response, messageId: string): Promise<{ content: string; thinking?: string }> => {
     if (!response.body) {
       throw new Error('No response body for streaming');
     }
@@ -373,6 +380,7 @@ const EnhancedChatInterface = ({
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let fullContent = '';
+    let fullThinking = '';
     let buffer = '';
 
     try {
@@ -392,7 +400,18 @@ const EnhancedChatInterface = ({
             try {
               const data = JSON.parse(line.slice(6));
               
-              if (data.type === 'content' && data.content) {
+              if (data.type === 'thinking' && data.content) {
+                fullThinking += data.content;
+                
+                // Update message thinking content immediately
+                setMessages(prev => prev.map(msg => 
+                  msg.id === messageId ? { 
+                    ...msg, 
+                    thinking: fullThinking,
+                    isStreaming: true 
+                  } : msg
+                ));
+              } else if (data.type === 'content' && data.content) {
                 fullContent += data.content;
                 
                 // Update message content immediately for word-by-word display
@@ -410,12 +429,13 @@ const EnhancedChatInterface = ({
                 setMessages(prev => prev.map(msg => 
                   msg.id === messageId ? { 
                     ...msg, 
-                    content: fullContent, 
+                    content: fullContent,
+                    thinking: fullThinking || undefined,
                     isStreaming: false 
                   } : msg
                 ));
                 
-                return fullContent;
+                return { content: fullContent, thinking: fullThinking || undefined };
               }
             } catch (e) {
               console.error('Error parsing streaming data:', e, 'Line:', line);
@@ -431,12 +451,13 @@ const EnhancedChatInterface = ({
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { 
         ...msg, 
-        content: fullContent, 
+        content: fullContent,
+        thinking: fullThinking || undefined,
         isStreaming: false 
       } : msg
     ));
 
-    return fullContent;
+    return { content: fullContent, thinking: fullThinking || undefined };
   };
 
   const forkFromMessage = async (messageId: string) => {
@@ -517,6 +538,7 @@ const EnhancedChatInterface = ({
         culturalContext: settings.culturalContext ?? true,
         progressiveComplexity: settings.progressiveComplexity ?? true,
         streaming: settings.streaming ?? true,
+        reasoning: settings.reasoning ?? false,
         currentDateTime,
         userTimezone
       })
@@ -535,7 +557,7 @@ const EnhancedChatInterface = ({
     } else {
       // Handle non-streaming response (fallback)
       const data = await response.json();
-      return data.response;
+      return { content: data.response, thinking: data.thinking };
     }
   };
 
@@ -636,7 +658,7 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorUserMessage]);
 
-      const editorUserComment = await callAI(
+      const editorUserResult = await callAI(
         currentInput,
         'editor-mate-user-comment',
         fullHistory,
@@ -646,13 +668,18 @@ const EnhancedChatInterface = ({
       // Save the completed message
       const savedEditorUserMessage = saveMessage({
         type: 'editor-mate',
-        content: editorUserComment,
+        content: editorUserResult.content,
         parentMessageId: savedUserMessage?.id || userMessage.id,
       }, currentConversationId);
 
       if (savedEditorUserMessage) {
         setMessages(prev => prev.map(msg => 
-          msg.id === editorUserTempId ? { ...msg, id: savedEditorUserMessage.id, isStreaming: false } : msg
+          msg.id === editorUserTempId ? { 
+            ...msg, 
+            id: savedEditorUserMessage.id, 
+            thinking: editorUserResult.thinking,
+            isStreaming: false 
+          } : msg
         ));
       }
 
@@ -667,7 +694,7 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, chatMateMessage]);
 
-      const chatMateContent = await callAI(
+      const chatMateResult = await callAI(
         currentInput,
         'chat-mate-response',
         chatMateHistory,
@@ -677,12 +704,17 @@ const EnhancedChatInterface = ({
       // Save the completed message
       const savedChatMateMessage = saveMessage({
         type: 'chat-mate',
-        content: chatMateContent,
+        content: chatMateResult.content,
       }, currentConversationId);
 
       if (savedChatMateMessage) {
         setMessages(prev => prev.map(msg => 
-          msg.id === chatMateTempId ? { ...msg, id: savedChatMateMessage.id, isStreaming: false } : msg
+          msg.id === chatMateTempId ? { 
+            ...msg, 
+            id: savedChatMateMessage.id, 
+            thinking: chatMateResult.thinking,
+            isStreaming: false 
+          } : msg
         ));
       }
 
@@ -698,8 +730,8 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorChatMateMessage]);
 
-      const editorChatMateComment = await callAI(
-        chatMateContent,
+      const editorChatMateResult = await callAI(
+        chatMateResult.content,
         'editor-mate-chatmate-comment',
         fullHistory,
         editorChatMateTempId
@@ -708,13 +740,18 @@ const EnhancedChatInterface = ({
       // Save the completed message
       const savedEditorChatMateMessage = saveMessage({
         type: 'editor-mate',
-        content: editorChatMateComment,
+        content: editorChatMateResult.content,
         parentMessageId: savedChatMateMessage?.id || chatMateTempId,
       }, currentConversationId);
 
       if (savedEditorChatMateMessage) {
         setMessages(prev => prev.map(msg => 
-          msg.id === editorChatMateTempId ? { ...msg, id: savedEditorChatMateMessage.id, isStreaming: false } : msg
+          msg.id === editorChatMateTempId ? { 
+            ...msg, 
+            id: savedEditorChatMateMessage.id, 
+            thinking: editorChatMateResult.thinking,
+            isStreaming: false 
+          } : msg
         ));
       }
 

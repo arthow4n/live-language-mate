@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface GlobalSettings {
@@ -6,6 +5,7 @@ interface GlobalSettings {
   apiKey: string;
   targetLanguage: string;
   streaming: boolean;
+  reasoning: boolean;
   theme: 'light' | 'dark' | 'system';
 }
 
@@ -19,6 +19,7 @@ interface ChatSettings {
   apiKey: string;
   targetLanguage: string;
   streaming: boolean;
+  reasoning: boolean;
   
   // Advanced settings
   chatMateBackground: string;
@@ -48,6 +49,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     apiKey: '',
     targetLanguage: 'swedish',
     streaming: true,
+    reasoning: false,
     theme: 'system'
   });
   const [chatSettings, setChatSettings] = useState<Record<string, ChatSettings>>({});
@@ -113,6 +115,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     apiKey: globalSettings.apiKey,
     targetLanguage: globalSettings.targetLanguage,
     streaming: globalSettings.streaming,
+    reasoning: globalSettings.reasoning,
     
     // AI personalities
     chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
