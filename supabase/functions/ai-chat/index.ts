@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -19,7 +18,7 @@ serve(async (req) => {
       chatMatePrompt = '', 
       editorMatePrompt = '',
       targetLanguage = 'swedish',
-      model = 'anthropic/claude-3-5-sonnet',
+      model: originalModel = 'anthropic/claude-3-5-sonnet',
       apiKey,
       chatMateBackground = '',
       editorMateExpertise = '',
@@ -32,10 +31,13 @@ serve(async (req) => {
       enableReasoning = false
     } = await req.json()
 
+    const model = originalModel.replace(/:thinking$/, '');
+
     console.log('🔍 AI Chat request received:', {
       messageType,
       targetLanguage,
       model,
+      originalModel,
       apiKey: apiKey && apiKey.trim() ? 'Provided by user' : 'Using environment API key',
       historyLength: conversationHistory.length,
       hasMessage: !!message,

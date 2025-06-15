@@ -196,7 +196,7 @@ const EnhancedChatMessage = ({
         </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
-          {message.reasoning && globalSettings.enableReasoning && (
+          {message.reasoning && (
             <Collapsible
               defaultOpen={globalSettings.reasoningExpanded}
               className="mb-3 border-b pb-2"
