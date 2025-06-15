@@ -58,6 +58,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
     if (currentConversationId) {
       updateChatSettings(currentConversationId, settings);
     }
+    // For new conversations, we don't need to save yet - settings will be applied when conversation is created
   };
 
   const handlePanelSizeChange = (sizes: number[]) => {
@@ -206,17 +207,18 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           onSignOut={handleSignOut}
         />
 
-        {/* Chat Settings Dialog */}
-        {currentConversationId && currentChatSettings && (
-          <UnifiedSettingsDialog
-            open={chatSettingsOpen}
-            onOpenChange={setChatSettingsOpen}
-            mode="chat"
-            initialSettings={currentChatSettings}
-            onSave={handleChatSettingsSave}
-            conversationTitle="Current Chat"
-          />
-        )}
+        {/* Chat Settings Dialog - Updated to handle new conversations */}
+        <UnifiedSettingsDialog
+          open={chatSettingsOpen}
+          onOpenChange={setChatSettingsOpen}
+          mode="chat"
+          initialSettings={currentChatSettings || {
+            chatMatePersonality: `You are a friendly local who loves helping newcomers feel welcome. You're enthusiastic about culture, traditions, and everyday life. You speak naturally and assume the user is already integrated into society.`,
+            editorMatePersonality: `You are an experienced language teacher who provides gentle, encouraging feedback. Focus on practical improvements and cultural context. Be concise but helpful, and always maintain a supportive tone.`
+          }}
+          onSave={handleChatSettingsSave}
+          conversationTitle={currentConversationId ? "Current Chat" : "New Chat"}
+        />
       </div>
     </SidebarProvider>
   );
