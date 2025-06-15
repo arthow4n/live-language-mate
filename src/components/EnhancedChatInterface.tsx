@@ -50,28 +50,32 @@ const EnhancedChatInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const { getChatSettings, isLoaded } = useSettings();
+  const { getChatSettings, getMainSettings, isLoaded } = useSettings();
   const isMobile = useIsMobile();
 
   // Get current conversation settings only after settings are loaded
-  const currentSettings = conversationId && isLoaded ? getChatSettings(conversationId) : null;
-  const chatMatePrompt = currentSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
-  const currentEditorMatePrompt = currentSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
+  const currentChatSettings = conversationId && isLoaded ? getChatSettings(conversationId) : null;
+  const mainSettings = isLoaded ? getMainSettings() : null;
+  const chatMatePrompt = currentChatSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
+  const currentEditorMatePrompt = currentChatSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   // Only log settings debug info after settings are loaded to reduce noise
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && mainSettings) {
       console.log('🔧 EnhancedChatInterface settings debug:', {
         conversationId,
-        currentSettings: currentSettings ? {
-          model: currentSettings.model,
-          apiKey: currentSettings.apiKey ? 'Set' : 'Not set',
-          targetLanguage: currentSettings.targetLanguage
-        } : 'No settings found',
-        fallbackModel: currentSettings?.model || 'No model set'
+        mainSettings: {
+          model: mainSettings.model,
+          apiKey: mainSettings.apiKey ? 'Set' : 'Not set',
+          targetLanguage: mainSettings.targetLanguage
+        },
+        chatSettings: currentChatSettings ? {
+          chatMatePersonality: currentChatSettings.chatMatePersonality.substring(0, 50) + '...',
+          editorMatePersonality: currentChatSettings.editorMatePersonality.substring(0, 50) + '...'
+        } : 'No chat settings found'
       });
     }
-  }, [conversationId, currentSettings, isLoaded]);
+  }, [conversationId, currentChatSettings, mainSettings, isLoaded]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -340,10 +344,14 @@ const EnhancedChatInterface = ({
   };
 
   const callAI = async (message: string, messageType: string, history: any[]) => {
+    if (!mainSettings) {
+      throw new Error('Main settings not loaded');
+    }
+
     console.log('🚀 Calling AI with settings:', {
       messageType,
-      model: currentSettings?.model || 'No model specified',
-      apiKey: currentSettings?.apiKey ? 'Set' : 'Not set',
+      model: mainSettings.model,
+      apiKey: mainSettings.apiKey ? 'Set' : 'Not set',
       targetLanguage
     });
 
@@ -355,14 +363,14 @@ const EnhancedChatInterface = ({
         chatMatePrompt,
         editorMatePrompt: currentEditorMatePrompt,
         targetLanguage,
-        model: currentSettings?.model || 'anthropic/claude-3-5-sonnet',
-        apiKey: currentSettings?.apiKey,
+        model: mainSettings.model,
+        apiKey: mainSettings.apiKey,
         // Pass new advanced settings
-        chatMateBackground: currentSettings?.chatMateBackground || 'young professional, loves local culture',
-        editorMateExpertise: currentSettings?.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: currentSettings?.feedbackStyle || 'encouraging',
-        culturalContext: currentSettings?.culturalContext ?? true,
-        progressiveComplexity: currentSettings?.progressiveComplexity ?? true
+        chatMateBackground: currentChatSettings?.chatMateBackground || 'young professional, loves local culture',
+        editorMateExpertise: currentChatSettings?.editorMateExpertise || '10+ years teaching experience',
+        feedbackStyle: currentChatSettings?.feedbackStyle || 'encouraging',
+        culturalContext: currentChatSettings?.culturalContext ?? true,
+        progressiveComplexity: currentChatSettings?.progressiveComplexity ?? true
       }
     });
 
@@ -381,6 +389,10 @@ const EnhancedChatInterface = ({
   };
 
   const createNewConversation = async () => {
+    if (!mainSettings) {
+      throw new Error('Main settings not loaded');
+    }
+
     try {
       console.log('🆕 Creating new conversation with settings:', {
         targetLanguage,
@@ -410,12 +422,12 @@ const EnhancedChatInterface = ({
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || !mainSettings) return;
 
     console.log('📤 Sending message with current settings:', {
       conversationId,
-      model: currentSettings?.model || 'Default model',
-      apiKey: currentSettings?.apiKey ? 'Set' : 'Not set'
+      model: mainSettings.model,
+      apiKey: mainSettings.apiKey ? 'Set' : 'Not set'
     });
 
     let currentConversationId = conversationId;
@@ -557,7 +569,7 @@ const EnhancedChatInterface = ({
   };
 
   // Don't render the interface until settings are loaded to prevent focus issues
-  if (!isLoaded) {
+  if (!isLoaded || !mainSettings) {
     return (
       <div className="flex flex-col h-full items-center justify-center">
         <div className="text-muted-foreground">Loading settings...</div>

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface MainSettings {
@@ -23,6 +24,7 @@ interface SettingsContextType {
   updateMainSettings: (newSettings: Partial<MainSettings>) => void;
   updateChatSettings: (conversationId: string, newSettings: Partial<ChatSettings>) => void;
   getChatSettings: (conversationId: string) => ChatSettings;
+  getMainSettings: () => MainSettings;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -102,13 +104,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     };
   };
 
+  const getMainSettings = (): MainSettings => {
+    return mainSettings;
+  };
+
   const value = {
     mainSettings,
     chatSettings,
     isLoaded,
     updateMainSettings,
     updateChatSettings,
-    getChatSettings
+    getChatSettings,
+    getMainSettings
   };
 
   return (
