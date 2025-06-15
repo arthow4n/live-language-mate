@@ -176,8 +176,8 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
         </div>
 
         {/* Metadata display - rendered below the message bubble */}
-        {message.metadata && (message.metadata.model || message.metadata.generationTime) && (
-          <div className="flex items-center gap-3 text-xs text-muted-foreground ml-1">
+        {message.metadata && (
+          <div className="flex items-center gap-3 text-xs text-muted-foreground ml-1 mt-1">
             {message.metadata.model && (
               <div className="flex items-center gap-1">
                 <Cpu className="w-3 h-3" />
