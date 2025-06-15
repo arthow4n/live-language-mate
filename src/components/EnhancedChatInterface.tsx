@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -505,32 +504,13 @@ const EnhancedChatInterface = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Chat Header */}
-      <div className="p-4 border-b bg-card flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">Learning {targetLanguage}</h2>
-            <p className="text-sm text-muted-foreground">
-              Chat with your language partner and get real-time feedback
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            {conversationId && onChatSettingsOpen && (
-              <Button variant="outline" size="icon" onClick={onChatSettingsOpen}>
-                <Settings className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Messages Area - Scrollable */}
       <div className="flex-1 overflow-y-auto p-4 min-h-0">
         {messages.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
             <p className="mb-2">Start a conversation in {targetLanguage}!</p>
             <p className="text-sm">
-              Your Chat Mate will respond naturally, and Editor Mate will provide helpful feedback.
+              Chat Mate will respond naturally, and Editor Mate will provide helpful feedback.
             </p>
           </div>
         )}
@@ -564,7 +544,7 @@ const EnhancedChatInterface = ({
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={`Write in ${targetLanguage} or your native language...`}
+            placeholder={`Type in ${targetLanguage} or your native language...`}
             className="flex-1 min-h-[40px] max-h-[120px]"
             disabled={isLoading}
             rows={1}
