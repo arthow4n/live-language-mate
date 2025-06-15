@@ -89,16 +89,19 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
   };
 
   // Enhanced handler for conversation updates that includes title generation
-  const handleConversationUpdateWithTitleGeneration = async (conversationId: string) => {
+  const handleConversationUpdateWithTitleGeneration = async () => {
     // Trigger sidebar refresh
     setRefreshSidebar(prev => prev + 1);
+    
+    // Only proceed with title generation if we have a current conversation
+    if (!currentConversationId) return;
     
     // Get conversation messages to check if we should generate a title
     try {
       const { data: messages, error } = await supabase
         .from('messages')
         .select('message_type, content')
-        .eq('conversation_id', conversationId)
+        .eq('conversation_id', currentConversationId)
         .order('created_at', { ascending: true });
 
       if (error || !messages) {
@@ -117,7 +120,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
         const newTitle = await generateChatTitle(conversationHistory, currentSettings.targetLanguage);
         
         if (newTitle && newTitle !== 'Chat') {
-          await updateConversationTitle(conversationId, newTitle);
+          await updateConversationTitle(currentConversationId, newTitle);
           // Refresh sidebar again to show the new title
           setRefreshSidebar(prev => prev + 1);
         }
