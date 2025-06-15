@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,7 @@ interface AskInterfaceProps {
   editorMatePrompt?: string;
   onTextSelect?: (text: string) => void;
   selectionSource?: 'main-chat' | 'ask-interface';
+  hideHeader?: boolean;
 }
 
 const AskInterface = ({ 
@@ -41,7 +41,8 @@ const AskInterface = ({
   targetLanguage = 'Swedish',
   editorMatePrompt = 'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.',
   onTextSelect,
-  selectionSource = 'main-chat'
+  selectionSource = 'main-chat',
+  hideHeader = false
 }: AskInterfaceProps) => {
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
@@ -180,8 +181,8 @@ const AskInterface = ({
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header - only show when not in mobile drawer (onClose indicates mobile drawer) */}
-      {!onClose && (
+      {/* Header - only show when not in mobile drawer (onClose indicates mobile drawer) and not hideHeader */}
+      {!onClose && !hideHeader && (
         <div className="p-4 border-b">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold flex items-center gap-2">
@@ -227,8 +228,8 @@ const AskInterface = ({
         </div>
       )}
 
-      {/* Mobile header - only show when in mobile drawer */}
-      {onClose && (
+      {/* Mobile header - only show when in mobile drawer and not hideHeader */}
+      {onClose && !hideHeader && (
         <div className="p-4 border-b">
           {/* Always visible selected text input */}
           <div className="bg-gray-50 rounded-lg p-3 mb-3">
