@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -239,10 +240,10 @@ const ChatSidebar = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`w-6 h-6 ml-auto flex-shrink-0 ${
+                            className={`w-6 h-6 ml-auto flex-shrink-0 opacity-100 ${
                               currentConversationId === conversation.id 
                                 ? 'hover:bg-primary-foreground/20 text-primary-foreground' 
-                                : 'hover:bg-accent'
+                                : 'hover:bg-accent text-muted-foreground hover:text-foreground'
                             }`}
                             onClick={(e) => e.stopPropagation()}
                           >
