@@ -243,9 +243,14 @@ const AskInterface = ({
                   const parsed = JSON.parse(data);
                   if (parsed.content) {
                     accumulatedContent += parsed.content;
+                    // Force immediate state update for word-by-word rendering
                     setConversation(prev => prev.map(msg => 
                       msg.id === editorMessageId 
-                        ? { ...msg, content: accumulatedContent }
+                        ? { 
+                            ...msg, 
+                            content: accumulatedContent,
+                            isStreaming: true // Ensure streaming state is maintained
+                          }
                         : msg
                     ));
                   }
