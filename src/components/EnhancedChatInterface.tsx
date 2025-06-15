@@ -47,6 +47,7 @@ const EnhancedChatInterface = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
+  const [componentReady, setComponentReady] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -58,6 +59,22 @@ const EnhancedChatInterface = ({
   const mainSettings = isLoaded ? getMainSettings() : null;
   const chatMatePrompt = currentChatSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt = currentChatSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
+
+  // Mark component as ready when settings are loaded and ensure focus
+  useEffect(() => {
+    if (isLoaded && mainSettings && !componentReady) {
+      console.log('🎯 Component ready, focusing textarea');
+      setComponentReady(true);
+      
+      // Use a small delay to ensure the textarea is fully rendered
+      setTimeout(() => {
+        if (textareaRef.current && !conversationId) {
+          textareaRef.current.focus();
+          console.log('🎯 Textarea focused after component ready');
+        }
+      }, 100);
+    }
+  }, [isLoaded, mainSettings, componentReady, conversationId]);
 
   // Only log settings debug info after settings are loaded to reduce noise
   useEffect(() => {
@@ -568,8 +585,8 @@ const EnhancedChatInterface = ({
     onTextSelect(text);
   };
 
-  // Don't render the interface until settings are loaded to prevent focus issues
-  if (!isLoaded || !mainSettings) {
+  // Don't render the interface until settings are loaded and component is ready
+  if (!isLoaded || !mainSettings || !componentReady) {
     return (
       <div className="flex flex-col h-full items-center justify-center">
         <div className="text-muted-foreground">Loading settings...</div>
