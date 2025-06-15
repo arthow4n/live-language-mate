@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -95,6 +96,12 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
 
       // Get chat settings for this conversation
       const chatSettings = getChatSettings(conversationId);
+      
+      console.log('Using chat settings:', {
+        model: chatSettings.model,
+        targetLanguage: chatSettings.targetLanguage,
+        apiKey: chatSettings.apiKey ? 'Set' : 'Not set'
+      });
 
       // Prepare conversation history for AI context
       const conversationHistory = messages.map(msg => ({
@@ -120,6 +127,7 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
           editorMatePrompt: chatSettings.editorMatePersonality,
           targetLanguage: chatSettings.targetLanguage,
           model: chatSettings.model,
+          apiKey: chatSettings.apiKey,
           // Advanced settings
           chatMateBackground: chatSettings.chatMateBackground,
           editorMateExpertise: chatSettings.editorMateExpertise,
