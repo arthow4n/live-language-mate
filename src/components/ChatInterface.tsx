@@ -8,14 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from './ChatMessage';
 import { useSettings } from '@/contexts/SettingsContext';
-
-interface Message {
-  id: string;
-  type: 'user' | 'chat-mate' | 'editor-mate';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-}
+import { Message } from '@/types/Message';
 
 interface ChatInterfaceProps {
   user: User;
@@ -39,7 +32,6 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
     scrollToBottom();
   }, [messages]);
 
-  // Create or get conversation
   useEffect(() => {
     const createConversation = async () => {
       try {
@@ -83,6 +75,8 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
     const currentInput = inputMessage.trim();
     setInputMessage('');
     setIsLoading(true);
+
+    const startTime = Date.now();
 
     try {
       // Save user message to database
@@ -146,6 +140,9 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         throw new Error('No response from AI');
       }
 
+      const endTime = Date.now();
+      const generationTime = endTime - startTime;
+
       console.log('Received AI response:', aiData.response);
 
       const aiResponse: Message = {
@@ -153,6 +150,12 @@ const ChatInterface = ({ user, aiMode }: ChatInterfaceProps) => {
         type: aiMode,
         content: aiData.response,
         timestamp: new Date(),
+        metadata: {
+          model: globalSettings.model,
+          generationTime,
+          startTime,
+          endTime
+        }
       };
 
       setMessages(prev => [...prev, aiResponse]);

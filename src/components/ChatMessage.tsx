@@ -12,7 +12,9 @@ import {
   Edit3,
   Trash2,
   RotateCcw,
-  Copy
+  Copy,
+  Clock,
+  Cpu
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -20,14 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-interface Message {
-  id: string;
-  type: 'user' | 'chat-mate' | 'editor-mate';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-}
+import { Message } from '@/types/Message';
 
 interface ChatMessageProps {
   message: Message;
@@ -86,6 +81,13 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatGenerationTime = (timeMs: number) => {
+    if (timeMs < 1000) {
+      return `${timeMs}ms`;
+    }
+    return `${(timeMs / 1000).toFixed(1)}s`;
+  };
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(message.content);
   };
@@ -112,13 +114,31 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
       </Avatar>
       
       <div className="flex-1 space-y-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="secondary" className="text-xs">
             {getDisplayName()}
           </Badge>
           <span className="text-xs text-muted-foreground">
             {formatTime(message.timestamp)}
           </span>
+          
+          {/* Metadata display */}
+          {message.metadata && (message.metadata.model || message.metadata.generationTime) && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {message.metadata.model && (
+                <div className="flex items-center gap-1">
+                  <Cpu className="w-3 h-3" />
+                  <span>{message.metadata.model}</span>
+                </div>
+              )}
+              {message.metadata.generationTime && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>{formatGenerationTime(message.metadata.generationTime)}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>

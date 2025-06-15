@@ -16,7 +16,9 @@ import {
   Copy,
   GitBranch,
   Check,
-  X
+  X,
+  Clock,
+  Cpu
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -24,15 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-interface Message {
-  id: string;
-  type: 'user' | 'chat-mate' | 'editor-mate';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-  parentMessageId?: string;
-}
+import { Message } from '@/types/Message';
 
 interface EnhancedChatMessageProps {
   message: Message;
@@ -81,38 +75,38 @@ const EnhancedChatMessage = ({
       case 'user':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-blue-50 border border-blue-200 text-blue-900',
+          bubble: 'bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100',
           avatar: 'bg-blue-500 text-white',
           icon: User,
           label: 'User',
-          badgeClass: 'bg-blue-100 text-blue-700'
+          badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
         };
       case 'chat-mate':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-green-50 border border-green-200 text-green-900',
+          bubble: 'bg-green-50 border border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100',
           avatar: 'bg-green-500 text-white',
           icon: MessageCircle,
           label: 'Chat Mate',
-          badgeClass: 'bg-green-100 text-green-700'
+          badgeClass: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
         };
       case 'editor-mate':
         return {
           container: 'mr-auto max-w-[70%] ml-10',
-          bubble: 'bg-orange-50 border border-orange-200 text-orange-900',
+          bubble: 'bg-orange-50 border border-orange-200 text-orange-900 dark:bg-orange-950 dark:border-orange-800 dark:text-orange-100',
           avatar: 'bg-orange-500 text-white',
           icon: GraduationCap,
           label: 'Editor Mate',
-          badgeClass: 'bg-orange-100 text-orange-700'
+          badgeClass: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
         };
       default:
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-gray-100',
+          bubble: 'bg-gray-100 dark:bg-gray-800',
           avatar: 'bg-gray-500 text-white',
           icon: MessageCircle,
           label: 'Unknown',
-          badgeClass: 'bg-gray-100 text-gray-700'
+          badgeClass: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
         };
     }
   };
@@ -122,6 +116,13 @@ const EnhancedChatMessage = ({
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatGenerationTime = (timeMs: number) => {
+    if (timeMs < 1000) {
+      return `${timeMs}ms`;
+    }
+    return `${(timeMs / 1000).toFixed(1)}s`;
   };
 
   const copyToClipboard = () => {
@@ -179,18 +180,36 @@ const EnhancedChatMessage = ({
       </Avatar>
       
       <div className="flex-1 space-y-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="secondary" className={`text-xs ${styles.badgeClass}`}>
             {styles.label}
           </Badge>
           <span className="text-xs text-muted-foreground">
             {formatTime(message.timestamp)}
           </span>
+          
+          {/* Metadata display */}
+          {message.metadata && (message.metadata.model || message.metadata.generationTime) && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {message.metadata.model && (
+                <div className="flex items-center gap-1">
+                  <Cpu className="w-3 h-3" />
+                  <span>{message.metadata.model}</span>
+                </div>
+              )}
+              {message.metadata.generationTime && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>{formatGenerationTime(message.metadata.generationTime)}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
           <div 
-            className="text-sm leading-relaxed select-text prose prose-sm max-w-none"
+            className="text-sm leading-relaxed select-text prose prose-sm max-w-none dark:prose-invert"
             onMouseUp={handleTextSelection}
           >
             <ReactMarkdown
@@ -201,7 +220,7 @@ const EnhancedChatMessage = ({
                 li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                 em: ({ children }) => <em className="italic">{children}</em>,
-                code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
               }}
             >
               {message.content}
