@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -28,7 +27,8 @@ serve(async (req) => {
       progressiveComplexity = true,
       streaming = true,
       currentDateTime = null,
-      userTimezone = null
+      userTimezone = null,
+      enableReasoning = false
     } = await req.json()
 
     console.log('🔍 AI Chat request received:', {
@@ -41,12 +41,11 @@ serve(async (req) => {
       hasChatMatePrompt: !!chatMatePrompt,
       hasEditorMatePrompt: !!editorMatePrompt,
       streaming,
+      enableReasoning,
       currentDateTime,
       userTimezone
     })
 
-    // Use provided API key or fall back to environment variable
-    // Check if apiKey exists and is not empty/whitespace
     const openRouterApiKey = (apiKey && apiKey.trim()) ? apiKey.trim() : Deno.env.get('OPENAI_API_KEY')
     
     if (!openRouterApiKey) {
@@ -55,7 +54,6 @@ serve(async (req) => {
 
     console.log('🔑 API key source:', (apiKey && apiKey.trim()) ? 'User provided' : 'Environment variable')
 
-    // Format datetime information for the prompt
     const dateTimeContext = currentDateTime && userTimezone 
       ? `\n\nCurrent date and time: ${currentDateTime} (${userTimezone})`
       : '';
@@ -94,6 +92,7 @@ As if you were the student, provide a natural response to the chat mate's messag
 Keep responses natural and conversational.${dateTimeContext}`
     }
 
+
     const messages = [
       { role: 'system', content: systemPrompt },
       ...conversationHistory,
@@ -105,8 +104,22 @@ Keep responses natural and conversational.${dateTimeContext}`
       messageType,
       systemPromptLength: systemPrompt.length,
       messagesCount: messages.length,
-      streaming
+      streaming,
+      enableReasoning
     })
+    
+    const payload: any = {
+        model,
+        messages,
+        stream: streaming,
+        temperature: 0.7,
+        max_tokens: 2048,
+    };
+
+    if (enableReasoning) {
+        payload.tools = [{ type: "reasoning" }];
+        payload.max_tokens = 4096;
+    }
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -116,13 +129,7 @@ Keep responses natural and conversational.${dateTimeContext}`
         'HTTP-Referer': 'https://expat-language-mate.lovable.app',
         'X-Title': 'Expat Language Mate'
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        stream: streaming,
-        temperature: 0.7,
-        max_tokens: 1000
-      })
+      body: JSON.stringify(payload)
     })
 
     if (!response.ok) {
@@ -134,33 +141,42 @@ Keep responses natural and conversational.${dateTimeContext}`
     if (streaming) {
       console.log('📡 Setting up streaming response')
       
-      // Create a transform stream to process the SSE data
       const transformStream = new TransformStream({
         transform(chunk, controller) {
           const decoder = new TextDecoder()
           const text = decoder.decode(chunk)
           
-          // Process each line of the SSE stream
           const lines = text.split('\n')
           for (const line of lines) {
             if (line.startsWith('data: ') && line !== 'data: [DONE]') {
               try {
                 const data = JSON.parse(line.slice(6))
-                if (data.choices?.[0]?.delta?.content) {
-                  // Send the content chunk
+                const delta = data.choices?.[0]?.delta
+
+                if (delta?.content) {
                   controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                     type: 'content',
-                    content: data.choices[0].delta.content
+                    content: delta.content
                   })}\n\n`))
                 }
+                
+                if (delta?.tool_calls) {
+                  const toolCall = delta.tool_calls[0];
+                  if (toolCall?.function?.arguments) {
+                     controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                      type: 'reasoning',
+                      content: toolCall.function.arguments
+                    })}\n\n`))
+                  }
+                }
               } catch (e) {
-                // Skip invalid JSON lines
+                console.error('Error parsing stream chunk:', e, 'line:', line);
               }
-            } else if (line === 'data: [DONE]') {
-              // Send completion signal
+            } else if (line.trim() === 'data: [DONE]') {
               controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                 type: 'done'
               })}\n\n`))
+              return;
             }
           }
         }
@@ -175,18 +191,23 @@ Keep responses natural and conversational.${dateTimeContext}`
         },
       })
     } else {
-      // Non-streaming response (fallback)
       const data = await response.json()
-      const aiResponse = data.choices[0].message.content
+      const message = data.choices[0].message;
+      const aiResponse = message.content;
+      
+      let reasoning = null;
+      if (message.tool_calls) {
+        reasoning = message.tool_calls.map((tc: any) => tc.function.arguments).join('\n');
+      }
 
       console.log('✅ OpenRouter response received successfully:', {
         model,
         messageType,
-        responseLength: aiResponse.length,
+        responseLength: aiResponse ? aiResponse.length : 0,
         usage: data.usage
       })
 
-      return new Response(JSON.stringify({ response: aiResponse }), {
+      return new Response(JSON.stringify({ response: aiResponse, reasoning }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
