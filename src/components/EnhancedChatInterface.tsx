@@ -334,6 +334,63 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const handleStreamingResponse = async (response: Response, messageId: string): Promise<string> => {
+    if (!response.body) {
+      throw new Error('No response body for streaming');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        
+        // Keep the last potentially incomplete line in the buffer
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'content') {
+                fullContent += data.content;
+                
+                // Update message content in real-time
+                setMessages(prev => prev.map(msg => 
+                  msg.id === messageId ? { ...msg, content: fullContent, isStreaming: true } : msg
+                ));
+              } else if (data.type === 'done') {
+                console.log('✅ Streaming completed for message:', messageId);
+                
+                // Mark streaming as complete
+                setMessages(prev => prev.map(msg => 
+                  msg.id === messageId ? { ...msg, content: fullContent, isStreaming: false } : msg
+                ));
+                
+                return fullContent;
+              }
+            } catch (e) {
+              console.error('Error parsing streaming data:', e);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return fullContent;
+  };
+
   const forkFromMessage = async (messageId: string) => {
     try {
       // Find the message index
@@ -417,67 +474,6 @@ const EnhancedChatInterface = ({
       const data = await response.json();
       return data.response;
     }
-  };
-
-  const handleStreamingResponse = async (response: Response, messageId?: string): Promise<string> => {
-    if (!response.body) {
-      throw new Error('No response body for streaming');
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullContent = '';
-    let buffer = '';
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        
-        // Keep the last potentially incomplete line in the buffer
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              if (data.type === 'content') {
-                fullContent += data.content;
-                
-                // Update message content in real-time if messageId is provided
-                if (messageId) {
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === messageId ? { ...msg, content: fullContent } : msg
-                  ));
-                }
-              } else if (data.type === 'done') {
-                console.log('✅ Streaming completed');
-                
-                // Mark streaming as complete
-                if (messageId) {
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === messageId ? { ...msg, isStreaming: false } : msg
-                  ));
-                }
-                
-                return fullContent;
-              }
-            } catch (e) {
-              console.error('Error parsing streaming data:', e);
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
-
-    return fullContent;
   };
 
   const createNewConversation = () => {

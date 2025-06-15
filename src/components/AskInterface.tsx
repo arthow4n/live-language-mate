@@ -16,8 +16,8 @@ import {
   Loader2,
   BookOpen
 } from 'lucide-react';
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLocalStorage } from '@/contexts/LocalStorageContext';
 
 interface Message {
   id: string;
@@ -50,6 +50,7 @@ const AskInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [editableSelectedText, setEditableSelectedText] = useState('');
   const { toast } = useToast();
+  const { settings } = useLocalStorage();
 
   // Update editable selected text when selectedText prop changes
   useEffect(() => {
@@ -103,25 +104,41 @@ const AskInterface = ({
       ? `The user has selected this text: "${editableSelectedText}". Answer their question about it: ${question}`
       : question;
 
-    const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat', {
-      body: {
+    const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
+      },
+      body: JSON.stringify({
         message: contextMessage,
         messageType: 'editor-mate-user-comment',
         conversationHistory,
         editorMatePrompt,
-        targetLanguage
-      }
+        targetLanguage,
+        model: settings.model,
+        apiKey: settings.apiKey,
+        chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
+        editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+        feedbackStyle: settings.feedbackStyle || 'encouraging',
+        culturalContext: settings.culturalContext ?? true,
+        progressiveComplexity: settings.progressiveComplexity ?? true,
+        streaming: false
+      })
     });
 
-    if (aiError) {
-      throw new Error(aiError.message || 'Failed to get Editor Mate response');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get Editor Mate response');
     }
 
-    if (!aiData || !aiData.response) {
+    const data = await response.json();
+    
+    if (!data || !data.response) {
       throw new Error('No response from Editor Mate');
     }
 
-    return aiData.response;
+    return data.response;
   };
 
   const handleSendQuestion = async () => {

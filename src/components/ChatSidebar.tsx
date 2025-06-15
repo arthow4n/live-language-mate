@@ -44,6 +44,13 @@ const ChatSidebar = ({
   const { toast } = useToast();
   const { conversations, updateConversation, deleteConversation, createConversation } = useLocalStorage();
 
+  // Sort conversations by updated_at timestamp (most recent first)
+  const sortedConversations = [...conversations].sort((a, b) => {
+    const dateA = new Date(a.updated_at);
+    const dateB = new Date(b.updated_at);
+    return dateB.getTime() - dateA.getTime();
+  });
+
   const handleRenameConversation = () => {
     if (!editingConversation || !editTitle.trim()) return;
 
@@ -135,12 +142,12 @@ const ChatSidebar = ({
           <SidebarGroupContent>
             <ScrollArea className="h-full">
               <SidebarMenu>
-                {conversations.length === 0 ? (
+                {sortedConversations.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground text-sm">
                     No conversations yet. Start a new chat!
                   </div>
                 ) : (
-                  conversations.map((conversation) => (
+                  sortedConversations.map((conversation) => (
                     <SidebarMenuItem key={conversation.id}>
                       <div className={`group relative w-full flex items-center ${
                         currentConversationId === conversation.id 
