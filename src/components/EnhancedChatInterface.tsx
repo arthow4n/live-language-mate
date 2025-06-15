@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -574,6 +575,7 @@ const EnhancedChatInterface = ({
               size="icon"
               onClick={onAskInterfaceOpen}
               className="h-10 w-10 flex-shrink-0"
+              title="Open Ask Interface"
             >
               <MessageSquare className="w-4 h-4" />
             </Button>
