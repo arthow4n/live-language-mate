@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -221,26 +220,27 @@ const ChatSidebar = ({
               ) : (
                 conversations.map((conversation) => (
                   <SidebarMenuItem key={conversation.id}>
-                    <SidebarMenuButton
-                      onClick={() => onConversationSelect(conversation.id)}
-                      isActive={currentConversationId === conversation.id}
-                      className={`group relative w-full ${
-                        currentConversationId === conversation.id 
-                          ? 'bg-primary/90 text-primary-foreground hover:bg-primary shadow-sm border-l-4 border-gray-800 dark:border-gray-200 font-medium' 
-                          : 'hover:bg-accent/50'
-                      }`}
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <span className="truncate flex-1 text-left">
-                        {conversation.title}
-                      </span>
+                    <div className={`group relative w-full flex items-center ${
+                      currentConversationId === conversation.id 
+                        ? 'bg-primary/90 text-primary-foreground hover:bg-primary shadow-sm border-l-4 border-gray-800 dark:border-gray-200 font-medium rounded-md' 
+                        : 'hover:bg-accent/50 rounded-md'
+                    }`}>
+                      <button
+                        onClick={() => onConversationSelect(conversation.id)}
+                        className="flex items-center flex-1 p-2 text-left min-w-0"
+                      >
+                        <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="truncate flex-1">
+                          {conversation.title}
+                        </span>
+                      </button>
                       
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`w-6 h-6 ml-auto flex-shrink-0 opacity-100 ${
+                            className={`w-6 h-6 mr-2 flex-shrink-0 !opacity-100 !visible ${
                               currentConversationId === conversation.id 
                                 ? 'hover:bg-primary-foreground/20 text-primary-foreground' 
                                 : 'hover:bg-accent text-muted-foreground hover:text-foreground'
@@ -291,7 +291,7 @@ const ChatSidebar = ({
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </SidebarMenuButton>
+                    </div>
                   </SidebarMenuItem>
                 ))
               )}
