@@ -48,25 +48,30 @@ const EnhancedChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const { getChatSettings } = useSettings();
+  const { getChatSettings, isLoaded } = useSettings();
   const isMobile = useIsMobile();
 
-  // Get current conversation settings
-  const currentSettings = conversationId ? getChatSettings(conversationId) : null;
+  // Get current conversation settings only after settings are loaded
+  const currentSettings = conversationId && isLoaded ? getChatSettings(conversationId) : null;
   const chatMatePrompt = currentSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt = currentSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
-  // Add detailed logging for settings
-  console.log('🔧 EnhancedChatInterface settings debug:', {
-    conversationId,
-    currentSettings: currentSettings ? {
-      model: currentSettings.model,
-      apiKey: currentSettings.apiKey ? 'Set' : 'Not set',
-      targetLanguage: currentSettings.targetLanguage
-    } : 'No settings found',
-    fallbackModel: currentSettings?.model || 'No model set'
-  });
+  // Only log settings debug info after settings are loaded to reduce noise
+  useEffect(() => {
+    if (isLoaded) {
+      console.log('🔧 EnhancedChatInterface settings debug:', {
+        conversationId,
+        currentSettings: currentSettings ? {
+          model: currentSettings.model,
+          apiKey: currentSettings.apiKey ? 'Set' : 'Not set',
+          targetLanguage: currentSettings.targetLanguage
+        } : 'No settings found',
+        fallbackModel: currentSettings?.model || 'No model set'
+      });
+    }
+  }, [conversationId, currentSettings, isLoaded]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,8 +81,10 @@ const EnhancedChatInterface = ({
     scrollToBottom();
   }, [messages]);
 
-  // Load messages and prompts when conversation changes
+  // Load messages and prompts when conversation changes - only after settings are loaded
   useEffect(() => {
+    if (!isLoaded) return; // Wait for settings to load
+    
     if (conversationId && !isCreatingNewConversation) {
       console.log('🔄 Loading messages for conversation:', conversationId);
       loadMessages();
@@ -87,7 +94,7 @@ const EnhancedChatInterface = ({
       setMessages([]);
       // Reset to default prompts for new conversation
     }
-  }, [conversationId, isCreatingNewConversation]);
+  }, [conversationId, isCreatingNewConversation, isLoaded]);
 
   const loadMessages = async () => {
     if (!conversationId) return;
@@ -549,6 +556,15 @@ const EnhancedChatInterface = ({
     onTextSelect(text);
   };
 
+  // Don't render the interface until settings are loaded to prevent focus issues
+  if (!isLoaded) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center">
+        <div className="text-muted-foreground">Loading settings...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Messages Area - Scrollable */}
@@ -588,6 +604,7 @@ const EnhancedChatInterface = ({
       <div className="p-4 border-t bg-card flex-shrink-0">
         <div className="flex items-end space-x-2">
           <Textarea
+            ref={textareaRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
