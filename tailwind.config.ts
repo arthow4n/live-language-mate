@@ -64,14 +64,14 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				'chat-mate': {
-					DEFAULT: '#2563eb',
-					light: '#dbeafe',
-					dark: '#1d4ed8'
+					DEFAULT: '#16a34a',
+					light: '#dcfce7',
+					dark: '#15803d'
 				},
 				'editor-mate': {
-					DEFAULT: '#059669',
-					light: '#d1fae5',
-					dark: '#047857'
+					DEFAULT: '#ea580c',
+					light: '#fed7aa',
+					dark: '#c2410c'
 				},
 				'user': {
 					DEFAULT: '#6366f1',
