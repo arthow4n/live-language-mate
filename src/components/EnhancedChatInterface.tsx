@@ -434,9 +434,9 @@ const EnhancedChatInterface = ({
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.slice(6));
+              const data = JSON.parse(line.slice(6)) as { type: string; content?: string };
               
-              if (data.type === 'content') {
+              if (data.type === 'content' && typeof data.content === 'string') {
                 fullContent += data.content;
                 
                 // Update the streaming message with the new content
