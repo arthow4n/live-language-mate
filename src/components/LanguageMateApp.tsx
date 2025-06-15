@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -90,48 +89,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
     handleTextSelect(text, 'ask-interface');
   };
 
-  // Enhanced handler for conversation updates that includes title generation
-  const handleConversationUpdateWithTitleGeneration = async () => {
-    // Trigger sidebar refresh
-    setRefreshSidebar(prev => prev + 1);
-    
-    // Only proceed with title generation if we have a current conversation
-    if (!currentConversationId) return;
-    
-    // Get conversation messages to check if we should generate a title
-    try {
-      const { data: messages, error } = await supabase
-        .from('messages')
-        .select('message_type, content')
-        .eq('conversation_id', currentConversationId)
-        .order('created_at', { ascending: true });
-
-      if (error || !messages) {
-        console.error('Error fetching messages for title generation:', error);
-        return;
-      }
-
-      // Generate title after Editor Mate's first response (approximately after 3 messages: user, chat mate, editor mate)
-      if (messages.length === 3) {
-        // Convert messages to the format expected by title generator
-        const conversationHistory = messages.map(msg => ({
-          message_type: msg.message_type,
-          content: msg.content
-        }));
-
-        const newTitle = await generateChatTitle(conversationHistory, currentMainSettings.targetLanguage);
-        
-        if (newTitle && newTitle !== 'Chat') {
-          await updateConversationTitle(currentConversationId, newTitle);
-          // Refresh sidebar again to show the new title
-          setRefreshSidebar(prev => prev + 1);
-        }
-      }
-    } catch (error) {
-      console.error('Error in title generation process:', error);
-    }
-  };
-
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
@@ -174,7 +131,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                       user={user}
                       conversationId={currentConversationId}
                       targetLanguage={currentMainSettings.targetLanguage}
-                      onConversationUpdate={handleConversationUpdateWithTitleGeneration}
+                      onConversationUpdate={handleConversationUpdate}
                       onConversationCreated={setCurrentConversationId}
                       onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                     />
@@ -206,7 +163,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                   user={user}
                   conversationId={currentConversationId}
                   targetLanguage={currentMainSettings.targetLanguage}
-                  onConversationUpdate={handleConversationUpdateWithTitleGeneration}
+                  onConversationUpdate={handleConversationUpdate}
                   onConversationCreated={setCurrentConversationId}
                   onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                   onAskInterfaceOpen={() => setAskInterfaceOpen(true)}

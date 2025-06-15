@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from '@/contexts/SettingsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { generateChatTitle, updateConversationTitle } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
 
 interface Message {
@@ -49,6 +49,7 @@ const EnhancedChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewConversation, setIsCreatingNewConversation] = useState(false);
   const [componentReady, setComponentReady] = useState(false);
+  const [titleGenerated, setTitleGenerated] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -60,6 +61,46 @@ const EnhancedChatInterface = ({
   const mainSettings = isLoaded ? getMainSettings() : null;
   const chatMatePrompt = currentChatSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt = currentChatSettings?.editorMatePersonality || editorMatePrompt || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
+
+  // Check if we should generate a title
+  const shouldGenerateTitle = (messagesList: Message[]) => {
+    if (titleGenerated || !conversationId) return false;
+    
+    // Count messages by type
+    const userMessages = messagesList.filter(m => m.type === 'user').length;
+    const chatMateMessages = messagesList.filter(m => m.type === 'chat-mate').length;
+    const editorMateMessages = messagesList.filter(m => m.type === 'editor-mate').length;
+    
+    // Generate title after first complete round: 1 user, 1 chat-mate, 2 editor-mate (one for user, one for chat-mate)
+    return userMessages >= 1 && chatMateMessages >= 1 && editorMateMessages >= 2;
+  };
+
+  const generateAndUpdateTitle = async (messagesList: Message[]) => {
+    if (!conversationId || titleGenerated) return;
+    
+    try {
+      console.log('🏷️ Generating conversation title...');
+      
+      // Convert messages to the format expected by title generator
+      const conversationHistory = messagesList.map(msg => ({
+        message_type: msg.type,
+        content: msg.content
+      }));
+
+      const newTitle = await generateChatTitle(conversationHistory, targetLanguage);
+      
+      if (newTitle && newTitle !== 'Chat') {
+        const success = await updateConversationTitle(conversationId, newTitle);
+        if (success) {
+          console.log('✅ Title generated and updated:', newTitle);
+          setTitleGenerated(true);
+          onConversationUpdate();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error generating title:', error);
+    }
+  };
 
   // Mark component as ready when settings are loaded and ensure focus
   useEffect(() => {
@@ -114,9 +155,17 @@ const EnhancedChatInterface = ({
     } else if (!conversationId) {
       console.log('🆕 New conversation - clearing messages');
       setMessages([]);
+      setTitleGenerated(false); // Reset title generation flag for new conversation
       // Reset to default prompts for new conversation
     }
   }, [conversationId, isCreatingNewConversation, isLoaded]);
+
+  // Check for title generation when messages change
+  useEffect(() => {
+    if (shouldGenerateTitle(messages)) {
+      generateAndUpdateTitle(messages);
+    }
+  }, [messages, conversationId, titleGenerated]);
 
   const loadMessages = async () => {
     if (!conversationId) return;
@@ -140,6 +189,11 @@ const EnhancedChatInterface = ({
 
       console.log('📥 Loaded messages:', formattedMessages.length);
       setMessages(formattedMessages);
+      
+      // Check if title was already generated for this conversation
+      if (shouldGenerateTitle(formattedMessages)) {
+        setTitleGenerated(true); // Assume title was already generated if we have enough messages
+      }
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({
