@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Settings, MessageSquare } from 'lucide-react';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -232,14 +232,14 @@ const EnhancedChatInterface = ({
 
   const saveMessage = (message: Omit<Message, 'id' | 'timestamp'>, actualConversationId: string) => {
     try {
-      console.log('💾 Saving message to local storage:', message.type, message.content.substring(0, 50) + '...');
+      console.log('💾 Saving message to local storage:', message.type, message.content.substring(0, 50) + '...', 'Metadata:', message.metadata);
       const savedMessage = addMessage(actualConversationId, {
         content: message.content,
         type: message.type,
         parentMessageId: message.parentMessageId,
         metadata: message.metadata
       });
-      console.log('✅ Message saved successfully with ID:', savedMessage.id);
+      console.log('✅ Message saved successfully with ID:', savedMessage.id, 'Metadata:', savedMessage.metadata);
       return savedMessage;
     } catch (error) {
       console.error('Error saving message:', error);
