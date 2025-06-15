@@ -9,29 +9,36 @@ import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import AskInterface from './AskInterface';
 import UnifiedSettingsDialog from './UnifiedSettingsDialog';
+import { useSettings } from '@/contexts/SettingsContext';
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTheme } from '@/components/ThemeProvider';
 import { LocalConversation } from '@/services/localStorageService';
 
 const LanguageMateApp = () => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [mainSettingsOpen, setMainSettingsOpen] = useState(false);
+  const [globalSettingsOpen, setGlobalSettingsOpen] = useState(false);
   const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
   const [refreshSidebar, setRefreshSidebar] = useState(0);
   const [selectedText, setSelectedText] = useState('');
   const [selectionSource, setSelectionSource] = useState<'main-chat' | 'ask-interface'>('main-chat');
   const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
-  const [pendingChatSettings, setPendingChatSettings] = useState<any>(null);
   
-  const { settings, getConversation, updateSettings } = useLocalStorage();
+  const { globalSettings, updateGlobalSettings, getChatSettings, updateChatSettings, createChatSettings } = useSettings();
+  const { getConversation, updateSettings } = useLocalStorage();
+  const { setTheme } = useTheme();
   const isMobile = useIsMobile();
   
-  // Get current conversation settings
+  // Apply theme on load
+  useEffect(() => {
+    setTheme(globalSettings.theme);
+  }, [globalSettings.theme, setTheme]);
+  
+  // Get current conversation
   const currentConversation = currentConversationId ? getConversation(currentConversationId) : null;
 
   const handleConversationSelect = (conversationId: string) => {
     setCurrentConversationId(conversationId);
-    setPendingChatSettings(null); // Clear pending settings when selecting existing conversation
   };
 
   const handleNewConversation = () => {
@@ -42,23 +49,33 @@ const LanguageMateApp = () => {
     setRefreshSidebar(prev => prev + 1);
   };
 
-  const handleMainSettingsSave = (newSettings: any) => {
-    updateSettings(newSettings);
+  const handleConversationCreated = (conversationId: string) => {
+    setCurrentConversationId(conversationId);
+    // Create chat-specific settings from global defaults when a new conversation is created
+    createChatSettings(conversationId);
+  };
+
+  const handleGlobalSettingsSave = (newSettings: any) => {
+    updateGlobalSettings(newSettings);
+    // Also update the legacy settings format for backwards compatibility
+    updateSettings({
+      model: newSettings.model,
+      apiKey: newSettings.apiKey,
+      targetLanguage: newSettings.targetLanguage,
+      streaming: newSettings.streaming,
+      chatMatePersonality: newSettings.chatMatePersonality,
+      editorMatePersonality: newSettings.editorMatePersonality,
+      chatMateBackground: newSettings.chatMateBackground,
+      editorMateExpertise: newSettings.editorMateExpertise,
+      feedbackStyle: newSettings.feedbackStyle,
+      culturalContext: newSettings.culturalContext,
+      progressiveComplexity: newSettings.progressiveComplexity,
+    });
   };
 
   const handleChatSettingsSave = (chatSettings: any) => {
-    if (currentConversationId && currentConversation) {
-      // Update existing conversation
-      const updatedConversation: LocalConversation = {
-        ...currentConversation,
-        chat_mate_prompt: chatSettings.chatMatePersonality,
-        editor_mate_prompt: chatSettings.editorMatePersonality,
-        updated_at: new Date()
-      };
-      // This would need to be handled by the conversation update mechanism
-    } else {
-      // Store settings for new conversation
-      setPendingChatSettings(chatSettings);
+    if (currentConversationId) {
+      updateChatSettings(currentConversationId, chatSettings);
     }
   };
 
@@ -92,25 +109,17 @@ const LanguageMateApp = () => {
   };
 
   const getCurrentChatSettings = () => {
-    if (currentConversation) {
-      return {
-        chatMatePersonality: currentConversation.chat_mate_prompt || settings.chatMatePersonality,
-        editorMatePersonality: currentConversation.editor_mate_prompt || settings.editorMatePersonality,
-        chatMateBackground: settings.chatMateBackground,
-        editorMateExpertise: settings.editorMateExpertise,
-        feedbackStyle: settings.feedbackStyle,
-        culturalContext: settings.culturalContext,
-        progressiveComplexity: settings.progressiveComplexity,
-      };
+    if (currentConversationId) {
+      return getChatSettings(currentConversationId);
     }
-    return pendingChatSettings || {
-      chatMatePersonality: settings.chatMatePersonality,
-      editorMatePersonality: settings.editorMatePersonality,
-      chatMateBackground: settings.chatMateBackground,
-      editorMateExpertise: settings.editorMateExpertise,
-      feedbackStyle: settings.feedbackStyle,
-      culturalContext: settings.culturalContext,
-      progressiveComplexity: settings.progressiveComplexity,
+    return getChatSettings('default');
+  };
+
+  const getCombinedGlobalSettings = () => {
+    const chatDefaults = getChatSettings('default');
+    return {
+      ...globalSettings,
+      ...chatDefaults
     };
   };
 
@@ -122,10 +131,10 @@ const LanguageMateApp = () => {
           currentConversationId={currentConversationId}
           onConversationSelect={handleConversationSelect}
           onNewConversation={handleNewConversation}
-          targetLanguage={settings.targetLanguage}
+          targetLanguage={globalSettings.targetLanguage}
           refreshTrigger={refreshSidebar}
           onChatSettingsOpen={() => setChatSettingsOpen(true)}
-          onMainSettingsOpen={() => setMainSettingsOpen(true)}
+          onMainSettingsOpen={() => setGlobalSettingsOpen(true)}
         />
 
         {/* Main Content */}
@@ -153,9 +162,9 @@ const LanguageMateApp = () => {
                   >
                     <EnhancedChatInterface
                       conversationId={currentConversationId}
-                      targetLanguage={settings.targetLanguage}
+                      targetLanguage={globalSettings.targetLanguage}
                       onConversationUpdate={handleConversationUpdate}
-                      onConversationCreated={setCurrentConversationId}
+                      onConversationCreated={handleConversationCreated}
                       onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                     />
                   </ResizablePanel>
@@ -169,7 +178,7 @@ const LanguageMateApp = () => {
                   >
                     <AskInterface
                       selectedText={selectedText}
-                      targetLanguage={settings.targetLanguage}
+                      targetLanguage={globalSettings.targetLanguage}
                       editorMatePrompt={getCurrentChatSettings().editorMatePersonality}
                       onTextSelect={handleAskInterfaceTextSelect}
                       selectionSource={selectionSource}
@@ -184,9 +193,9 @@ const LanguageMateApp = () => {
               <div className="flex-1 min-w-0 h-full relative">
                 <EnhancedChatInterface
                   conversationId={currentConversationId}
-                  targetLanguage={settings.targetLanguage}
+                  targetLanguage={globalSettings.targetLanguage}
                   onConversationUpdate={handleConversationUpdate}
-                  onConversationCreated={setCurrentConversationId}
+                  onConversationCreated={handleConversationCreated}
                   onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                 />
 
@@ -199,7 +208,7 @@ const LanguageMateApp = () => {
                     <div className="flex-1 overflow-hidden">
                       <AskInterface
                         selectedText={selectedText}
-                        targetLanguage={settings.targetLanguage}
+                        targetLanguage={globalSettings.targetLanguage}
                         editorMatePrompt={getCurrentChatSettings().editorMatePersonality}
                         onClose={() => setAskInterfaceOpen(false)}
                         onTextSelect={handleAskInterfaceTextSelect}
@@ -214,13 +223,13 @@ const LanguageMateApp = () => {
           </div>
         </div>
 
-        {/* Main Settings Dialog */}
+        {/* Global Settings Dialog */}
         <UnifiedSettingsDialog
-          open={mainSettingsOpen}
-          onOpenChange={setMainSettingsOpen}
-          mode="main"
-          initialSettings={settings}
-          onSave={handleMainSettingsSave}
+          open={globalSettingsOpen}
+          onOpenChange={setGlobalSettingsOpen}
+          mode="global"
+          initialSettings={getCombinedGlobalSettings()}
+          onSave={handleGlobalSettingsSave}
         />
 
         {/* Chat Settings Dialog */}

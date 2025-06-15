@@ -1,10 +1,12 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface MainSettings {
+interface GlobalSettings {
   model: string;
   apiKey: string;
   targetLanguage: string;
   streaming: boolean;
+  theme: 'light' | 'dark' | 'system';
 }
 
 interface ChatSettings {
@@ -18,24 +20,26 @@ interface ChatSettings {
 }
 
 interface SettingsContextType {
-  mainSettings: MainSettings;
+  globalSettings: GlobalSettings;
   chatSettings: Record<string, ChatSettings>;
   isLoaded: boolean;
-  updateMainSettings: (newSettings: Partial<MainSettings>) => void;
+  updateGlobalSettings: (newSettings: Partial<GlobalSettings>) => void;
   updateChatSettings: (conversationId: string, newSettings: Partial<ChatSettings>) => void;
   getChatSettings: (conversationId: string) => ChatSettings;
-  getMainSettings: () => MainSettings;
+  getGlobalSettings: () => GlobalSettings;
+  createChatSettings: (conversationId: string) => ChatSettings;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [mainSettings, setMainSettings] = useState<MainSettings>({
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
     model: 'anthropic/claude-3-5-sonnet',
     apiKey: '',
     targetLanguage: 'swedish',
-    streaming: true
+    streaming: true,
+    theme: 'system'
   });
   const [chatSettings, setChatSettings] = useState<Record<string, ChatSettings>>({});
 
@@ -43,16 +47,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadAllSettings = () => {
       try {
-        // Load main settings
-        const savedMainSettings = localStorage.getItem('language-mate-main-settings');
-        if (savedMainSettings) {
-          const parsed = JSON.parse(savedMainSettings);
-          console.log('📱 Loaded main settings from localStorage:', {
+        // Load global settings
+        const savedGlobalSettings = localStorage.getItem('language-mate-global-settings');
+        if (savedGlobalSettings) {
+          const parsed = JSON.parse(savedGlobalSettings);
+          console.log('📱 Loaded global settings from localStorage:', {
             model: parsed.model,
             apiKey: parsed.apiKey ? 'Set' : 'Not set',
-            targetLanguage: parsed.targetLanguage
+            targetLanguage: parsed.targetLanguage,
+            theme: parsed.theme
           });
-          setMainSettings(parsed);
+          setGlobalSettings(prev => ({ ...prev, ...parsed }));
         }
 
         // Load chat settings
@@ -72,11 +77,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     loadAllSettings();
   }, []);
 
-  const updateMainSettings = (newSettings: Partial<MainSettings>) => {
-    setMainSettings(prev => {
+  const updateGlobalSettings = (newSettings: Partial<GlobalSettings>) => {
+    setGlobalSettings(prev => {
       const updatedSettings = { ...prev, ...newSettings };
-      localStorage.setItem('language-mate-main-settings', JSON.stringify(updatedSettings));
-      console.log('✨ Updated main settings:', updatedSettings);
+      localStorage.setItem('language-mate-global-settings', JSON.stringify(updatedSettings));
+      console.log('✨ Updated global settings:', updatedSettings);
       return updatedSettings;
     });
   };
@@ -88,35 +93,44 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         [conversationId]: { ...prev[conversationId], ...newSettings }
       };
       localStorage.setItem('language-mate-chat-settings', JSON.stringify(updatedSettings));
-       console.log(`✨ Updated chat settings for conversation ${conversationId}:`, updatedSettings[conversationId]);
+      console.log(`✨ Updated chat settings for conversation ${conversationId}:`, updatedSettings[conversationId]);
       return updatedSettings;
     });
   };
 
+  const getDefaultChatSettings = (): ChatSettings => ({
+    chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+    editorMatePersonality: 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+    chatMateBackground: 'young professional, loves local culture',
+    editorMateExpertise: '10+ years teaching experience',
+    feedbackStyle: 'encouraging',
+    culturalContext: true,
+    progressiveComplexity: true,
+  });
+
   const getChatSettings = (conversationId: string): ChatSettings => {
-    return chatSettings[conversationId] || {
-      chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
-      editorMatePersonality: 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
-      chatMateBackground: 'young professional, loves local culture',
-      editorMateExpertise: '10+ years teaching experience',
-      feedbackStyle: 'encouraging',
-      culturalContext: true,
-      progressiveComplexity: true,
-    };
+    return chatSettings[conversationId] || getDefaultChatSettings();
   };
 
-  const getMainSettings = (): MainSettings => {
-    return mainSettings;
+  const createChatSettings = (conversationId: string): ChatSettings => {
+    const defaultSettings = getDefaultChatSettings();
+    updateChatSettings(conversationId, defaultSettings);
+    return defaultSettings;
+  };
+
+  const getGlobalSettings = (): GlobalSettings => {
+    return globalSettings;
   };
 
   const value = {
-    mainSettings,
+    globalSettings,
     chatSettings,
     isLoaded,
-    updateMainSettings,
+    updateGlobalSettings,
     updateChatSettings,
     getChatSettings,
-    getMainSettings
+    getGlobalSettings,
+    createChatSettings
   };
 
   return (

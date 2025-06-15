@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useLocalStorage } from '@/contexts/LocalStorageContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Download, Upload, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -20,13 +20,21 @@ import {
 
 const DataManagementTab = () => {
   const [importFile, setImportFile] = useState<File | null>(null);
-  const { deleteAllChats, exportData, importData } = useLocalStorage();
+  const { globalSettings, chatSettings, updateGlobalSettings, updateChatSettings } = useSettings();
   const { toast } = useToast();
 
   const handleExportData = () => {
     try {
-      const data = exportData();
-      const blob = new Blob([data], { type: 'application/json' });
+      const exportData = {
+        version: "1.0.0",
+        exportDate: new Date().toISOString(),
+        globalSettings,
+        chatSettings,
+        // Include conversations from localStorage for backwards compatibility
+        conversations: JSON.parse(localStorage.getItem('language-mate-data') || '{"conversations": []}').conversations || []
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -61,38 +69,81 @@ const DataManagementTab = () => {
 
     try {
       const text = await importFile.text();
-      const success = importData(text);
+      const importedData = JSON.parse(text);
       
-      if (success) {
-        toast({
-          title: "Data imported",
-          description: "Your data has been successfully imported.",
-        });
-        setImportFile(null);
-        // Reset the file input
-        const fileInput = document.getElementById('import-file') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
+      // Handle different export formats for backwards compatibility
+      if (importedData.version) {
+        // New format with version
+        if (importedData.globalSettings) {
+          updateGlobalSettings(importedData.globalSettings);
+        }
+        if (importedData.chatSettings) {
+          Object.entries(importedData.chatSettings).forEach(([id, settings]) => {
+            updateChatSettings(id, settings as any);
+          });
+        }
+        // Handle conversations if present
+        if (importedData.conversations) {
+          const oldData = JSON.parse(localStorage.getItem('language-mate-data') || '{"conversations": [], "settings": {}}');
+          oldData.conversations = importedData.conversations;
+          localStorage.setItem('language-mate-data', JSON.stringify(oldData));
+        }
       } else {
-        toast({
-          title: "Import failed",
-          description: "The selected file contains invalid data.",
-          variant: "destructive",
-        });
+        // Legacy format - try to handle old exports
+        if (importedData.conversations && importedData.settings) {
+          // This is the old localStorageService format
+          localStorage.setItem('language-mate-data', JSON.stringify(importedData));
+          
+          // Try to migrate settings to new structure
+          const oldSettings = importedData.settings;
+          if (oldSettings) {
+            const newGlobalSettings = {
+              model: oldSettings.model || globalSettings.model,
+              apiKey: oldSettings.apiKey || globalSettings.apiKey,
+              targetLanguage: oldSettings.targetLanguage || globalSettings.targetLanguage,
+              streaming: oldSettings.streaming !== undefined ? oldSettings.streaming : globalSettings.streaming,
+              theme: oldSettings.theme || globalSettings.theme
+            };
+            updateGlobalSettings(newGlobalSettings);
+          }
+        }
       }
+      
+      toast({
+        title: "Data imported",
+        description: "Your data has been successfully imported.",
+      });
+      setImportFile(null);
+      // Reset the file input
+      const fileInput = document.getElementById('import-file') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
     } catch (error) {
       toast({
         title: "Import failed",
-        description: "There was an error reading the file.",
+        description: "The selected file contains invalid data or an unsupported format.",
         variant: "destructive",
       });
     }
   };
 
-  const handleDeleteAllChats = () => {
-    deleteAllChats();
+  const handleDeleteAllData = () => {
+    // Clear all settings
+    localStorage.removeItem('language-mate-global-settings');
+    localStorage.removeItem('language-mate-chat-settings');
+    localStorage.removeItem('language-mate-data');
+    
+    // Reset to defaults
+    updateGlobalSettings({
+      model: 'anthropic/claude-3-5-sonnet',
+      apiKey: '',
+      targetLanguage: 'swedish',
+      streaming: true,
+      theme: 'system'
+    });
+    
     toast({
-      title: "All chats deleted",
-      description: "All conversations have been permanently deleted.",
+      title: "All data deleted",
+      description: "All conversations and settings have been permanently deleted.",
     });
   };
 
@@ -107,7 +158,7 @@ const DataManagementTab = () => {
         <div>
           <h3 className="text-lg font-medium mb-2">Export Data</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Download all your conversations and settings as a JSON file.
+            Download all your conversations, settings, and preferences as a JSON file.
           </p>
           <Button onClick={handleExportData} className="w-full">
             <Download className="w-4 h-4 mr-2" />
@@ -118,7 +169,7 @@ const DataManagementTab = () => {
         <div>
           <h3 className="text-lg font-medium mb-2">Import Data</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Import conversations and settings from a previously exported JSON file.
+            Import conversations and settings from a previously exported JSON file. Supports both current and legacy formats.
           </p>
           <div className="space-y-2">
             <Label htmlFor="import-file">Select backup file</Label>
@@ -143,27 +194,27 @@ const DataManagementTab = () => {
         <div>
           <h3 className="text-lg font-medium mb-2 text-destructive">Danger Zone</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Permanently delete all conversations. This action cannot be undone.
+            Permanently delete all conversations and settings. This action cannot be undone.
           </p>
           
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full">
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete All Chats
+                Delete All Data
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete all your conversations and cannot be recovered.
+                  This action cannot be undone. This will permanently delete all your conversations, settings, and preferences.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteAllChats} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Yes, delete all chats
+                <AlertDialogAction onClick={handleDeleteAllData} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, delete everything
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

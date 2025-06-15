@@ -22,11 +22,12 @@ import {
 } from "@/components/ui/select";
 import ModelSelector from './ModelSelector';
 import DataManagementTab from './DataManagementTab';
+import UISettingsTab from './UISettingsTab';
 
 interface UnifiedSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: 'main' | 'chat';
+  mode: 'global' | 'chat';
   initialSettings: any;
   onSave: (settings: any) => void;
   conversationTitle?: string;
@@ -55,17 +56,32 @@ const UnifiedSettingsDialog = ({
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const isMainMode = mode === 'main';
+  const isGlobalMode = mode === 'global';
+
+  // Define which tabs to show based on mode
+  const tabs = [];
+  if (isGlobalMode) {
+    tabs.push(
+      { value: "general", label: "General" },
+      { value: "ui", label: "UI" },
+      { value: "personalities", label: "AI Personalities" },
+      { value: "data", label: "Data" }
+    );
+  } else {
+    tabs.push(
+      { value: "personalities", label: "AI Personalities" }
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {isMainMode ? 'Main Settings' : `Chat Settings - ${conversationTitle}`}
+            {isGlobalMode ? 'Settings' : `Chat Settings - ${conversationTitle}`}
           </DialogTitle>
           <DialogDescription>
-            {isMainMode 
+            {isGlobalMode 
               ? 'Configure your global application settings and AI model preferences.'
               : 'Customize the AI personalities and behaviors for this specific conversation.'
             }
@@ -73,15 +89,15 @@ const UnifiedSettingsDialog = ({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
-          <Tabs defaultValue={isMainMode ? "general" : "personalities"} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3">
-              {isMainMode && <TabsTrigger value="general">General</TabsTrigger>}
-              <TabsTrigger value="personalities">AI Personalities</TabsTrigger>
-              {isMainMode && <TabsTrigger value="data">Data</TabsTrigger>}
+          <Tabs defaultValue={tabs[0]?.value} className="h-full flex flex-col">
+            <TabsList className={`grid w-full ${tabs.length === 1 ? 'grid-cols-1' : `grid-cols-${tabs.length}`}`}>
+              {tabs.map(tab => (
+                <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+              ))}
             </TabsList>
 
             <div className="flex-1 overflow-y-auto mt-4">
-              {isMainMode && (
+              {isGlobalMode && (
                 <TabsContent value="general" className="space-y-6 mt-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
@@ -143,6 +159,15 @@ const UnifiedSettingsDialog = ({
                 </TabsContent>
               )}
 
+              {isGlobalMode && (
+                <TabsContent value="ui" className="mt-0">
+                  <UISettingsTab
+                    settings={settings}
+                    onSettingChange={handleSettingChange}
+                  />
+                </TabsContent>
+              )}
+
               <TabsContent value="personalities" className="space-y-6 mt-0">
                 <div className="space-y-6">
                   <div className="space-y-4">
@@ -169,7 +194,7 @@ const UnifiedSettingsDialog = ({
                     </div>
                   </div>
 
-                  {isMainMode && (
+                  {isGlobalMode && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
@@ -237,7 +262,7 @@ const UnifiedSettingsDialog = ({
                 </div>
               </TabsContent>
 
-              {isMainMode && (
+              {isGlobalMode && (
                 <TabsContent value="data" className="mt-0">
                   <DataManagementTab />
                 </TabsContent>
