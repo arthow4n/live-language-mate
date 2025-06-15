@@ -110,6 +110,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                 onConversationUpdate={handleConversationUpdate}
                 onConversationCreated={setCurrentConversationId}
                 onTextSelect={setSelectedText}
+                onChatSettingsOpen={() => setChatSettingsOpen(true)}
               />
             </div>
 

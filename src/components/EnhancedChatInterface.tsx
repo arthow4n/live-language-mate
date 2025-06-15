@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from '@/contexts/SettingsContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
-import ChatSettingsDialog from './ChatSettingsDialog';
 
 interface Message {
   id: string;
@@ -25,6 +24,7 @@ interface EnhancedChatInterfaceProps {
   onConversationUpdate: () => void;
   onConversationCreated: (id: string) => void;
   onTextSelect: (text: string) => void;
+  onChatSettingsOpen?: () => void;
 }
 
 const EnhancedChatInterface = ({ 
@@ -33,12 +33,12 @@ const EnhancedChatInterface = ({
   targetLanguage,
   onConversationUpdate,
   onConversationCreated,
-  onTextSelect
+  onTextSelect,
+  onChatSettingsOpen
 }: EnhancedChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { getChatSettings } = useSettings();
@@ -506,9 +506,11 @@ const EnhancedChatInterface = ({
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="icon" onClick={() => setShowSettings(true)}>
-              <Settings className="w-4 h-4" />
-            </Button>
+            {conversationId && onChatSettingsOpen && (
+              <Button variant="outline" size="icon" onClick={onChatSettingsOpen}>
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -568,16 +570,6 @@ const EnhancedChatInterface = ({
           </Button>
         </div>
       </div>
-
-      {/* Chat Settings Dialog */}
-      <ChatSettingsDialog
-        open={showSettings}
-        onOpenChange={setShowSettings}
-        chatMatePrompt={chatMatePrompt}
-        editorMatePrompt={editorMatePrompt}
-        onPromptsUpdate={() => {}}
-        targetLanguage={targetLanguage}
-      />
     </div>
   );
 };
