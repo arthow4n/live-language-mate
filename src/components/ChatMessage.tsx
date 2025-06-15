@@ -51,29 +51,29 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
       case 'user':
         return {
           container: 'ml-auto max-w-[80%]',
-          bubble: 'bg-user text-white',
-          avatar: 'bg-user text-white',
+          bubble: 'bg-primary text-primary-foreground',
+          avatar: 'bg-primary text-primary-foreground',
           icon: User
         };
       case 'chat-mate':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-chat-mate-light border border-chat-mate/20',
+          bubble: 'bg-chat-mate-light border border-chat-mate/20 dark:bg-chat-mate/10 dark:border-chat-mate/30',
           avatar: 'bg-chat-mate text-white',
           icon: MessageCircle
         };
       case 'editor-mate':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-editor-mate-light border border-editor-mate/20',
+          bubble: 'bg-editor-mate-light border border-editor-mate/20 dark:bg-editor-mate/10 dark:border-editor-mate/30',
           avatar: 'bg-editor-mate text-white',
           icon: GraduationCap
         };
       default:
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-gray-100',
-          avatar: 'bg-gray-500 text-white',
+          bubble: 'bg-muted',
+          avatar: 'bg-muted-foreground text-background',
           icon: MessageCircle
         };
     }
@@ -114,7 +114,7 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
         
         <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
           <div 
-            className="text-sm leading-relaxed select-text prose prose-sm max-w-none"
+            className="text-sm leading-relaxed select-text prose prose-sm max-w-none dark:prose-invert"
             onMouseUp={handleTextSelection}
           >
             <ReactMarkdown
@@ -125,7 +125,7 @@ const ChatMessage = ({ message, onTextSelect }: ChatMessageProps) => {
                 li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                 em: ({ children }) => <em className="italic">{children}</em>,
-                code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
               }}
             >
               {message.content}

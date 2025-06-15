@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
@@ -180,32 +181,32 @@ const AskInterface = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-background">
       {/* Header - only show when not in mobile drawer (onClose indicates mobile drawer) and not hideHeader */}
       {!onClose && !hideHeader && (
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="font-semibold flex items-center gap-2">
+            <h2 className="font-semibold flex items-center gap-2 text-foreground">
               <Search className="w-4 h-4" />
               Editor Mate
             </h2>
           </div>
           
           {/* Always visible selected text input */}
-          <div className="bg-gray-50 rounded-lg p-3 mb-3">
-            <p className="text-sm font-medium text-gray-700 mb-2">Selected text:</p>
+          <div className="bg-muted rounded-lg p-3 mb-3">
+            <p className="text-sm font-medium text-muted-foreground mb-2">Selected text:</p>
             <Input
               value={editableSelectedText}
               onChange={(e) => setEditableSelectedText(e.target.value)}
               placeholder="Enter or paste text you want to ask about..."
-              className="bg-white"
+              className="bg-background"
             />
           </div>
 
           {/* Quick Links */}
           {editableSelectedText && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Quick Tools
               </p>
               <div className="grid grid-cols-2 gap-1">
@@ -230,22 +231,22 @@ const AskInterface = ({
 
       {/* Mobile header - only show when in mobile drawer and not hideHeader */}
       {onClose && !hideHeader && (
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-border">
           {/* Always visible selected text input */}
-          <div className="bg-gray-50 rounded-lg p-3 mb-3">
-            <p className="text-sm font-medium text-gray-700 mb-2">Selected text:</p>
+          <div className="bg-muted rounded-lg p-3 mb-3">
+            <p className="text-sm font-medium text-muted-foreground mb-2">Selected text:</p>
             <Input
               value={editableSelectedText}
               onChange={(e) => setEditableSelectedText(e.target.value)}
               placeholder="Enter or paste text you want to ask about..."
-              className="bg-white"
+              className="bg-background"
             />
           </div>
 
           {/* Quick Links */}
           {editableSelectedText && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Quick Tools
               </p>
               <div className="grid grid-cols-2 gap-1">
@@ -273,11 +274,11 @@ const AskInterface = ({
         <div className="space-y-4" onMouseUp={handleTextSelection}>
           {conversation.length === 0 && (
             <div className="text-center py-8">
-              <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-              <p className="text-sm text-gray-500 mb-2">
+              <Search className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-sm text-muted-foreground mb-2">
                 Enter text above or select text from the chat to ask questions
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Or ask Editor Mate anything about {targetLanguage}!
               </p>
             </div>
@@ -286,21 +287,21 @@ const AskInterface = ({
           {conversation.map((msg) => (
             <div key={msg.id} className="space-y-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-medium">
+                <span className="text-xs font-medium text-foreground">
                   {msg.type === 'user' ? 'You' : 'Editor Mate'}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   {formatTime(msg.timestamp)}
                 </span>
               </div>
               <div
                 className={`p-3 rounded-lg ${
                   msg.type === 'user'
-                    ? 'bg-blue-50 border border-blue-200 ml-4'
-                    : 'bg-orange-50 border border-orange-200 mr-4'
+                    ? 'bg-primary text-primary-foreground ml-4'
+                    : 'bg-muted border border-border mr-4'
                 }`}
               >
-                <div className="text-sm prose prose-sm max-w-none">
+                <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
                   <ReactMarkdown
                     components={{
                       p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -309,7 +310,7 @@ const AskInterface = ({
                       li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                       strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                       em: ({ children }) => <em className="italic">{children}</em>,
-                      code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                      code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
                     }}
                   >
                     {msg.content}
@@ -329,7 +330,7 @@ const AskInterface = ({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-border">
         <div className="flex items-end gap-2">
           <Textarea
             value={question}
