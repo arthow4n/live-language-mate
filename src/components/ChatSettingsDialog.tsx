@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ interface ChatSettingsDialogProps {
   editorMatePrompt: string;
   onPromptsUpdate: (chatMate: string, editorMate: string) => void;
   targetLanguage: string;
+  isNewConversation?: boolean;
 }
 
 const ChatSettingsDialog = ({
@@ -26,10 +27,17 @@ const ChatSettingsDialog = ({
   chatMatePrompt,
   editorMatePrompt,
   onPromptsUpdate,
-  targetLanguage
+  targetLanguage,
+  isNewConversation = false
 }: ChatSettingsDialogProps) => {
   const [localChatMatePrompt, setLocalChatMatePrompt] = useState(chatMatePrompt);
   const [localEditorMatePrompt, setLocalEditorMatePrompt] = useState(editorMatePrompt);
+
+  // Update local state when props change
+  useEffect(() => {
+    setLocalChatMatePrompt(chatMatePrompt);
+    setLocalEditorMatePrompt(editorMatePrompt);
+  }, [chatMatePrompt, editorMatePrompt]);
 
   const handleSave = () => {
     onPromptsUpdate(localChatMatePrompt, localEditorMatePrompt);
@@ -48,9 +56,14 @@ const ChatSettingsDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Chat Settings</DialogTitle>
+          <DialogTitle>
+            {isNewConversation ? 'New Chat Settings' : 'Chat Settings'}
+          </DialogTitle>
           <DialogDescription>
-            Customize the personalities and behaviors of Chat Mate and Editor Mate for this conversation.
+            {isNewConversation 
+              ? 'Configure the personalities and behaviors for your new conversation before starting to chat.'
+              : 'Customize the personalities and behaviors of Chat Mate and Editor Mate for this conversation.'
+            }
           </DialogDescription>
         </DialogHeader>
 

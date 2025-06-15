@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -42,6 +41,7 @@ interface ChatSidebarProps {
   refreshTrigger?: number;
   onChatSettingsOpen: () => void;
   onMainSettingsOpen: () => void;
+  isNewConversation?: boolean;
 }
 
 const ChatSidebar = ({
@@ -53,6 +53,7 @@ const ChatSidebar = ({
   refreshTrigger = 0,
   onChatSettingsOpen,
   onMainSettingsOpen,
+  isNewConversation = false,
 }: ChatSidebarProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -204,6 +205,16 @@ const ChatSidebar = ({
           <Plus className="w-4 h-4 mr-2" />
           New Chat
         </Button>
+        {isNewConversation && (
+          <Button
+            variant="outline"
+            onClick={onChatSettingsOpen}
+            className="w-full justify-start mt-2"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Chat Settings
+          </Button>
+        )}
       </SidebarHeader>
 
       <SidebarContent>
