@@ -308,7 +308,7 @@ const EnhancedChatInterface = ({
         messageType = isUserComment ? 'editor-mate-user-comment' : 'editor-mate-chatmate-comment';
       }
 
-      const response = await callAI(userMessage, messageType, conversationHistory);
+      const response = await callAI(userMessage, messageType, conversationHistory, messageId);
 
       // Update the message in the database
       updateMessage(messageId, { content: response });
@@ -361,25 +361,33 @@ const EnhancedChatInterface = ({
             try {
               const data = JSON.parse(line.slice(6));
               
-              if (data.type === 'content') {
+              if (data.type === 'content' && data.content) {
                 fullContent += data.content;
                 
-                // Update message content in real-time
+                // Update message content immediately for word-by-word display
                 setMessages(prev => prev.map(msg => 
-                  msg.id === messageId ? { ...msg, content: fullContent, isStreaming: true } : msg
+                  msg.id === messageId ? { 
+                    ...msg, 
+                    content: fullContent, 
+                    isStreaming: true 
+                  } : msg
                 ));
               } else if (data.type === 'done') {
                 console.log('✅ Streaming completed for message:', messageId);
                 
                 // Mark streaming as complete
                 setMessages(prev => prev.map(msg => 
-                  msg.id === messageId ? { ...msg, content: fullContent, isStreaming: false } : msg
+                  msg.id === messageId ? { 
+                    ...msg, 
+                    content: fullContent, 
+                    isStreaming: false 
+                  } : msg
                 ));
                 
                 return fullContent;
               }
             } catch (e) {
-              console.error('Error parsing streaming data:', e);
+              console.error('Error parsing streaming data:', e, 'Line:', line);
             }
           }
         }
@@ -387,6 +395,15 @@ const EnhancedChatInterface = ({
     } finally {
       reader.releaseLock();
     }
+
+    // Ensure streaming is marked as complete even if we don't get a 'done' event
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId ? { 
+        ...msg, 
+        content: fullContent, 
+        isStreaming: false 
+      } : msg
+    ));
 
     return fullContent;
   };
@@ -431,8 +448,8 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAI = async (message: string, messageType: string, history: any[]) => {
-    console.log('🚀 Calling AI with streaming enabled');
+  const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string) => {
+    console.log('🚀 Calling AI with streaming enabled for message:', streamingMessageId);
 
     const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
       method: 'POST',
@@ -449,7 +466,6 @@ const EnhancedChatInterface = ({
         targetLanguage,
         model: settings.model,
         apiKey: settings.apiKey,
-        // Pass new advanced settings with defaults
         chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
         editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
         feedbackStyle: settings.feedbackStyle || 'encouraging',
@@ -467,8 +483,8 @@ const EnhancedChatInterface = ({
     // Check if the response is streaming
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
-      // Handle streaming response
-      return await handleStreamingResponse(response);
+      // Handle streaming response with messageId
+      return await handleStreamingResponse(response, streamingMessageId);
     } else {
       // Handle non-streaming response (fallback)
       const data = await response.json();
@@ -556,7 +572,7 @@ const EnhancedChatInterface = ({
 
       console.log('🔄 Processing AI responses for message:', currentInput);
 
-      // Create placeholder messages for streaming
+      // Create placeholder messages for streaming with empty content
       const editorUserTempId = `temp-${Date.now() + 1}`;
       const chatMateTempId = `temp-${Date.now() + 2}`;
       const editorChatMateTempId = `temp-${Date.now() + 3}`;
@@ -565,7 +581,7 @@ const EnhancedChatInterface = ({
       const editorUserMessage: Message = {
         id: editorUserTempId,
         type: 'editor-mate',
-        content: '',
+        content: '', // Start with empty content for streaming
         timestamp: new Date(),
         isStreaming: true,
         parentMessageId: savedUserMessage?.id || userMessage.id,
@@ -573,35 +589,12 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorUserMessage]);
 
-      const editorUserResponse = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
-        },
-        body: JSON.stringify({
-          message: currentInput,
-          messageType: 'editor-mate-user-comment',
-          conversationHistory: fullHistory,
-          chatMatePrompt,
-          editorMatePrompt: currentEditorMatePrompt,
-          targetLanguage,
-          model: settings.model,
-          apiKey: settings.apiKey,
-          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: settings.feedbackStyle || 'encouraging',
-          culturalContext: settings.culturalContext ?? true,
-          progressiveComplexity: settings.progressiveComplexity ?? true,
-          streaming: settings.streaming ?? true
-        })
-      });
-
-      if (!editorUserResponse.ok) {
-        throw new Error('Failed to get editor mate response');
-      }
-
-      const editorUserComment = await handleStreamingResponse(editorUserResponse, editorUserTempId);
+      const editorUserComment = await callAI(
+        currentInput,
+        'editor-mate-user-comment',
+        fullHistory,
+        editorUserTempId
+      );
       
       // Save the completed message
       const savedEditorUserMessage = saveMessage({
@@ -620,42 +613,19 @@ const EnhancedChatInterface = ({
       const chatMateMessage: Message = {
         id: chatMateTempId,
         type: 'chat-mate',
-        content: '',
+        content: '', // Start with empty content for streaming
         timestamp: new Date(),
         isStreaming: true,
       };
 
       setMessages(prev => [...prev, chatMateMessage]);
 
-      const chatMateResponse = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
-        },
-        body: JSON.stringify({
-          message: currentInput,
-          messageType: 'chat-mate-response',
-          conversationHistory: chatMateHistory,
-          chatMatePrompt,
-          editorMatePrompt: currentEditorMatePrompt,
-          targetLanguage,
-          model: settings.model,
-          apiKey: settings.apiKey,
-          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: settings.feedbackStyle || 'encouraging',
-          culturalContext: settings.culturalContext ?? true,
-          progressiveComplexity: settings.progressiveComplexity ?? true,
-          streaming: settings.streaming ?? true
-        })
-      });
-
-      if (!chatMateResponse.ok) {
-        throw new Error('Failed to get chat mate response');
-      }
-
-      const chatMateContent = await handleStreamingResponse(chatMateResponse, chatMateTempId);
+      const chatMateContent = await callAI(
+        currentInput,
+        'chat-mate-response',
+        chatMateHistory,
+        chatMateTempId
+      );
       
       // Save the completed message
       const savedChatMateMessage = saveMessage({
@@ -673,7 +643,7 @@ const EnhancedChatInterface = ({
       const editorChatMateMessage: Message = {
         id: editorChatMateTempId,
         type: 'editor-mate',
-        content: '',
+        content: '', // Start with empty content for streaming
         timestamp: new Date(),
         isStreaming: true,
         parentMessageId: savedChatMateMessage?.id || chatMateTempId,
@@ -681,35 +651,12 @@ const EnhancedChatInterface = ({
 
       setMessages(prev => [...prev, editorChatMateMessage]);
 
-      const editorChatMateResponse = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
-        },
-        body: JSON.stringify({
-          message: chatMateContent,
-          messageType: 'editor-mate-chatmate-comment',
-          conversationHistory: fullHistory,
-          chatMatePrompt,
-          editorMatePrompt: currentEditorMatePrompt,
-          targetLanguage,
-          model: settings.model,
-          apiKey: settings.apiKey,
-          chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
-          editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
-          feedbackStyle: settings.feedbackStyle || 'encouraging',
-          culturalContext: settings.culturalContext ?? true,
-          progressiveComplexity: settings.progressiveComplexity ?? true,
-          streaming: settings.streaming ?? true
-        })
-      });
-
-      if (!editorChatMateResponse.ok) {
-        throw new Error('Failed to get editor mate chat response');
-      }
-
-      const editorChatMateComment = await handleStreamingResponse(editorChatMateResponse, editorChatMateTempId);
+      const editorChatMateComment = await callAI(
+        chatMateContent,
+        'editor-mate-chatmate-comment',
+        fullHistory,
+        editorChatMateTempId
+      );
       
       // Save the completed message
       const savedEditorChatMateMessage = saveMessage({
