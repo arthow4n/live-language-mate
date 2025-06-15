@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -206,9 +205,10 @@ const AskInterface = ({
         const reader = response.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
+        let isStreamComplete = false;
 
         try {
-          while (true) {
+          while (true && !isStreamComplete) {
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -219,9 +219,11 @@ const AskInterface = ({
               if (line.startsWith('data: ')) {
                 const data = line.slice(6);
                 if (data === '[DONE]') {
+                  isStreamComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
                   
+                  // Final update with streaming complete
                   setConversation(prev => prev.map(msg => 
                     msg.id === editorMessageId 
                       ? { 
@@ -241,15 +243,15 @@ const AskInterface = ({
 
                 try {
                   const parsed = JSON.parse(data);
-                  if (parsed.content) {
+                  if (parsed.content && !isStreamComplete) {
                     accumulatedContent += parsed.content;
-                    // Force immediate state update for word-by-word rendering
+                    // Update content while maintaining streaming state
                     setConversation(prev => prev.map(msg => 
                       msg.id === editorMessageId 
                         ? { 
                             ...msg, 
                             content: accumulatedContent,
-                            isStreaming: true // Ensure streaming state is maintained
+                            isStreaming: true
                           }
                         : msg
                     ));
@@ -259,6 +261,9 @@ const AskInterface = ({
                 }
               }
             }
+            
+            // Exit outer loop if stream is complete
+            if (isStreamComplete) break;
           }
         } finally {
           reader.releaseLock();
