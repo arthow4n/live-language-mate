@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
 import { Settings, LogOut } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import AskInterface from './AskInterface';
@@ -53,6 +54,23 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
     }
   };
 
+  const handlePanelSizeChange = (sizes: number[]) => {
+    localStorage.setItem('languageMate_panelSizes', JSON.stringify(sizes));
+  };
+
+  const getDefaultPanelSizes = () => {
+    const saved = localStorage.getItem('languageMate_panelSizes');
+    if (saved) {
+      try {
+        const sizes = JSON.parse(saved);
+        return Array.isArray(sizes) && sizes.length === 2 ? sizes : [70, 30];
+      } catch {
+        return [70, 30];
+      }
+    }
+    return [70, 30];
+  };
+
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
@@ -72,8 +90,46 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
         <div className="flex-1 flex min-w-0 h-full">
           {/* Content Area - Chat + Ask Interface */}
           <div className="flex-1 flex overflow-hidden min-h-0">
-            {/* Chat Interface */}
-            <div className="flex-1 min-w-0 h-full">
+            {/* Desktop: Resizable panels for Chat and Ask Interface */}
+            <div className="hidden lg:flex flex-1 h-full">
+              <ResizablePanelGroup
+                direction="horizontal"
+                onLayout={handlePanelSizeChange}
+                className="h-full"
+              >
+                <ResizablePanel
+                  defaultSize={getDefaultPanelSizes()[0]}
+                  minSize={30}
+                  className="h-full"
+                >
+                  <EnhancedChatInterface
+                    user={user}
+                    conversationId={currentConversationId}
+                    targetLanguage={currentSettings.targetLanguage}
+                    onConversationUpdate={handleConversationUpdate}
+                    onConversationCreated={setCurrentConversationId}
+                    onTextSelect={setSelectedText}
+                  />
+                </ResizablePanel>
+                
+                <ResizableHandle withHandle />
+                
+                <ResizablePanel
+                  defaultSize={getDefaultPanelSizes()[1]}
+                  minSize={20}
+                  className="h-full bg-card border-l"
+                >
+                  <AskInterface
+                    selectedText={selectedText}
+                    targetLanguage={currentSettings.targetLanguage}
+                    editorMatePrompt={currentSettings.editorMatePersonality}
+                  />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </div>
+
+            {/* Mobile: Single column layout */}
+            <div className="lg:hidden flex-1 min-w-0 h-full">
               <EnhancedChatInterface
                 user={user}
                 conversationId={currentConversationId}
@@ -81,15 +137,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                 onConversationUpdate={handleConversationUpdate}
                 onConversationCreated={setCurrentConversationId}
                 onTextSelect={setSelectedText}
-              />
-            </div>
-
-            {/* Ask Interface - Desktop only */}
-            <div className="hidden lg:flex w-80 border-l bg-card h-full">
-              <AskInterface
-                selectedText={selectedText}
-                targetLanguage={currentSettings.targetLanguage}
-                editorMatePrompt={currentSettings.editorMatePersonality}
               />
             </div>
           </div>
