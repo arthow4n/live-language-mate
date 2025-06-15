@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 
 interface Conversation {
@@ -39,6 +39,7 @@ interface ChatSidebarProps {
   targetLanguage: string;
   refreshTrigger?: number;
   onChatSettingsOpen: () => void;
+  onMainSettingsOpen: () => void;
 }
 
 const ChatSidebar = ({
@@ -49,6 +50,7 @@ const ChatSidebar = ({
   targetLanguage,
   refreshTrigger = 0,
   onChatSettingsOpen,
+  onMainSettingsOpen,
 }: ChatSidebarProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -288,6 +290,17 @@ const ChatSidebar = ({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter>
+        <Button
+          variant="outline"
+          onClick={onMainSettingsOpen}
+          className="w-full justify-start"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Main Settings
+        </Button>
+      </SidebarFooter>
 
       {/* Rename Dialog */}
       <Dialog open={!!editingConversation} onOpenChange={() => setEditingConversation(null)}>

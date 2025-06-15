@@ -65,6 +65,7 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
           targetLanguage={currentSettings.targetLanguage}
           refreshTrigger={refreshSidebar}
           onChatSettingsOpen={() => setChatSettingsOpen(true)}
+          onMainSettingsOpen={() => setMainSettingsOpen(true)}
         />
 
         {/* Main Content */}
@@ -80,7 +81,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
                 onConversationUpdate={handleConversationUpdate}
                 onConversationCreated={setCurrentConversationId}
                 onTextSelect={setSelectedText}
-                onChatSettingsOpen={() => setChatSettingsOpen(true)}
               />
             </div>
 
@@ -116,17 +116,6 @@ const LanguageMateAppContent = ({ user }: LanguageMateAppProps) => {
             conversationTitle="Current Chat"
           />
         )}
-
-        {/* Floating Settings Button */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setMainSettingsOpen(true)}
-          className="fixed top-4 right-4 z-50 shadow-lg"
-          title="Main Settings"
-        >
-          <Settings className="w-4 h-4" />
-        </Button>
       </div>
     </SidebarProvider>
   );
