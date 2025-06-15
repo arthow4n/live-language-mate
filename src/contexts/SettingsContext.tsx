@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface GlobalSettings {
@@ -135,7 +134,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const getChatSettings = (conversationId: string): ChatSettings => {
-    return chatSettings[conversationId] || getDefaultChatSettings();
+    const baseSettings = chatSettings[conversationId] || getDefaultChatSettings();
+    // For reasoning, always take the value from global settings, as it's a global toggle.
+    // This ensures that toggling it in settings applies to all chats immediately.
+    return {
+      ...baseSettings,
+      enableReasoning: globalSettings.enableReasoning,
+      reasoningExpanded: globalSettings.reasoningExpanded,
+    };
   };
 
   const createChatSettings = (conversationId: string): ChatSettings => {

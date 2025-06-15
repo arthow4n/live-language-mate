@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -57,6 +56,21 @@ const EnhancedChatMessage = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const { globalSettings } = useSettings();
+
+  useEffect(() => {
+    if (message.type !== 'user') {
+        console.log('EnhancedChatMessage received message:', {
+        messageId: message.id,
+        messageType: message.type,
+        hasContent: !!message.content,
+        contentLength: message.content?.length || 0,
+        hasReasoning: !!message.reasoning,
+        reasoningLength: message.reasoning?.length || 0,
+        isStreaming: message.isStreaming,
+        globalReasoningEnabled: globalSettings.enableReasoning
+        });
+    }
+  }, [message, globalSettings.enableReasoning]);
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
