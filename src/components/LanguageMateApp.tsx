@@ -157,7 +157,6 @@ const LanguageMateApp = () => {
                       onConversationUpdate={handleConversationUpdate}
                       onConversationCreated={setCurrentConversationId}
                       onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
-                      pendingChatSettings={pendingChatSettings}
                     />
                   </ResizablePanel>
                   
@@ -189,10 +188,6 @@ const LanguageMateApp = () => {
                   onConversationUpdate={handleConversationUpdate}
                   onConversationCreated={setCurrentConversationId}
                   onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
-                  onAskInterfaceOpen={() => setAskInterfaceOpen(true)}
-                  selectedText={selectedText}
-                  editorMatePrompt={getCurrentChatSettings().editorMatePersonality}
-                  pendingChatSettings={pendingChatSettings}
                 />
 
                 {/* Editor Mate Drawer for Mobile */}
