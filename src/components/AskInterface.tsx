@@ -72,9 +72,9 @@ const AskInterface = ({
 
   const quickLinks = [
     {
-      name: 'Google Translate',
+      name: 'Google Quoted',
       icon: Globe,
-      url: (text: string) => `https://translate.google.com/?sl=auto&tl=en&text=${encodeURIComponent(text)}`
+      url: (text: string) => `https://www.google.com/search?q=${encodeURIComponent(`"${text}"`)}`
     },
     {
       name: 'Wiktionary',
