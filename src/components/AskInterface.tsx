@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Search, 
-  Send, 
-  ExternalLink, 
+import {
+  Search,
+  Send,
+  ExternalLink,
   Globe,
   Book,
   Play,
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message } from '@/types/Message';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/integrations/supabase/client';
 
 interface AskInterfaceProps {
   selectedText: string;
@@ -27,9 +28,9 @@ interface AskInterfaceProps {
   hideHeader?: boolean;
 }
 
-const AskInterface = ({ 
-  selectedText, 
-  onClose, 
+const AskInterface = ({
+  selectedText,
+  onClose,
   targetLanguage = 'Swedish',
   editorMatePrompt = 'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.',
   onTextSelect,
@@ -56,9 +57,8 @@ const AskInterface = ({
   useEffect(() => {
     if (selectedText && selectedText.trim()) {
       setEditableSelectedText(selectedText);
-      
-      // Only reset conversation if selection is from main chat OR there's no existing conversation
-      if (selectionSource === 'main-chat' || conversation.length === 0) {
+
+      if (selectionSource === 'main-chat') {
         const welcomeMessage: Message = {
           id: Date.now().toString(),
           type: 'editor-mate',
@@ -99,17 +99,17 @@ const AskInterface = ({
       content: msg.content
     }));
 
-    const contextMessage = editableSelectedText 
+    const contextMessage = editableSelectedText
       ? `The user has selected this text: "${editableSelectedText}". Answer their question about it: ${question}`
       : question;
 
     const startTime = Date.now();
-    
-    const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
+        'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
       },
       body: JSON.stringify({
         message: contextMessage,
@@ -179,25 +179,25 @@ const AskInterface = ({
 
     try {
       const { response, startTime, model } = await callEditorMateStreaming(currentQuestion);
-      
+
       if (typeof response === 'string') {
         // Non-streaming response
         const endTime = Date.now();
         const generationTime = endTime - startTime;
-        
-        setConversation(prev => prev.map(msg => 
-          msg.id === editorMessageId 
-            ? { 
-                ...msg, 
-                content: response, 
-                isStreaming: false,
-                metadata: {
-                  model,
-                  generationTime,
-                  startTime,
-                  endTime
-                }
+
+        setConversation(prev => prev.map(msg =>
+          msg.id === editorMessageId
+            ? {
+              ...msg,
+              content: response,
+              isStreaming: false,
+              metadata: {
+                model,
+                generationTime,
+                startTime,
+                endTime
               }
+            }
             : msg
         ));
       } else {
@@ -222,19 +222,19 @@ const AskInterface = ({
                   isStreamingComplete = true;
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
-                  
-                  setConversation(prev => prev.map(msg => 
-                    msg.id === editorMessageId 
-                      ? { 
-                          ...msg, 
-                          isStreaming: false,
-                          metadata: {
-                            model,
-                            generationTime,
-                            startTime,
-                            endTime
-                          }
+
+                  setConversation(prev => prev.map(msg =>
+                    msg.id === editorMessageId
+                      ? {
+                        ...msg,
+                        isStreaming: false,
+                        metadata: {
+                          model,
+                          generationTime,
+                          startTime,
+                          endTime
                         }
+                      }
                       : msg
                   ));
                   break;
@@ -244,13 +244,13 @@ const AskInterface = ({
                   const parsed = JSON.parse(data);
                   if (parsed.content && !isStreamingComplete) {
                     accumulatedContent += parsed.content;
-                    setConversation(prev => prev.map(msg => 
-                      msg.id === editorMessageId 
-                        ? { 
-                            ...msg, 
-                            content: accumulatedContent,
-                            isStreaming: true
-                          }
+                    setConversation(prev => prev.map(msg =>
+                      msg.id === editorMessageId
+                        ? {
+                          ...msg,
+                          content: accumulatedContent,
+                          isStreaming: true
+                        }
                         : msg
                     ));
                   }
@@ -259,7 +259,7 @@ const AskInterface = ({
                 }
               }
             }
-            
+
             if (isStreamingComplete) break;
           }
         } finally {
@@ -302,7 +302,7 @@ const AskInterface = ({
               Editor Mate
             </h2>
           </div>
-          
+
           {/* Always visible selected text input */}
           <div className="bg-muted rounded-lg p-3 mb-3">
             <p className="text-sm font-medium text-muted-foreground mb-2">Selected text:</p>
@@ -394,15 +394,15 @@ const AskInterface = ({
               </p>
             </div>
           )}
-          
+
           {conversation.map((msg) => (
             <EnhancedChatMessage
               key={msg.id}
               message={msg}
-              onTextSelect={onTextSelect || (() => {})}
+              onTextSelect={onTextSelect || (() => { })}
             />
           ))}
-          
+
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
@@ -419,8 +419,8 @@ const AskInterface = ({
             disabled={isLoading}
             rows={1}
           />
-          <Button 
-            size="icon" 
+          <Button
+            size="icon"
             onClick={handleSendQuestion}
             disabled={!question.trim() || isLoading}
             className="h-10 w-10 flex-shrink-0"

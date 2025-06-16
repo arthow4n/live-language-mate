@@ -8,7 +8,8 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { generateChatTitle, updateConversationTitle } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
-import { Message } from '@/types/Message';
+import { Message, MessageMetadata } from '@/types/Message';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/integrations/supabase/client';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string | null;
@@ -22,8 +23,8 @@ interface EnhancedChatInterfaceProps {
   editorMatePrompt?: string;
 }
 
-const EnhancedChatInterface = ({ 
-  conversationId, 
+const EnhancedChatInterface = ({
+  conversationId,
   targetLanguage,
   onConversationUpdate,
   onConversationCreated,
@@ -43,14 +44,14 @@ const EnhancedChatInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const { 
-    getConversation, 
-    createConversation, 
-    updateConversation, 
-    addMessage, 
-    getMessages, 
-    deleteMessage: deleteMessageFromStorage, 
-    updateMessage 
+  const {
+    getConversation,
+    createConversation,
+    updateConversation,
+    addMessage,
+    getMessages,
+    deleteMessage: deleteMessageFromStorage,
+    updateMessage
   } = useLocalStorage();
   const { getChatSettings, getGlobalSettings } = useSettings();
   const isMobile = useIsMobile();
@@ -59,35 +60,35 @@ const EnhancedChatInterface = ({
   const currentConversation = conversationId ? getConversation(conversationId) : null;
   const chatSettings = conversationId ? getChatSettings(conversationId) : null;
   const globalSettings = getGlobalSettings();
-  
+
   // Use chat-specific settings if available, otherwise fall back to global settings
   const effectiveModel = chatSettings?.model || globalSettings.model;
   const effectiveApiKey = chatSettings?.apiKey || globalSettings.apiKey;
-  
+
   const chatMatePrompt = currentConversation?.chat_mate_prompt || chatSettings?.chatMatePersonality || 'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt = currentConversation?.editor_mate_prompt || editorMatePrompt || chatSettings?.editorMatePersonality || 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   const shouldGenerateTitle = (messagesList: Message[], convId: string | null) => {
     if (!convId || titleGenerationProcessed.has(convId)) return false;
-    
+
     // Count messages by type
     const userMessages = messagesList.filter(m => m.type === 'user').length;
     const chatMateMessages = messagesList.filter(m => m.type === 'chat-mate').length;
     const editorMateMessages = messagesList.filter(m => m.type === 'editor-mate').length;
-    
+
     // Generate title after first complete round: 1 user, 1 chat-mate, 2 editor-mate (one for user, one for chat-mate)
     return userMessages >= 1 && chatMateMessages >= 1 && editorMateMessages >= 2;
   };
 
   const generateAndUpdateTitle = async (messagesList: Message[], convId: string) => {
     if (!convId || titleGenerationProcessed.has(convId)) return;
-    
+
     try {
       console.log('🏷️ Starting title generation for conversation:', convId);
-      
+
       // Mark this conversation as being processed to prevent duplicates
       setTitleGenerationProcessed(prev => new Set(prev).add(convId));
-      
+
       // Convert messages to the format expected by title generator
       const conversationHistory = messagesList.map(msg => ({
         message_type: msg.type,
@@ -95,7 +96,7 @@ const EnhancedChatInterface = ({
       }));
 
       const newTitle = await generateChatTitle(conversationHistory, targetLanguage);
-      
+
       if (newTitle && newTitle !== 'Chat') {
         const conversation = getConversation(convId);
         if (conversation) {
@@ -127,7 +128,7 @@ const EnhancedChatInterface = ({
     if (!componentReady) {
       console.log('🎯 Component ready, focusing textarea');
       setComponentReady(true);
-      
+
       // Use a small delay to ensure the textarea is fully rendered
       setTimeout(() => {
         if (textareaRef.current && !conversationId) {
@@ -156,6 +157,7 @@ const EnhancedChatInterface = ({
       setMessages([]);
       setTitleGenerationProcessed(new Set());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
   }, [conversationId, isCreatingNewConversation]);
 
   // Check for title generation when messages change - with better race condition handling
@@ -165,9 +167,10 @@ const EnhancedChatInterface = ({
       const timeoutId = setTimeout(() => {
         generateAndUpdateTitle(messages, conversationId);
       }, 500);
-      
+
       return () => clearTimeout(timeoutId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
   }, [messages, conversationId]);
 
   // Reset title generation tracking when conversation changes
@@ -204,7 +207,7 @@ const EnhancedChatInterface = ({
 
       console.log('📥 Loaded messages:', formattedMessages.length);
       setMessages(formattedMessages);
-      
+
       if (shouldGenerateTitle(formattedMessages, conversationId)) {
         setTitleGenerationProcessed(prev => new Set(prev).add(conversationId));
       }
@@ -240,7 +243,7 @@ const EnhancedChatInterface = ({
     try {
       deleteMessageFromStorage(messageId);
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
-      
+
       toast({
         title: "Success",
         description: "Message deleted",
@@ -263,7 +266,7 @@ const EnhancedChatInterface = ({
 
       // Get all messages from the selected message onwards (including the selected message)
       const messagesToDelete = messages.slice(messageIndex);
-      
+
       // Delete each message from storage
       messagesToDelete.forEach(msg => {
         deleteMessageFromStorage(msg.id);
@@ -271,7 +274,7 @@ const EnhancedChatInterface = ({
 
       // Update local state to remove all messages from the selected index onwards
       setMessages(prev => prev.slice(0, messageIndex));
-      
+
       toast({
         title: "Success",
         description: `Deleted ${messagesToDelete.length} message${messagesToDelete.length > 1 ? 's' : ''}`,
@@ -289,7 +292,7 @@ const EnhancedChatInterface = ({
   const editMessage = (messageId: string, newContent: string) => {
     try {
       updateMessage(messageId, { content: newContent });
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id === messageId ? { ...msg, content: newContent } : msg
       ));
 
@@ -337,7 +340,7 @@ const EnhancedChatInterface = ({
       if (message.type === 'chat-mate') {
         messageType = 'chat-mate-response';
       } else if (message.type === 'editor-mate') {
-        const isUserComment = message.parentMessageId && 
+        const isUserComment = message.parentMessageId &&
           messages.find(m => m.id === message.parentMessageId)?.type === 'user';
         messageType = isUserComment ? 'editor-mate-user-comment' : 'editor-mate-chatmate-comment';
       }
@@ -346,7 +349,7 @@ const EnhancedChatInterface = ({
 
       updateMessage(messageId, { content: response.content, reasoning: response.reasoning, metadata: response.metadata });
 
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id === messageId ? { ...msg, content: response.content, reasoning: response.reasoning, metadata: response.metadata } : msg
       ));
 
@@ -375,7 +378,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleStreamingResponse = async (response: Response, messageId: string, startTime: number): Promise<{ content: string; reasoning: string; metadata: any }> => {
+  const handleStreamingResponse = async (response: Response, messageId: string, startTime: number): Promise<{ content: string; reasoning: string; metadata: MessageMetadata }> => {
     if (!response.body) {
       throw new Error('No response body for streaming');
     }
@@ -389,27 +392,27 @@ const EnhancedChatInterface = ({
     try {
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
-        
+
         buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              
+
               if (data.type === 'content' && data.content) {
                 fullContent += data.content;
-                
-                setMessages(prev => prev.map(msg => 
-                  msg.id === messageId ? { 
-                    ...msg, 
-                    content: fullContent, 
-                    isStreaming: true 
+
+                setMessages(prev => prev.map(msg =>
+                  msg.id === messageId ? {
+                    ...msg,
+                    content: fullContent,
+                    isStreaming: true
                   } : msg
                 ));
               } else if (data.type === 'reasoning' && data.content) {
@@ -423,7 +426,7 @@ const EnhancedChatInterface = ({
                 ));
               } else if (data.type === 'done') {
                 console.log('✅ Streaming completed for message:', messageId);
-                
+
                 const endTime = Date.now();
                 const generationTime = endTime - startTime;
                 const metadata = {
@@ -433,16 +436,16 @@ const EnhancedChatInterface = ({
                   endTime
                 };
 
-                setMessages(prev => prev.map(msg => 
-                  msg.id === messageId ? { 
-                    ...msg, 
+                setMessages(prev => prev.map(msg =>
+                  msg.id === messageId ? {
+                    ...msg,
                     content: fullContent,
                     reasoning: reasoningContent,
                     isStreaming: false,
-                    metadata 
+                    metadata
                   } : msg
                 ));
-                
+
                 return { content: fullContent, reasoning: reasoningContent, metadata };
               }
             } catch (e) {
@@ -467,24 +470,24 @@ const EnhancedChatInterface = ({
     console.log('💾 Finalizing streaming message with metadata:', metadata);
 
     // Update local state with final content and metadata
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { 
-        ...msg, 
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? {
+        ...msg,
         content: fullContent,
         reasoning: reasoningContent,
         isStreaming: false,
-        metadata 
+        metadata
       } : msg
     ));
 
     // Ensure the metadata is persisted to storage after streaming completes
     setTimeout(() => {
       console.log('💾 Persisting metadata for message:', messageId);
-      updateMessage(messageId, { 
-        content: fullContent, 
+      updateMessage(messageId, {
+        content: fullContent,
         reasoning: reasoningContent,
         metadata,
-        isStreaming: false 
+        isStreaming: false
       });
     }, 100);
 
@@ -507,7 +510,7 @@ const EnhancedChatInterface = ({
 
       // Copy messages up to and including the selected message
       const messagesToCopy = messages.slice(0, messageIndex + 1);
-      
+
       for (const msg of messagesToCopy) {
         addMessage(newConversation.id, {
           content: msg.content,
@@ -534,7 +537,10 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const callAI = async (message: string, messageType: string, history: any[], streamingMessageId: string, signal: AbortSignal): Promise<{ content: string; reasoning: string | null; metadata: any }> => {
+  const callAI = async (message: string, messageType: string, history: {
+    role: string;
+    content: string;
+  }[], streamingMessageId: string, signal: AbortSignal): Promise<{ content: string; reasoning: string | null; metadata: MessageMetadata }> => {
     console.log('🚀 Calling AI with model:', effectiveModel);
 
     const startTime = Date.now();
@@ -551,11 +557,11 @@ const EnhancedChatInterface = ({
     });
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const response = await fetch(`https://ycjruxeyboafjlnurmdp.supabase.co/functions/v1/ai-chat`, {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljanJ1eGV5Ym9hZmpsbnVybWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5Mzg2NDQsImV4cCI6MjA2NTUxNDY0NH0.5gwYrvysirE3E4iFHuS8ekAvGUrtxgJPmZDyMtvQaMA`,
+        'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
       },
       body: JSON.stringify({
         message,
@@ -604,7 +610,7 @@ const EnhancedChatInterface = ({
   const createNewConversation = () => {
     try {
       console.log('🆕 Creating new conversation...');
-      
+
       const newConversation = createConversation({
         title: `${targetLanguage} Chat`, // Better initial title that will be replaced
         language: targetLanguage.toLowerCase(),
@@ -661,7 +667,7 @@ const EnhancedChatInterface = ({
     try {
       const savedUserMessage = saveMessage(userMessage, currentConversationId);
       if (savedUserMessage) {
-        setMessages(prev => prev.map(msg => 
+        setMessages(prev => prev.map(msg =>
           msg.id === userMessage.id ? { ...msg, id: savedUserMessage.id } : msg
         ));
       }
@@ -703,7 +709,7 @@ const EnhancedChatInterface = ({
         editorUserTempId,
         controller.signal
       );
-      
+
       const savedEditorUserMessage = saveMessage({
         type: 'editor-mate',
         content: editorUserResult.content,
@@ -713,14 +719,14 @@ const EnhancedChatInterface = ({
       }, currentConversationId);
 
       if (savedEditorUserMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === editorUserTempId ? { 
-            ...msg, 
-            id: savedEditorUserMessage.id, 
+        setMessages(prev => prev.map(msg =>
+          msg.id === editorUserTempId ? {
+            ...msg,
+            id: savedEditorUserMessage.id,
             isStreaming: false,
             content: editorUserResult.content,
             reasoning: editorUserResult.reasoning,
-            metadata: editorUserResult.metadata 
+            metadata: editorUserResult.metadata
           } : msg
         ));
       }
@@ -743,7 +749,7 @@ const EnhancedChatInterface = ({
         chatMateTempId,
         controller.signal
       );
-      
+
       const savedChatMateMessage = saveMessage({
         type: 'chat-mate',
         content: chatMateResult.content,
@@ -752,14 +758,14 @@ const EnhancedChatInterface = ({
       }, currentConversationId);
 
       if (savedChatMateMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === chatMateTempId ? { 
-            ...msg, 
-            id: savedChatMateMessage.id, 
+        setMessages(prev => prev.map(msg =>
+          msg.id === chatMateTempId ? {
+            ...msg,
+            id: savedChatMateMessage.id,
             isStreaming: false,
             content: chatMateResult.content,
             reasoning: chatMateResult.reasoning,
-            metadata: chatMateResult.metadata 
+            metadata: chatMateResult.metadata
           } : msg
         ));
       }
@@ -783,7 +789,7 @@ const EnhancedChatInterface = ({
         editorChatMateTempId,
         controller.signal
       );
-      
+
       const savedEditorChatMateMessage = saveMessage({
         type: 'editor-mate',
         content: editorChatMateResult.content,
@@ -793,14 +799,14 @@ const EnhancedChatInterface = ({
       }, currentConversationId);
 
       if (savedEditorChatMateMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === editorChatMateTempId ? { 
-            ...msg, 
-            id: savedEditorChatMateMessage.id, 
+        setMessages(prev => prev.map(msg =>
+          msg.id === editorChatMateTempId ? {
+            ...msg,
+            id: savedEditorChatMateMessage.id,
             isStreaming: false,
             content: editorChatMateResult.content,
             reasoning: editorChatMateResult.reasoning,
-            metadata: editorChatMateResult.metadata 
+            metadata: editorChatMateResult.metadata
           } : msg
         ));
       }
@@ -860,7 +866,7 @@ const EnhancedChatInterface = ({
             </p>
           </div>
         )}
-        
+
         {messages.map((message) => (
           <EnhancedChatMessage
             key={message.id}
@@ -873,14 +879,14 @@ const EnhancedChatInterface = ({
             onForkFrom={forkFromMessage}
           />
         ))}
-        
+
         {isLoading && (
           <div className="flex items-center space-x-2 text-muted-foreground mb-4">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Getting responses...</span>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 
