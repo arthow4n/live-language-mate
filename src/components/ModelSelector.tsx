@@ -55,7 +55,7 @@ const ModelSelector = ({ value, onValueChange, placeholder = "Select model..." }
       try {
         console.log('Fetching models from backend...');
         const { data, error } = await supabase.functions.invoke('fetch-models');
-        
+
         if (error) {
           console.error('Error fetching models:', error);
           throw error;
@@ -88,7 +88,7 @@ const ModelSelector = ({ value, onValueChange, placeholder = "Select model..." }
   const selectedModel = models.find(model => model.id === value);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
