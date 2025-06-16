@@ -15,7 +15,7 @@ interface ChatSettings {
   // AI Personalities
   chatMatePersonality: string;
   editorMatePersonality: string;
-  
+
   // General settings that can be overridden per chat
   model: string;
   apiKey: string;
@@ -23,7 +23,7 @@ interface ChatSettings {
   streaming: boolean;
   enableReasoning: boolean;
   reasoningExpanded: boolean;
-  
+
   // Advanced settings
   chatMateBackground: string;
   editorMateExpertise: string;
@@ -50,7 +50,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
     model: 'anthropic/claude-3-5-sonnet',
     apiKey: '',
-    targetLanguage: 'swedish',
+    targetLanguage: 'Swedish',
     streaming: true,
     theme: 'system',
     enableReasoning: true,
@@ -121,11 +121,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     streaming: globalSettings.streaming,
     enableReasoning: globalSettings.enableReasoning,
     reasoningExpanded: globalSettings.reasoningExpanded,
-    
+
     // AI personalities
     chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
     editorMatePersonality: 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
-    
+
     // Advanced settings
     chatMateBackground: 'young professional, loves local culture',
     editorMateExpertise: '10+ years teaching experience',
