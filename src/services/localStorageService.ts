@@ -70,7 +70,7 @@ class LocalStorageService {
         culturalContext: true,
         progressiveComplexity: true,
         enableReasoning: true,
-        reasoningExpanded: true,
+        reasoningExpanded: false,
       },
     };
   }
