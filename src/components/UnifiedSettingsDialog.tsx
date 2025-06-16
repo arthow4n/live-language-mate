@@ -73,7 +73,7 @@ const UnifiedSettingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {isGlobalMode ? "Settings" : `Chat Settings - ${conversationTitle}`}
@@ -85,7 +85,7 @@ const UnifiedSettingsDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           <Tabs defaultValue="general" className="h-full flex flex-col">
             <TabsList
               className="grid w-full grid-cols-2 lg:grid-cols-4"
@@ -165,6 +165,20 @@ const UnifiedSettingsDialog = ({
                       />
                     </div>
 
+                    <div className="space-y-4">
+                      <div>
+                        <Label>AI Model</Label>
+                        <div>
+                          <ModelSelector
+                            value={settings.model}
+                            onValueChange={(value) =>
+                              handleSettingChange("model", value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="streaming"
@@ -177,19 +191,34 @@ const UnifiedSettingsDialog = ({
                         Enable streaming responses
                       </Label>
                     </div>
-                  </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label>AI Model</Label>
-                      <ModelSelector
-                        value={settings.model}
-                        onValueChange={(value) =>
-                          handleSettingChange("model", value)
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="enableReasoning"
+                        checked={settings.streaming}
+                        onCheckedChange={(checked) =>
+                          handleSettingChange("enableReasoning", checked)
                         }
                       />
+                      <Label htmlFor="enableReasoning">
+                        Enable reasoning tokens
+                      </Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="reasoningExpanded"
+                        checked={settings.streaming}
+                        onCheckedChange={(checked) =>
+                          handleSettingChange("reasoningExpanded", checked)
+                        }
+                      />
+                      <Label htmlFor="reasoningExpanded">
+                        Reasoning expanded by default
+                      </Label>
                     </div>
                   </div>
+
                 </div>
 
                 {/* Advanced Settings - available in both modes */}
