@@ -195,7 +195,7 @@ const UnifiedSettingsDialog = ({
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="enableReasoning"
-                        checked={settings.streaming}
+                        checked={settings.enableReasoning}
                         onCheckedChange={(checked) =>
                           handleSettingChange("enableReasoning", checked)
                         }
@@ -208,7 +208,7 @@ const UnifiedSettingsDialog = ({
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="reasoningExpanded"
-                        checked={settings.streaming}
+                        checked={settings.reasoningExpanded}
                         onCheckedChange={(checked) =>
                           handleSettingChange("reasoningExpanded", checked)
                         }
