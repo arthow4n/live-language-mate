@@ -114,6 +114,8 @@ ${
     : ""
 }
 
+You should not respond to the user's message, instead you should you should just give the feedback.
+
 Keep your feedback ${feedbackStyle} and encouraging.${dateTimeContext}`;
     } else if (messageType === "editor-mate-chatmate-comment") {
       systemPrompt = `You are an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker.
