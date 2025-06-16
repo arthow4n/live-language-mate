@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useSettings } from '@/contexts/SettingsContext';
+import { getDefaultGlobalSettings, useSettings } from '@/contexts/SettingsContext';
 import { Download, Upload, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -33,7 +33,7 @@ const DataManagementTab = () => {
         // Include conversations from localStorage for backwards compatibility
         conversations: JSON.parse(localStorage.getItem('language-mate-data') || '{"conversations": []}').conversations || []
       };
-      
+
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -43,7 +43,7 @@ const DataManagementTab = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Data exported",
         description: "Your data has been successfully exported as a JSON file.",
@@ -70,7 +70,7 @@ const DataManagementTab = () => {
     try {
       const text = await importFile.text();
       const importedData = JSON.parse(text);
-      
+
       // Handle different export formats for backwards compatibility
       if (importedData.version) {
         // New format with version
@@ -93,7 +93,7 @@ const DataManagementTab = () => {
         if (importedData.conversations && importedData.settings) {
           // This is the old localStorageService format
           localStorage.setItem('language-mate-data', JSON.stringify(importedData));
-          
+
           // Try to migrate settings to new structure
           const oldSettings = importedData.settings;
           if (oldSettings) {
@@ -108,7 +108,7 @@ const DataManagementTab = () => {
           }
         }
       }
-      
+
       toast({
         title: "Data imported",
         description: "Your data has been successfully imported.",
@@ -131,16 +131,10 @@ const DataManagementTab = () => {
     localStorage.removeItem('language-mate-global-settings');
     localStorage.removeItem('language-mate-chat-settings');
     localStorage.removeItem('language-mate-data');
-    
+
     // Reset to defaults
-    updateGlobalSettings({
-      model: 'anthropic/claude-3-5-sonnet',
-      apiKey: '',
-      targetLanguage: 'swedish',
-      streaming: true,
-      theme: 'system'
-    });
-    
+    updateGlobalSettings(getDefaultGlobalSettings());
+
     toast({
       title: "All data deleted",
       description: "All conversations and settings have been permanently deleted.",
@@ -180,8 +174,8 @@ const DataManagementTab = () => {
               onChange={handleFileChange}
               className="cursor-pointer"
             />
-            <Button 
-              onClick={handleImportData} 
+            <Button
+              onClick={handleImportData}
               disabled={!importFile}
               className="w-full"
             >
@@ -196,7 +190,7 @@ const DataManagementTab = () => {
           <p className="text-sm text-muted-foreground mb-4">
             Permanently delete all conversations and settings. This action cannot be undone.
           </p>
-          
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full">

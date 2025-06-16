@@ -45,9 +45,8 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
+export const getDefaultGlobalSettings = (): GlobalSettings => {
+  return {
     model: 'anthropic/claude-sonnet-4',
     apiKey: '',
     targetLanguage: 'Swedish',
@@ -55,7 +54,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     theme: 'system',
     enableReasoning: true,
     reasoningExpanded: true,
-  });
+  }
+}
+
+export const SettingsProvider = ({ children }: { children: ReactNode }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(getDefaultGlobalSettings());
   const [chatSettings, setChatSettings] = useState<Record<string, ChatSettings>>({});
 
   // Load settings once on mount

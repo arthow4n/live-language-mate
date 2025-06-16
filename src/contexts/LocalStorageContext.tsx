@@ -53,7 +53,7 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     const newConversation: LocalConversation = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substring(2)}`,
       title: data.title || 'New Chat',
-      language: data.language || 'swedish',
+      language: data.language || 'Swedish',
       ai_mode: data.ai_mode || 'dual',
       chat_mate_prompt: data.chat_mate_prompt,
       editor_mate_prompt: data.editor_mate_prompt,
@@ -61,7 +61,7 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
       updated_at: new Date(),
       messages: []
     };
-    
+
     localStorageService.saveConversation(newConversation);
     refreshConversations();
     return newConversation;
