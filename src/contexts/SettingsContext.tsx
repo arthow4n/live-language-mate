@@ -47,7 +47,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 export const getDefaultGlobalSettings = (): GlobalSettings => {
   return {
-    model: 'anthropic/claude-sonnet-4',
+    model: 'google/gemini-2.5-flash-preview-05-20:thinking',
     apiKey: '',
     targetLanguage: 'Swedish',
     streaming: true,
