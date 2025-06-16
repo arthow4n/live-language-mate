@@ -73,6 +73,13 @@ serve(async (req) => {
         : "";
 
     let systemPrompt = "";
+    const editorMateChatMateCommentScenarioContext = `In the conversation history, there are three people:
+- the user, who is talking with [chat-mate].
+- [chat-mate], which is the person talking with the user.
+- [editor-mate], which is you.
+`;
+    const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the user is talking with [chat-mate], you should not reply to the user like [chat-mate] would do.
+`;
 
     if (messageType === "chat-mate-response") {
       systemPrompt = `You are a friendly native speaker of ${targetLanguage}. ${
@@ -94,6 +101,29 @@ ${
     ? `Gradually increase complexity based on the user's demonstrated language level.`
     : ""
 }${dateTimeContext}`;
+    } else if (messageType === "editor-mate-response") {
+      // For Editor Mate chat panel
+      systemPrompt = `You are an experienced ${targetLanguage} language teacher. ${
+        editorMatePrompt || "You provide helpful feedback on language use."
+      } 
+
+Expertise: ${editorMateExpertise}
+Feedback style: ${feedbackStyle}
+
+Review the user's message and provide constructive feedback. If the message is well-written, just give a thumbs up 👍. If there are improvements to suggest, provide:
+1. Corrections for any grammatical errors
+2. Better word choices if applicable  
+3. More natural expressions
+4. Cultural context if relevant
+
+${
+  culturalContext
+    ? `Include cultural context in your feedback when relevant.`
+    : ""
+}
+
+Keep your feedback ${feedbackStyle} and encouraging.${dateTimeContext}
+`;
     } else if (messageType === "editor-mate-user-comment") {
       systemPrompt = `You are an experienced ${targetLanguage} language teacher. ${
         editorMatePrompt || "You provide helpful feedback on language use."
@@ -114,15 +144,18 @@ ${
     : ""
 }
 
-You should not respond to the user's message, instead you should you should just give the feedback.
+Keep your feedback ${feedbackStyle} and encouraging.
 
-Keep your feedback ${feedbackStyle} and encouraging.${dateTimeContext}`;
+${editorMateUserCommentScenarioContext}${dateTimeContext}
+`;
     } else if (messageType === "editor-mate-chatmate-comment") {
       systemPrompt = `You are an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker.
 
 As if you were the student, provide a natural response to the chat mate's message in ${targetLanguage}. Then optionally add any helpful language notes about the chat mate's message if there are interesting expressions or cultural references worth explaining.
 
-Keep responses natural and conversational.${dateTimeContext}`;
+Keep responses natural and conversational.
+
+${editorMateChatMateCommentScenarioContext}${dateTimeContext}`;
     }
 
     const messages = [

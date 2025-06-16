@@ -117,7 +117,7 @@ const AskInterface = ({
       },
       body: JSON.stringify({
         message: contextMessage,
-        messageType: 'editor-mate-user-comment',
+        messageType: 'editor-mate-response',
         conversationHistory,
         editorMatePrompt,
         targetLanguage,
