@@ -6,7 +6,8 @@ import {
 
 export const generateChatTitle = async (
   conversationHistory: Array<{ message_type: string; content: string }>,
-  targetLanguage: string
+  targetLanguage: string,
+  model: string
 ): Promise<string> => {
   try {
     // Get the first few messages to understand the conversation context
@@ -31,8 +32,8 @@ export const generateChatTitle = async (
         messageType: "title-generation",
         conversationHistory: [],
         targetLanguage,
-        model: "anthropic/claude-3-5-sonnet", // Use a reliable model for title generation
-        streaming: false, // Disable streaming for title generation
+        model,
+        streaming: false,
       }),
     });
 

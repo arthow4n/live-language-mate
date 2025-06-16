@@ -95,7 +95,7 @@ const EnhancedChatInterface = ({
         content: msg.content
       }));
 
-      const newTitle = await generateChatTitle(conversationHistory, targetLanguage);
+      const newTitle = await generateChatTitle(conversationHistory, targetLanguage, effectiveModel);
 
       if (newTitle && newTitle !== 'Chat') {
         const conversation = getConversation(convId);
