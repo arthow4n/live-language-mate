@@ -23,17 +23,17 @@ const LanguageMateApp = () => {
   const [selectedText, setSelectedText] = useState('');
   const [selectionSource, setSelectionSource] = useState<'main-chat' | 'ask-interface'>('main-chat');
   const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
-  
+
   const { globalSettings, updateGlobalSettings, getChatSettings, updateChatSettings, createChatSettings } = useSettings();
   const { getConversation, updateSettings } = useLocalStorage();
   const { setTheme } = useTheme();
   const isMobile = useIsMobile();
-  
+
   // Apply theme on load
   useEffect(() => {
     setTheme(globalSettings.theme);
   }, [globalSettings.theme, setTheme]);
-  
+
   // Get current conversation
   const currentConversation = currentConversationId ? getConversation(currentConversationId) : null;
 
@@ -136,7 +136,7 @@ const LanguageMateApp = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-screen flex w-full bg-background overflow-hidden">
+      <div className="h-dvh flex w-full bg-background overflow-hidden">
         {/* Chat Sidebar */}
         <ChatSidebar
           currentConversationId={currentConversationId}
@@ -156,7 +156,7 @@ const LanguageMateApp = () => {
               <SidebarTrigger className="mr-2" />
               <h1 className="text-lg font-semibold">Live Language Mate</h1>
             </div>
-            
+
             {/* Editor Mate Toggle Button - visible on mobile */}
             {isMobile && (
               <Button
@@ -194,9 +194,9 @@ const LanguageMateApp = () => {
                       onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
                     />
                   </ResizablePanel>
-                  
+
                   <ResizableHandle withHandle />
-                  
+
                   <ResizablePanel
                     defaultSize={getDefaultPanelSizes()[1]}
                     minSize={20}
