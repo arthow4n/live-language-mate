@@ -126,6 +126,16 @@ const DataManagementTab = () => {
     }
   };
 
+
+  const handleDeleteAllChats = () => {
+    localStorage.removeItem('language-mate-data');
+
+    toast({
+      title: "All chats deleted",
+      description: "All conversations have been permanently deleted.",
+    });
+  };
+
   const handleDeleteAllData = () => {
     // Clear all settings
     localStorage.removeItem('language-mate-global-settings');
@@ -195,6 +205,28 @@ const DataManagementTab = () => {
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full">
                 <Trash2 className="w-4 h-4 mr-2" />
+                Delete All Chats
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete all your conversations, settings, and preferences.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAllChats} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, delete all chats
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full">
+                <Trash2 className="w-4 h-4 mr-2" />
                 Delete All Data
               </Button>
             </AlertDialogTrigger>
@@ -208,7 +240,7 @@ const DataManagementTab = () => {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteAllData} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Yes, delete everything
+                  Yes, delete all data
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
