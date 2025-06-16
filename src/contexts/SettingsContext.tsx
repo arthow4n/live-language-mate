@@ -48,7 +48,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
-    model: 'anthropic/claude-3-5-sonnet',
+    model: 'anthropic/claude-sonnet-4',
     apiKey: '',
     targetLanguage: 'Swedish',
     streaming: true,
