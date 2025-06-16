@@ -49,9 +49,13 @@ const AskInterface = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Don't scroll agressively as the messages come.
+  // The output from Chat Mate and Editor Mate is often long,
+  // so we should keep the scroll position to let the user scroll themself and read.
+  const lastUserMessageId = conversation.slice().reverse().find(m => m.type === 'user')?.id;
   useEffect(() => {
     scrollToBottom();
-  }, [conversation]);
+  }, [lastUserMessageId]);
 
   // Update editable selected text when selectedText prop changes
   useEffect(() => {
