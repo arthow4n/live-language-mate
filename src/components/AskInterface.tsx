@@ -99,8 +99,9 @@ const AskInterface = ({
 
   const callEditorMateStreaming = async (question: string) => {
     const conversationHistory = conversation.map(msg => ({
-      role: msg.type === 'user' ? 'user' : 'assistant',
-      content: msg.content
+      // Always send as user to prevent the assistant from misunderstanding its role.
+      role: 'user',
+      content: `[${msg.type}]: ${msg.content}`
     }));
 
     const contextMessage = editableSelectedText

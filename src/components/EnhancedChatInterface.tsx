@@ -336,8 +336,9 @@ const EnhancedChatInterface = ({
 
       const historyMessages = messages.slice(0, messageIndex);
       const conversationHistory = historyMessages.map(msg => ({
-        role: msg.type === 'user' ? 'user' : 'assistant',
-        content: msg.type === 'user' ? msg.content : `[${msg.type}]: ${msg.content}`
+        // Always send as user to prevent the assistant from misunderstanding its role.
+        role: 'user',
+        content: `[${msg.type}]: ${msg.content}`,
       }));
 
       let messageType = '';
@@ -679,12 +680,14 @@ const EnhancedChatInterface = ({
       const chatMateHistory = messages
         .filter(msg => msg.type === 'user' || msg.type === 'chat-mate')
         .map(msg => ({
-          role: msg.type === 'user' ? 'user' : 'assistant',
-          content: msg.content
+          // Always send as user to prevent the assistant from misunderstanding its role.
+          role: 'user',
+          content: `[${msg.type}]: ${msg.content}`
         }));
 
       const fullHistory = messages.map(msg => ({
-        role: msg.type === 'user' ? 'user' : 'assistant',
+        // Always send as user to prevent the assistant from misunderstanding its role.
+        role: 'user',
         content: `[${msg.type}]: ${msg.content}`
       }));
 
