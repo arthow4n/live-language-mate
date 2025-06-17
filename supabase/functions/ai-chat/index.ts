@@ -103,9 +103,9 @@ ${
 }`;
     } else if (messageType === "editor-mate-response") {
       // For Editor Mate chat panel
-      systemPrompt = `You are an experienced ${targetLanguage} language teacher. ${
+      systemPrompt = `You are an experienced ${targetLanguage} language teacher. The user is your student. ${
         editorMatePrompt || "You provide helpful feedback on language use."
-      } 
+      }
 
 Expertise: ${editorMateExpertise}
 Feedback style: ${feedbackStyle}
@@ -125,7 +125,7 @@ ${
 Keep your feedback ${feedbackStyle} and encouraging.
 `;
     } else if (messageType === "editor-mate-user-comment") {
-      systemPrompt = `You are an experienced ${targetLanguage} language teacher. ${
+      systemPrompt = `You are an experienced ${targetLanguage} language teacher. The user is your student. ${
         editorMatePrompt || "You provide helpful feedback on language use."
       } 
 
@@ -149,9 +149,9 @@ Keep your feedback ${feedbackStyle} and encouraging.
 ${editorMateUserCommentScenarioContext}
 `;
     } else if (messageType === "editor-mate-chatmate-comment") {
-      systemPrompt = `You are an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker.
+      systemPrompt = `You are an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The user is your student.
 
-As if you were the student, provide a natural response to the chat mate's message in ${targetLanguage}. Then optionally add any helpful language notes about the chat mate's message if there are interesting expressions or cultural references worth explaining.
+As if you were the student, provide a natural response to the [chat-mate]'s message in ${targetLanguage}. Then optionally add any helpful language notes about the [chat-mate]'s message if there are interesting expressions or cultural references worth explaining.
 
 Keep responses natural and conversational.
 
