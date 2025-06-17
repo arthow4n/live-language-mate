@@ -100,7 +100,10 @@ ${
   progressiveComplexity
     ? `Gradually increase complexity based on the user's demonstrated language level.`
     : ""
-}`;
+}
+
+Do not begin your response with "[chat-mate]: ", just respond as if you are [chat-mate].
+`;
     } else if (messageType === "editor-mate-response") {
       // For Editor Mate chat panel
       systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
@@ -118,6 +121,7 @@ ${
 
 Keep your feedback ${feedbackStyle} and encouraging.
 
+Do not begin your response with "[editor-mate]: ", just respond as if you are [editor-mate].
 Respond only in the following format inside the format tag, replacing the {{}} content.
 <format>
 {{
@@ -146,10 +150,13 @@ ${
 Keep your feedback ${feedbackStyle} and encouraging.
 
 ${editorMateUserCommentScenarioContext}
+
+Do not begin your response with "[editor-mate]: ", just respond as if you are [editor-mate].
 Respond only in the following format inside the format tag, replacing the {{}} content.
 <format>
 {{
-Review the [user]'s last message and provide constructive feedback. If the message is well-written, just give a thumbs up 👍. If there are improvements to suggest, provide:
+Review the [user]'s last message and provide constructive feedback as a proofreader and don't engage in the conversation with [user] or [chat-mate].
+If the message is well-written, just give a thumbs up 👍. If there are improvements to suggest, provide:
 1. Corrections for any grammatical errors
 2. Better word choices if applicable  
 3. More natural expressions
@@ -164,13 +171,14 @@ Keep responses natural and conversational.
 
 ${editorMateChatMateCommentScenarioContext}
 
+Do not begin your response with "[editor-mate]: " or "[user]: ".
 Respond only in the following format inside the format tag, replacing the {{}} content.
 <format>
 {{As if you were the [user], provide a natural response to the [chat-mate]'s last message in ${targetLanguage}.}}
 
 Language notes:
 
-{{Add any helpful language notes about the [chat-mate]'s last message if there are interesting expressions, cultural references worth explaining, or words and expression which might be hard to understand for the [user].}}
+{{As [editor-mate], add helpful language notes about the [chat-mate]'s last message, especially when there are interesting expressions, cultural references worth explaining, or words and expression which might be hard to understand for the [user].}}
 </format>
 `;
     }
