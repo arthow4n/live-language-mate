@@ -74,15 +74,15 @@ serve(async (req) => {
 
     let systemPrompt = "";
     const editorMateChatMateCommentScenarioContext = `In the conversation history, there are three people:
-- the user, who is talking with [chat-mate].
+- the [user], who is talking with [chat-mate].
 - [chat-mate], which is the person talking with the user.
 - [editor-mate], which is you.
 `;
-    const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the user is talking with [chat-mate], you should not reply to the user like [chat-mate] would do. Even if the user is writing a question, you should not answer the question or really engage in the conversation, as answering question and engaging in the conversation are for [chat-mate] instead of you.
+    const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the [user] is talking with [chat-mate], you should not reply to the [user] like [chat-mate] would do. Even if the [user] is writing a question, you should not answer the question or engage in the conversation, as answering question and engaging in the conversation are for [chat-mate] instead of you.
 `;
 
     if (messageType === "chat-mate-response") {
-      systemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage}. ${
+      systemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage} talking with [user]. ${
         chatMatePrompt ||
         "You love chatting about local culture, daily life, and helping with language practice."
       } 
@@ -103,18 +103,12 @@ ${
 }`;
     } else if (messageType === "editor-mate-response") {
       // For Editor Mate chat panel
-      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The user is your student. ${
+      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
         editorMatePrompt || "You provide helpful feedback on language use."
       }
 
 Expertise: ${editorMateExpertise}
 Feedback style: ${feedbackStyle}
-
-Review the user's message and provide constructive feedback. If the message is well-written, just give a thumbs up 👍. If there are improvements to suggest, provide:
-1. Corrections for any grammatical errors
-2. Better word choices if applicable  
-3. More natural expressions
-4. Cultural context if relevant
 
 ${
   culturalContext
@@ -123,20 +117,25 @@ ${
 }
 
 Keep your feedback ${feedbackStyle} and encouraging.
+
+Respond only in the following format inside the format tag, replacing the {{}} content.
+<format>
+{{
+Review the [user]'s last message and provide constructive feedback. If the message is well-written, just give a thumbs up 👍. If there are improvements to suggest, provide:
+1. Corrections for any grammatical errors
+2. Better word choices if applicable  
+3. More natural expressions
+4. Cultural context if relevant
+}}
+</format>
 `;
     } else if (messageType === "editor-mate-user-comment") {
-      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The user is your student. ${
+      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
         editorMatePrompt || "You provide helpful feedback on language use."
       } 
 
 Expertise: ${editorMateExpertise}
 Feedback style: ${feedbackStyle}
-
-Review the user's message and provide constructive feedback. If the message is well-written, just give a thumbs up 👍. If there are improvements to suggest, provide:
-1. Corrections for any grammatical errors
-2. Better word choices if applicable  
-3. More natural expressions
-4. Cultural context if relevant
 
 ${
   culturalContext
@@ -147,15 +146,33 @@ ${
 Keep your feedback ${feedbackStyle} and encouraging.
 
 ${editorMateUserCommentScenarioContext}
+Respond only in the following format inside the format tag, replacing the {{}} content.
+<format>
+{{
+Review the [user]'s last message and provide constructive feedback. If the message is well-written, just give a thumbs up 👍. If there are improvements to suggest, provide:
+1. Corrections for any grammatical errors
+2. Better word choices if applicable  
+3. More natural expressions
+4. Cultural context if relevant
+}}
+</format>
 `;
     } else if (messageType === "editor-mate-chatmate-comment") {
-      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The user is your student.
-
-As if you were the student, provide a natural response to the [chat-mate]'s message in ${targetLanguage}. Then optionally add any helpful language notes about the [chat-mate]'s message if there are interesting expressions or cultural references worth explaining.
+      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The [user] is your student.
 
 Keep responses natural and conversational.
 
-${editorMateChatMateCommentScenarioContext}`;
+${editorMateChatMateCommentScenarioContext}
+
+Respond only in the following format inside the format tag, replacing the {{}} content.
+<format>
+{{As if you were the [user], provide a natural response to the [chat-mate]'s last message in ${targetLanguage}.}}
+
+Language notes:
+
+{{Add any helpful language notes about the [chat-mate]'s last message if there are interesting expressions, cultural references worth explaining, or words and expression which might be hard to understand for the [user].}}
+</format>
+`;
     }
 
     const messages = [
