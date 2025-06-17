@@ -78,7 +78,7 @@ serve(async (req) => {
 - [chat-mate], which is the person talking with the user.
 - [editor-mate], which is you.
 `;
-    const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the user is talking with [chat-mate], you should not reply to the user like [chat-mate] would do.
+    const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the user is talking with [chat-mate], you should not reply to the user like [chat-mate] would do. Even if the user is writing a question, you should not answer the question or really engage in the conversation, as answering question and engaging in the conversation are for [chat-mate] instead of you.
 `;
 
     if (messageType === "chat-mate-response") {
