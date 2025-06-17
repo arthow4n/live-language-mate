@@ -69,7 +69,7 @@ serve(async (req) => {
 
     const dateTimeContext =
       currentDateTime && userTimezone
-        ? `\n\nCurrent date and time: ${currentDateTime} (${userTimezone})`
+        ? `Current date and time: ${currentDateTime} (${userTimezone})`
         : "";
 
     let systemPrompt = "";
@@ -100,7 +100,7 @@ ${
   progressiveComplexity
     ? `Gradually increase complexity based on the user's demonstrated language level.`
     : ""
-}${dateTimeContext}`;
+}`;
     } else if (messageType === "editor-mate-response") {
       // For Editor Mate chat panel
       systemPrompt = `You are an experienced ${targetLanguage} language teacher. ${
@@ -122,7 +122,7 @@ ${
     : ""
 }
 
-Keep your feedback ${feedbackStyle} and encouraging.${dateTimeContext}
+Keep your feedback ${feedbackStyle} and encouraging.
 `;
     } else if (messageType === "editor-mate-user-comment") {
       systemPrompt = `You are an experienced ${targetLanguage} language teacher. ${
@@ -146,7 +146,7 @@ ${
 
 Keep your feedback ${feedbackStyle} and encouraging.
 
-${editorMateUserCommentScenarioContext}${dateTimeContext}
+${editorMateUserCommentScenarioContext}
 `;
     } else if (messageType === "editor-mate-chatmate-comment") {
       systemPrompt = `You are an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker.
@@ -155,14 +155,19 @@ As if you were the student, provide a natural response to the chat mate's messag
 
 Keep responses natural and conversational.
 
-${editorMateChatMateCommentScenarioContext}${dateTimeContext}`;
+${editorMateChatMateCommentScenarioContext}`;
     }
 
     const messages = [
       { role: "system", content: systemPrompt },
       ...conversationHistory,
-      { role: "user", content: message },
     ];
+
+    // Dynamic content should go to the end of context to help with Gemini implicit caching.
+    if (dateTimeContext) {
+      messages.push({ role: "system", content: dateTimeContext });
+    }
+    messages.push({ role: "user", content: message });
 
     console.log("🚀 Sending request to OpenRouter:", {
       model,
