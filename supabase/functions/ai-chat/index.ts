@@ -159,11 +159,13 @@ ${editorMateChatMateCommentScenarioContext}`;
     }
 
     const messages = [
-      { role: "system", content: systemPrompt },
+      // Conversation history is less likely to change, put it at the beginning to improve implicit caching.
       ...conversationHistory,
+      // System prompt is different depending on the character.
+      { role: "system", content: systemPrompt },
     ];
 
-    // Dynamic content should go to the end of context to help with Gemini implicit caching.
+    // Dynamic content should go to the end of context to improve implicit caching.
     if (dateTimeContext) {
       messages.push({ role: "system", content: dateTimeContext });
     }
