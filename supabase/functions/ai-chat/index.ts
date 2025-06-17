@@ -103,7 +103,7 @@ ${
 }`;
     } else if (messageType === "editor-mate-response") {
       // For Editor Mate chat panel
-      systemPrompt = `You are an experienced ${targetLanguage} language teacher. The user is your student. ${
+      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The user is your student. ${
         editorMatePrompt || "You provide helpful feedback on language use."
       }
 
@@ -125,7 +125,7 @@ ${
 Keep your feedback ${feedbackStyle} and encouraging.
 `;
     } else if (messageType === "editor-mate-user-comment") {
-      systemPrompt = `You are an experienced ${targetLanguage} language teacher. The user is your student. ${
+      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The user is your student. ${
         editorMatePrompt || "You provide helpful feedback on language use."
       } 
 
@@ -149,7 +149,7 @@ Keep your feedback ${feedbackStyle} and encouraging.
 ${editorMateUserCommentScenarioContext}
 `;
     } else if (messageType === "editor-mate-chatmate-comment") {
-      systemPrompt = `You are an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The user is your student.
+      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The user is your student.
 
 As if you were the student, provide a natural response to the [chat-mate]'s message in ${targetLanguage}. Then optionally add any helpful language notes about the [chat-mate]'s message if there are interesting expressions or cultural references worth explaining.
 
@@ -163,6 +163,12 @@ ${editorMateChatMateCommentScenarioContext}`;
       ...conversationHistory,
       // System prompt is different depending on the character.
       { role: "system", content: systemPrompt },
+      // Some jailbreak prompts to reduce strange behaviours.
+      {
+        role: "system",
+        content:
+          "In your response, you should not repeat the conversation history.",
+      },
     ];
 
     // Dynamic content should go to the end of context to improve implicit caching.
