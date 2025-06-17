@@ -82,7 +82,7 @@ serve(async (req) => {
 `;
 
     if (messageType === "chat-mate-response") {
-      systemPrompt = `You are a friendly native speaker of ${targetLanguage}. ${
+      systemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage}. ${
         chatMatePrompt ||
         "You love chatting about local culture, daily life, and helping with language practice."
       } 
