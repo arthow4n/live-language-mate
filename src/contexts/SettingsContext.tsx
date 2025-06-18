@@ -47,7 +47,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 export const getDefaultGlobalSettings = (): GlobalSettings => {
   return {
-    model: 'google/gemini-2.5-flash-preview-05-20:thinking',
+    model: 'google/gemini-2.5-flash',
     apiKey: '',
     targetLanguage: 'Swedish',
     streaming: true,
