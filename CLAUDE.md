@@ -10,6 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build:dev` - Development build
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint for code quality
+- `npm run lint:fix` - Run ESLint and automatically fix issues
+- `npm run prettier` - Format all files with Prettier
+- `npm run format` - Alias for prettier command
 
 ### Supabase Edge Functions
 - `supabase functions serve` - Run edge functions locally
