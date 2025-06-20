@@ -16,7 +16,8 @@
     "test": "concurrently --group --names frontend-test,backend-deno-test 'npm run test:frontend' 'npm run test:backend'",
     "test:frontend": "vitest run --exclude=\"api/**\"",
     "test:frontend:watch": "vitest --exclude=\"api/**\"",
-    "test:backend": "cd api && deno test --allow-net --allow-env"
+    "test:backend": "cd api && deno test --allow-net --allow-env",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -87,6 +88,7 @@
     "eslint-plugin-prettier": "^5.5.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.9.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "lovable-tagger": "^1.1.7",
     "msw": "^2.10.2",
