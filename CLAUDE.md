@@ -133,5 +133,7 @@ The API server can be deployed to any platform supporting Deno:
 
 ## Claude Code operations
 
+- Right before making any git commit, make sure you `npm run prettier`.
 - After each task completed, you should automatically and frequently make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
+- Instead of running individual lint and typecheck commands, you should use `npm run check` to perform type check and linting, `npm run check` performs lint and type check on all files.
