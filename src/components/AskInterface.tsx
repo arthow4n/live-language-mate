@@ -16,10 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message } from '@/types/Message';
-import {
-  SUPABASE_PUBLISHABLE_KEY,
-  SUPABASE_URL,
-} from '@/integrations/supabase/client';
+import { apiClient } from '@/services/apiClient';
 import { buildPrompt, PromptVariables } from '@/services/prompts';
 
 interface AskInterfaceProps {
@@ -136,22 +133,15 @@ const AskInterface = ({
 
     const startTime = Date.now();
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({
-        message: contextMessage,
-        messageType: 'editor-mate-response',
-        conversationHistory,
-        systemPrompt: builtPrompt.systemPrompt,
-        targetLanguage,
-        model: settings.model,
-        apiKey: settings.apiKey,
-        streaming: settings.streaming ?? true,
-      }),
+    const response = await apiClient.aiChat({
+      message: contextMessage,
+      messageType: 'editor-mate-response',
+      conversationHistory,
+      systemPrompt: builtPrompt.systemPrompt,
+      targetLanguage,
+      model: settings.model,
+      apiKey: settings.apiKey,
+      streaming: settings.streaming ?? true,
     });
 
     if (!response.ok) {

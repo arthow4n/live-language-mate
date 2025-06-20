@@ -12,10 +12,7 @@ import {
 } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message, MessageMetadata } from '@/types/Message';
-import {
-  SUPABASE_PUBLISHABLE_KEY,
-  SUPABASE_URL,
-} from '@/integrations/supabase/client';
+import { apiClient } from '@/services/apiClient';
 import { buildPrompt, MessageType, PromptVariables } from '@/services/prompts';
 
 interface EnhancedChatInterfaceProps {
@@ -705,33 +702,25 @@ const EnhancedChatInterface = ({
     });
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({
-        message,
-        messageType,
-        conversationHistory: history,
-        systemPrompt: builtPrompt.systemPrompt,
-        targetLanguage,
-        model: effectiveModel,
-        apiKey: effectiveApiKey,
-        streaming:
-          (conversationId
-            ? chatSettings?.streaming
-            : globalSettings.streaming) ?? true,
-        currentDateTime,
-        userTimezone,
-        enableReasoning:
-          (conversationId
-            ? chatSettings?.enableReasoning
-            : globalSettings.enableReasoning) ?? false,
-      }),
-      signal,
-    });
+    const response = await apiClient.aiChat({
+      message,
+      messageType,
+      conversationHistory: history,
+      systemPrompt: builtPrompt.systemPrompt,
+      targetLanguage,
+      model: effectiveModel,
+      apiKey: effectiveApiKey,
+      streaming:
+        (conversationId
+          ? chatSettings?.streaming
+          : globalSettings.streaming) ?? true,
+      currentDateTime,
+      userTimezone,
+      enableReasoning:
+        (conversationId
+          ? chatSettings?.enableReasoning
+          : globalSettings.enableReasoning) ?? false,
+    }, { signal });
 
     if (!response.ok) {
       const errorData = await response.json();

@@ -8,14 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `npm run check` - Run linter, format the files, and type check.
 
-### Supabase Edge Functions
+### API Server
 
-- `supabase functions serve` - Run edge functions locally
-- `supabase functions deploy` - Deploy functions to Supabase
+- `cd api && deno task start` - Run API server in production mode
+- `cd api && deno task dev` - Run API server in development mode with auto-reload
 
 ## Architecture Overview
 
-This is a React TypeScript language learning application called "Live Language Mate" built with Vite, using Supabase for backend services. The app helps expats learn languages through conversational AI.
+This is a React TypeScript language learning application called "Live Language Mate" built with Vite, using a standalone Deno API server for backend services. The app helps expats learn languages through conversational AI.
 
 ### Core Architecture
 
@@ -29,7 +29,7 @@ This is a React TypeScript language learning application called "Live Language M
 
 **Backend:**
 
-- Supabase Edge Functions (Deno TypeScript)
+- Standalone Deno HTTP API server (`api/main.ts`)
 - OpenRouter API integration for AI models
 - Local storage for chat persistence
 
@@ -57,7 +57,7 @@ The app implements a dual-AI system:
 
 ### AI Integration
 
-**Supabase Function: `ai-chat`**
+**Standalone API: `/ai-chat`**
 
 - Handles three message types: `chat-mate-response`, `editor-mate-user-comment`, `editor-mate-chatmate-comment`
 - Uses OpenRouter API with configurable models (default: `google/gemini-2.5-flash`)
@@ -97,7 +97,9 @@ The app implements a dual-AI system:
 
 - `src/contexts/SettingsContext.tsx` - Settings management and defaults
 - `src/components/LanguageMateApp.tsx` - Main app layout and state
-- `supabase/functions/ai-chat/index.ts` - AI integration logic
+- `api/handlers/ai-chat.ts` - AI integration logic
+- `api/handlers/models.ts` - OpenRouter models fetching
+- `src/services/apiClient.ts` - Frontend API client
 - `src/services/localStorageService.ts` - Chat persistence
 
 ### Development Notes
@@ -107,6 +109,27 @@ The app implements a dual-AI system:
 - Uses shadcn/ui component library extensively
 - Responsive design with mobile-first approach
 - Settings stored in localStorage with versioning
+
+### API Configuration
+
+**Environment Variables:**
+
+API Server (`api/.env`):
+- `OPENAI_API_KEY` - OpenRouter API key for AI models
+- `PORT` - Server port (default: 8000)
+
+Frontend (`.env`):
+- `VITE_API_BASE_URL` - API server URL (default: http://localhost:8000)
+
+**API Endpoints:**
+- `POST /ai-chat` - AI chat completions
+- `GET /models` - Available OpenRouter models
+
+**Deployment:**
+The API server can be deployed to any platform supporting Deno:
+- Deno Deploy
+- Docker containers
+- VPS with Deno runtime
 
 ## Claude Code operations
 

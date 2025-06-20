@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/services/apiClient';
 
 interface OpenRouterModel {
   id: string;
@@ -57,11 +57,11 @@ const ModelSelector = ({
       setLoading(true);
       try {
         console.log('Fetching models from backend...');
-        const { data, error } = await supabase.functions.invoke('fetch-models');
+        const { data, error } = await apiClient.getModels();
 
         if (error) {
           console.error('Error fetching models:', error);
-          throw error;
+          throw new Error(error);
         }
 
         if (data?.models) {

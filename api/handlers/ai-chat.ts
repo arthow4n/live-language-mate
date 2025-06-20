@@ -1,16 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
+export async function aiChatHandler(req: Request): Promise<Response> {
   try {
     const {
       message,
@@ -222,7 +210,7 @@ Language notes:
       enableReasoning,
     });
 
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       model,
       messages,
       stream: streaming,
@@ -315,7 +303,6 @@ Language notes:
 
       return new Response(response.body?.pipeThrough(transformStream), {
         headers: {
-          ...corsHeaders,
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
@@ -339,7 +326,7 @@ Language notes:
       });
 
       return new Response(JSON.stringify({ response: aiResponse, reasoning }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   } catch (error) {
@@ -351,8 +338,8 @@ Language notes:
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
-});
+}
