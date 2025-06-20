@@ -204,7 +204,7 @@ Language notes:
     console.log('🚀 Sending request to OpenRouter:', {
       model,
       messageType,
-      systemPromptLength: systemPrompt.length,
+      systemPromptLength: systemPrompt?.length,
       messagesCount: messages.length,
       streaming,
       enableReasoning,
