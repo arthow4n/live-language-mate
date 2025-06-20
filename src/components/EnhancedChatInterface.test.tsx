@@ -10,7 +10,6 @@ import { createMockAiResponse } from '../__tests__/factories';
 import { aiChatRequestSchema } from '@/schemas/api';
 import type { AiChatRequest } from '@/schemas/api';
 
-
 interface TestWrapperProps {
   children: React.ReactNode;
 }
@@ -57,9 +56,9 @@ describe('EnhancedChatInterface Integration Tests', () => {
         <EnhancedChatInterface
           conversationId="test-id"
           targetLanguage="Swedish"
-          onConversationUpdate={() => { }}
-          onConversationCreated={() => { }}
-          onTextSelect={() => { }}
+          onConversationUpdate={() => {}}
+          onConversationCreated={() => {}}
+          onTextSelect={() => {}}
         />
       </TestWrapper>
     );
@@ -99,9 +98,9 @@ describe('EnhancedChatInterface Integration Tests', () => {
         <EnhancedChatInterface
           conversationId="test-id"
           targetLanguage="Swedish"
-          onConversationUpdate={() => { }}
-          onConversationCreated={() => { }}
-          onTextSelect={() => { }}
+          onConversationUpdate={() => {}}
+          onConversationCreated={() => {}}
+          onTextSelect={() => {}}
         />
       </TestWrapper>
     );

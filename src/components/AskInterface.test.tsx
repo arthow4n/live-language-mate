@@ -10,7 +10,6 @@ import { createMockAiResponse } from '../__tests__/factories';
 import { aiChatRequestSchema } from '@/schemas/api';
 import type { AiChatRequest } from '@/schemas/api';
 
-
 interface TestWrapperProps {
   children: React.ReactNode;
 }

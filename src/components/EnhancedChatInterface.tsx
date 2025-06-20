@@ -6,9 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  generateChatTitle,
-} from '@/utils/chatTitleGenerator';
+import { generateChatTitle } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message, MessageMetadata } from '@/types/Message';
 import { apiClient } from '@/services/apiClient';

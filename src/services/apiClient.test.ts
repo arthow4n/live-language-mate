@@ -6,9 +6,7 @@ import {
   createRealChatRequest,
   createMockAiResponse,
 } from '../__tests__/factories';
-import {
-  aiChatRequestSchema,
-} from '@/schemas/api';
+import { aiChatRequestSchema } from '@/schemas/api';
 import type { AiChatRequest } from '@/schemas/api';
 
 // Import the global server from setup instead of creating a new one

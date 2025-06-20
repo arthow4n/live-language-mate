@@ -9,10 +9,7 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Import types from schemas - no more manual interfaces
-import type {
-  AiChatRequest,
-  ModelsResponse,
-} from '@/types/api';
+import type { AiChatRequest, ModelsResponse } from '@/types/api';
 
 // Generic API Response wrapper
 interface ApiResponse<T> {

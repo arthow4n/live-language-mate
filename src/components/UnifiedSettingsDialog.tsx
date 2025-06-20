@@ -244,7 +244,11 @@ const UnifiedSettingsDialog = ({
                         </Label>
                         <Input
                           id="chat-mate-background"
-                          value={!isGlobalMode ? (settings as ChatSettings).chatMateBackground : ''}
+                          value={
+                            !isGlobalMode
+                              ? (settings as ChatSettings).chatMateBackground
+                              : ''
+                          }
                           onChange={(e) =>
                             handleSettingChange(
                               'chatMateBackground',
@@ -261,7 +265,11 @@ const UnifiedSettingsDialog = ({
                         </Label>
                         <Input
                           id="editor-mate-expertise"
-                          value={!isGlobalMode ? (settings as ChatSettings).editorMateExpertise : ''}
+                          value={
+                            !isGlobalMode
+                              ? (settings as ChatSettings).editorMateExpertise
+                              : ''
+                          }
                           onChange={(e) =>
                             handleSettingChange(
                               'editorMateExpertise',
@@ -277,7 +285,11 @@ const UnifiedSettingsDialog = ({
                       <div>
                         <Label htmlFor="feedback-style">Feedback Style</Label>
                         <Select
-                          value={!isGlobalMode ? (settings as ChatSettings).feedbackStyle : undefined}
+                          value={
+                            !isGlobalMode
+                              ? (settings as ChatSettings).feedbackStyle
+                              : undefined
+                          }
                           onValueChange={(value) =>
                             handleSettingChange('feedbackStyle', value)
                           }
@@ -300,7 +312,11 @@ const UnifiedSettingsDialog = ({
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="cultural-context"
-                            checked={!isGlobalMode ? (settings as ChatSettings).culturalContext : false}
+                            checked={
+                              !isGlobalMode
+                                ? (settings as ChatSettings).culturalContext
+                                : false
+                            }
                             onCheckedChange={(checked) =>
                               handleSettingChange('culturalContext', checked)
                             }
@@ -313,7 +329,12 @@ const UnifiedSettingsDialog = ({
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="progressive-complexity"
-                            checked={!isGlobalMode ? (settings as ChatSettings).progressiveComplexity : false}
+                            checked={
+                              !isGlobalMode
+                                ? (settings as ChatSettings)
+                                    .progressiveComplexity
+                                : false
+                            }
                             onCheckedChange={(checked) =>
                               handleSettingChange(
                                 'progressiveComplexity',
@@ -340,7 +361,11 @@ const UnifiedSettingsDialog = ({
                       </Label>
                       <Textarea
                         id="chat-mate-personality"
-                        value={!isGlobalMode ? (settings as ChatSettings).chatMatePersonality : ''}
+                        value={
+                          !isGlobalMode
+                            ? (settings as ChatSettings).chatMatePersonality
+                            : ''
+                        }
                         onChange={(e) =>
                           handleSettingChange(
                             'chatMatePersonality',
@@ -358,7 +383,11 @@ const UnifiedSettingsDialog = ({
                       </Label>
                       <Textarea
                         id="editor-mate-personality"
-                        value={!isGlobalMode ? (settings as ChatSettings).editorMatePersonality : ''}
+                        value={
+                          !isGlobalMode
+                            ? (settings as ChatSettings).editorMatePersonality
+                            : ''
+                        }
                         onChange={(e) =>
                           handleSettingChange(
                             'editorMatePersonality',
@@ -377,7 +406,7 @@ const UnifiedSettingsDialog = ({
                 <TabsContent value="ui" className="mt-0">
                   <UISettingsTab
                     settings={{
-                      theme: (settings as GlobalSettings).theme || 'system'
+                      theme: (settings as GlobalSettings).theme || 'system',
                     }}
                     onSettingChange={handleSettingChange}
                   />

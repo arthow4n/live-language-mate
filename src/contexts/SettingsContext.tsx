@@ -17,7 +17,12 @@ import {
 import { LocalStorageKeys } from '@/schemas/storage';
 
 // Re-export types for components
-export type { GlobalSettings, ChatSettings, GlobalSettingsUpdate, ChatSettingsUpdate };
+export type {
+  GlobalSettings,
+  ChatSettings,
+  GlobalSettingsUpdate,
+  ChatSettingsUpdate,
+};
 
 interface SettingsContextType {
   globalSettings: GlobalSettings;
