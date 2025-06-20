@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "check": "npm run lint:fix && npm run typecheck",
+    "check": "concurrently 'npm run lint:fix' 'npm run typecheck'",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
@@ -75,6 +75,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
     "eslint": "^9.9.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.0",
