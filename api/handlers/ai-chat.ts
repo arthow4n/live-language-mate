@@ -1,25 +1,32 @@
+import { z } from 'zod';
+import { aiChatRequestSchema } from '@/schemas/api.ts';
+import { validateApiRequest } from '@/utils/validation.ts';
+
 export async function aiChatHandler(req: Request): Promise<Response> {
   try {
+    // Strict validation with no defaults - BREAKING CHANGE
+    const requestData = await validateApiRequest(req, aiChatRequestSchema);
+    
     const {
       message,
       messageType,
-      conversationHistory = [],
-      systemPrompt = null, // New field for pre-built system prompts
-      chatMatePrompt = '',
-      editorMatePrompt = '',
-      targetLanguage = 'swedish',
-      model: originalModel = 'anthropic/claude-3-5-sonnet',
+      conversationHistory,
+      systemPrompt,
+      chatMatePrompt,
+      editorMatePrompt,
+      targetLanguage,
+      model: originalModel,
       apiKey,
-      chatMateBackground = '',
-      editorMateExpertise = '',
-      feedbackStyle = 'encouraging',
-      culturalContext = true,
-      progressiveComplexity = true,
-      streaming = true,
-      currentDateTime = null,
-      userTimezone = null,
-      enableReasoning = false,
-    } = await req.json();
+      chatMateBackground,
+      editorMateExpertise,
+      feedbackStyle,
+      culturalContext,
+      progressiveComplexity,
+      streaming,
+      currentDateTime,
+      userTimezone,
+      enableReasoning,
+    } = requestData;
 
     const model = originalModel.replace(/:thinking$/, '');
 
@@ -80,10 +87,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
 `;
 
       if (messageType === 'chat-mate-response') {
-        finalSystemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage} talking with [user]. ${
-          chatMatePrompt ||
-          'You love chatting about local culture, daily life, and helping with language practice.'
-        } 
+        finalSystemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage} talking with [user]. ${chatMatePrompt} 
 
 Background: ${chatMateBackground}
         
@@ -104,9 +108,7 @@ Do not begin your response with "[chat-mate]: ", just respond as if you are [cha
 `;
       } else if (messageType === 'editor-mate-response') {
         // For Editor Mate chat panel
-        finalSystemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
-          editorMatePrompt || 'You provide helpful feedback on language use.'
-        }
+        finalSystemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${editorMatePrompt}
 
 Expertise: ${editorMateExpertise}
 Feedback style: ${feedbackStyle}
@@ -132,9 +134,7 @@ Review the [user]'s last message and provide constructive feedback. If the messa
 </format>
 `;
       } else if (messageType === 'editor-mate-user-comment') {
-        finalSystemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
-          editorMatePrompt || 'You provide helpful feedback on language use.'
-        } 
+        finalSystemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${editorMatePrompt} 
 
 Expertise: ${editorMateExpertise}
 Feedback style: ${feedbackStyle}
@@ -325,7 +325,13 @@ Language notes:
         usage: data.usage,
       });
 
-      return new Response(JSON.stringify({ response: aiResponse, reasoning }), {
+      // Validate response before sending - strict validation
+      const responseData = {
+        response: aiResponse || '',
+        reasoning: reasoning || null
+      };
+      
+      return new Response(JSON.stringify(responseData), {
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -333,8 +339,7 @@ Language notes:
     console.error('❌ Error in AI chat function:', error);
     return new Response(
       JSON.stringify({
-        error:
-          error.message || 'An error occurred while processing your request',
+        error: error instanceof Error ? error.message : 'An error occurred while processing your request',
       }),
       {
         status: 500,

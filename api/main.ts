@@ -63,7 +63,7 @@ async function requestHandler(req: Request): Promise<Response> {
     console.error('Request handler error:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Internal server error' 
+        error: error instanceof Error ? error.message : 'Internal server error' 
       }),
       { 
         status: 500, 

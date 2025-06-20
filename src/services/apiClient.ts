@@ -1,49 +1,27 @@
+import { z } from 'zod';
+import { 
+  aiChatRequestSchema, 
+  aiChatNonStreamResponseSchema,
+  modelsResponseSchema,
+  apiErrorResponseSchema
+} from '@/schemas/api';
+import { parseStoredData } from '@/utils/validation';
+
 // Configuration for the standalone API
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-interface ApiResponse<T = unknown> {
+// Import types from schemas - no more manual interfaces
+import type { 
+  AiChatRequest, 
+  AiChatNonStreamResponse, 
+  ModelsResponse,
+  ApiErrorResponse 
+} from '@/types/api';
+
+// Generic API Response wrapper
+interface ApiResponse<T> {
   data?: T;
   error?: string;
-}
-
-interface AiChatRequest {
-  message: string;
-  messageType: string;
-  conversationHistory?: Array<{ role: string; content: string }>;
-  systemPrompt?: string;
-  chatMatePrompt?: string;
-  editorMatePrompt?: string;
-  targetLanguage?: string;
-  model?: string;
-  apiKey?: string;
-  chatMateBackground?: string;
-  editorMateExpertise?: string;
-  feedbackStyle?: string;
-  culturalContext?: boolean;
-  progressiveComplexity?: boolean;
-  streaming?: boolean;
-  currentDateTime?: string;
-  userTimezone?: string;
-  enableReasoning?: boolean;
-}
-
-interface AiChatResponse {
-  response?: string;
-  reasoning?: string;
-}
-
-interface ModelsResponse {
-  models: Array<{
-    id: string;
-    name: string;
-    description?: string;
-    pricing?: {
-      prompt: string;
-      completion: string;
-    };
-    context_length?: number;
-  }>;
-  fallback?: boolean;
 }
 
 class ApiClient {
@@ -54,18 +32,26 @@ class ApiClient {
   }
 
   async aiChat(request: AiChatRequest, options?: { signal?: AbortSignal }): Promise<Response> {
+    // Validate request before sending - strict validation
+    const validatedRequest = aiChatRequestSchema.parse(request);
+    
     const response = await fetch(`${this.baseUrl}/ai-chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(validatedRequest),
       signal: options?.signal,
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `API request failed: ${response.status}`);
+      try {
+        const errorData = await response.json();
+        const validatedError = apiErrorResponseSchema.parse(errorData);
+        throw new Error(validatedError.error);
+      } catch (parseError) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
     }
 
     return response;
@@ -81,19 +67,32 @@ class ApiClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `API request failed: ${response.status}`);
+        try {
+          const errorData = await response.json();
+          const validatedError = apiErrorResponseSchema.parse(errorData);
+          throw new Error(validatedError.error);
+        } catch (parseError) {
+          throw new Error(`API request failed: ${response.status}`);
+        }
       }
 
       const data = await response.json();
-      return { data };
+      // Validate response data - strict validation
+      const validatedData = modelsResponseSchema.parse(data);
+      return { data: validatedData };
     } catch (error) {
       console.error('Failed to fetch models from API:', error);
-      return { error: error.message };
+      return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 }
 
 // Export singleton instance
 export const apiClient = new ApiClient();
-export type { AiChatRequest, AiChatResponse, ModelsResponse };
+
+// Re-export types from schemas for convenience
+export type { 
+  AiChatRequest, 
+  AiChatNonStreamResponse as AiChatResponse, 
+  ModelsResponse 
+} from '@/types/api';

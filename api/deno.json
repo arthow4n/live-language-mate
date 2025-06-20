@@ -4,6 +4,8 @@
     "dev": "deno run --env-file --allow-net --allow-env --watch main.ts"
   },
   "imports": {
-    "std/": "https://deno.land/std@0.168.0/"
+    "std/": "https://deno.land/std@0.168.0/",
+    "zod": "https://deno.land/x/zod@v3.22.4/mod.ts",
+    "@/": "../src/"
   }
 }
