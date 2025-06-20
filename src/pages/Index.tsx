@@ -1,4 +1,3 @@
-
 import LanguageMateApp from '@/components/LanguageMateApp';
 import { LocalStorageProvider } from '@/contexts/LocalStorageContext';
 

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Search,
   Send,
@@ -10,13 +10,16 @@ import {
   Globe,
   Book,
   Play,
-  BookOpen
+  BookOpen,
 } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/hooks/use-toast';
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message } from '@/types/Message';
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/integrations/supabase/client';
+import {
+  SUPABASE_PUBLISHABLE_KEY,
+  SUPABASE_URL,
+} from '@/integrations/supabase/client';
 
 interface AskInterfaceProps {
   selectedText: string;
@@ -35,7 +38,7 @@ const AskInterface = ({
   editorMatePrompt = 'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.',
   onTextSelect,
   selectionSource = 'main-chat',
-  hideHeader = false
+  hideHeader = false,
 }: AskInterfaceProps) => {
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
@@ -52,7 +55,10 @@ const AskInterface = ({
   // Don't scroll agressively as the messages come.
   // The output from Chat Mate and Editor Mate is often long,
   // so we should keep the scroll position to let the user scroll themself and read.
-  const lastUserMessageId = conversation.slice().reverse().find(m => m.type === 'user')?.id;
+  const lastUserMessageId = conversation
+    .slice()
+    .reverse()
+    .find((m) => m.type === 'user')?.id;
   useEffect(() => {
     scrollToBottom();
   }, [lastUserMessageId]);
@@ -67,7 +73,7 @@ const AskInterface = ({
           id: Date.now().toString(),
           type: 'editor-mate',
           content: `I can help you understand "${selectedText}". What would you like to know about this text?`,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
         setConversation([welcomeMessage]);
       }
@@ -78,30 +84,34 @@ const AskInterface = ({
     {
       name: 'Google Quoted',
       icon: Globe,
-      url: (text: string) => `https://www.google.com/search?q=${encodeURIComponent(`"${text}"`)}`
+      url: (text: string) =>
+        `https://www.google.com/search?q=${encodeURIComponent(`"${text}"`)}`,
     },
     {
       name: 'Wiktionary',
       icon: Book,
-      url: (text: string) => `https://en.wiktionary.org/wiki/${encodeURIComponent(text)}`
+      url: (text: string) =>
+        `https://en.wiktionary.org/wiki/${encodeURIComponent(text)}`,
     },
     {
       name: 'SAOL',
       icon: BookOpen,
-      url: (text: string) => `https://svenska.se/tre/?sok=${encodeURIComponent(text)}`
+      url: (text: string) =>
+        `https://svenska.se/tre/?sok=${encodeURIComponent(text)}`,
     },
     {
       name: 'YouGlish',
       icon: Play,
-      url: (text: string) => `https://youglish.com/pronounce/${encodeURIComponent(text)}/${targetLanguage.toLowerCase()}`
-    }
+      url: (text: string) =>
+        `https://youglish.com/pronounce/${encodeURIComponent(text)}/${targetLanguage.toLowerCase()}`,
+    },
   ];
 
   const callEditorMateStreaming = async (question: string) => {
-    const conversationHistory = conversation.map(msg => ({
+    const conversationHistory = conversation.map((msg) => ({
       // Always send as user to prevent the assistant from misunderstanding its role.
       role: 'user',
-      content: `[${msg.type}]: ${msg.content}`
+      content: `[${msg.type}]: ${msg.content}`,
     }));
 
     const contextMessage = editableSelectedText
@@ -114,7 +124,7 @@ const AskInterface = ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
       },
       body: JSON.stringify({
         message: contextMessage,
@@ -124,13 +134,16 @@ const AskInterface = ({
         targetLanguage,
         model: settings.model,
         apiKey: settings.apiKey,
-        chatMateBackground: settings.chatMateBackground || 'young professional, loves local culture',
-        editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+        chatMateBackground:
+          settings.chatMateBackground ||
+          'young professional, loves local culture',
+        editorMateExpertise:
+          settings.editorMateExpertise || '10+ years teaching experience',
         feedbackStyle: settings.feedbackStyle || 'encouraging',
         culturalContext: settings.culturalContext ?? true,
         progressiveComplexity: settings.progressiveComplexity ?? true,
-        streaming: settings.streaming ?? true
-      })
+        streaming: settings.streaming ?? true,
+      }),
     });
 
     if (!response.ok) {
@@ -158,10 +171,10 @@ const AskInterface = ({
       id: Date.now().toString(),
       type: 'user',
       content: question.trim(),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setConversation(prev => [...prev, userMessage]);
+    setConversation((prev) => [...prev, userMessage]);
     const currentQuestion = question.trim();
     setQuestion('');
     setIsLoading(true);
@@ -176,35 +189,38 @@ const AskInterface = ({
       timestamp: new Date(),
       isStreaming: true,
       metadata: {
-        startTime: Date.now()
-      }
+        startTime: Date.now(),
+      },
     };
 
-    setConversation(prev => [...prev, initialEditorMessage]);
+    setConversation((prev) => [...prev, initialEditorMessage]);
 
     try {
-      const { response, startTime, model } = await callEditorMateStreaming(currentQuestion);
+      const { response, startTime, model } =
+        await callEditorMateStreaming(currentQuestion);
 
       if (typeof response === 'string') {
         // Non-streaming response
         const endTime = Date.now();
         const generationTime = endTime - startTime;
 
-        setConversation(prev => prev.map(msg =>
-          msg.id === editorMessageId
-            ? {
-              ...msg,
-              content: response,
-              isStreaming: false,
-              metadata: {
-                model,
-                generationTime,
-                startTime,
-                endTime
-              }
-            }
-            : msg
-        ));
+        setConversation((prev) =>
+          prev.map((msg) =>
+            msg.id === editorMessageId
+              ? {
+                  ...msg,
+                  content: response,
+                  isStreaming: false,
+                  metadata: {
+                    model,
+                    generationTime,
+                    startTime,
+                    endTime,
+                  },
+                }
+              : msg
+          )
+        );
       } else {
         // Streaming response
         const reader = response.getReader();
@@ -228,20 +244,22 @@ const AskInterface = ({
                   const endTime = Date.now();
                   const generationTime = endTime - startTime;
 
-                  setConversation(prev => prev.map(msg =>
-                    msg.id === editorMessageId
-                      ? {
-                        ...msg,
-                        isStreaming: false,
-                        metadata: {
-                          model,
-                          generationTime,
-                          startTime,
-                          endTime
-                        }
-                      }
-                      : msg
-                  ));
+                  setConversation((prev) =>
+                    prev.map((msg) =>
+                      msg.id === editorMessageId
+                        ? {
+                            ...msg,
+                            isStreaming: false,
+                            metadata: {
+                              model,
+                              generationTime,
+                              startTime,
+                              endTime,
+                            },
+                          }
+                        : msg
+                    )
+                  );
                   break;
                 }
 
@@ -249,15 +267,17 @@ const AskInterface = ({
                   const parsed = JSON.parse(data);
                   if (parsed.content && !isStreamingComplete) {
                     accumulatedContent += parsed.content;
-                    setConversation(prev => prev.map(msg =>
-                      msg.id === editorMessageId
-                        ? {
-                          ...msg,
-                          content: accumulatedContent,
-                          isStreaming: true
-                        }
-                        : msg
-                    ));
+                    setConversation((prev) =>
+                      prev.map((msg) =>
+                        msg.id === editorMessageId
+                          ? {
+                              ...msg,
+                              content: accumulatedContent,
+                              isStreaming: true,
+                            }
+                          : msg
+                      )
+                    );
                   }
                 } catch (e) {
                   // Skip invalid JSON
@@ -273,19 +293,23 @@ const AskInterface = ({
       }
     } catch (error) {
       console.error('Error getting Editor Mate response:', error);
-      setConversation(prev => prev.filter(msg => msg.id !== editorMessageId));
+      setConversation((prev) =>
+        prev.filter((msg) => msg.id !== editorMessageId)
+      );
       toast({
-        title: "Error",
-        description: error.message || "Failed to get response from Editor Mate",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to get response from Editor Mate',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
       // Set all messages' isStreaming to false when loading is done
-      setConversation(prev => prev.map(msg => ({
-        ...msg,
-        isStreaming: false
-      })));
+      setConversation((prev) =>
+        prev.map((msg) => ({
+          ...msg,
+          isStreaming: false,
+        }))
+      );
     }
   };
 
@@ -310,7 +334,9 @@ const AskInterface = ({
 
           {/* Always visible selected text input */}
           <div className="bg-muted rounded-lg p-3 mb-3">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Selected text:</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">
+              Selected text:
+            </p>
             <Input
               value={editableSelectedText}
               onChange={(e) => setEditableSelectedText(e.target.value)}
@@ -332,7 +358,9 @@ const AskInterface = ({
                     variant="outline"
                     size="sm"
                     className="justify-start h-6 text-xs px-2"
-                    onClick={() => window.open(link.url(editableSelectedText), '_blank')}
+                    onClick={() =>
+                      window.open(link.url(editableSelectedText), '_blank')
+                    }
                   >
                     <link.icon className="w-2.5 h-2.5 mr-1" />
                     {link.name}
@@ -350,7 +378,9 @@ const AskInterface = ({
         <div className="p-4 border-b border-border">
           {/* Always visible selected text input */}
           <div className="bg-muted rounded-lg p-3 mb-3">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Selected text:</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">
+              Selected text:
+            </p>
             <Input
               value={editableSelectedText}
               onChange={(e) => setEditableSelectedText(e.target.value)}
@@ -372,7 +402,9 @@ const AskInterface = ({
                     variant="outline"
                     size="sm"
                     className="justify-start h-6 text-xs px-2"
-                    onClick={() => window.open(link.url(editableSelectedText), '_blank')}
+                    onClick={() =>
+                      window.open(link.url(editableSelectedText), '_blank')
+                    }
                   >
                     <link.icon className="w-2.5 h-2.5 mr-1" />
                     {link.name}
@@ -404,7 +436,7 @@ const AskInterface = ({
             <EnhancedChatMessage
               key={msg.id}
               message={msg}
-              onTextSelect={onTextSelect || (() => { })}
+              onTextSelect={onTextSelect || (() => {})}
             />
           ))}
 

@@ -10,7 +10,7 @@ The web app's UI is responsive, therefore works in both desktop and mobile.
 
 In this system, there are 3 persons involved: you, Chat Mate, Editor Mate.
 
-1. You as the user chat mainly with Chat Mate, you can type in any languages, 
+1. You as the user chat mainly with Chat Mate, you can type in any languages,
 2. Whenever you sent a message in the chat, 2 kinds of replies are triggered in parallel:
    1. Chat Mate is a native speaker of the target language you are learning, it replies to your chat message as if you are speaking target language, it understands whichever language you write in.
    2. Editor Mate comments on your chat message, it helps you to understand how could you write your message better in the target language, if you wrote in another language than the target language, Editor Mate will help to express what you were trying to say in the target language.
@@ -32,6 +32,7 @@ More details below.
 - You can configure Chat Mate's personality in free text, which will be appended as a part of its system prompt, this can for example change how Chat Mate talks with you, in which background you are talking with each other, etc.
 
 ### Editor Mate.
+
 - Editor Mate is an AI agent.
 - Editor Mate observes your conversation with Chat Mate.
 - Editor Mate is a native of the country you just moved to.
@@ -45,6 +46,7 @@ More details below.
 - You can configure Editor Mate's personality in free text, which will be appended as a part of its system prompt, this can for example control how much Editor Mate should clarify, tell Editor Mate how much you know about Target Language, etc.
 
 ## Other features
+
 - Chat management
   - Create new chat
   - Left side bar for jumping between chats

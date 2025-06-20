@@ -1,8 +1,8 @@
-import { getDefaultGlobalSettings } from "@/contexts/SettingsContext";
+import { getDefaultGlobalSettings } from '@/contexts/SettingsContext';
 
 export interface LocalMessage {
   id: string;
-  type: "user" | "chat-mate" | "editor-mate";
+  type: 'user' | 'chat-mate' | 'editor-mate';
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
@@ -39,7 +39,7 @@ export interface LocalAppData {
     editorMatePersonality: string;
     chatMateBackground: string;
     editorMateExpertise: string;
-    feedbackStyle: "encouraging" | "gentle" | "direct" | "detailed";
+    feedbackStyle: 'encouraging' | 'gentle' | 'direct' | 'detailed';
     culturalContext: boolean;
     progressiveComplexity: boolean;
     enableReasoning: boolean;
@@ -48,7 +48,7 @@ export interface LocalAppData {
 }
 
 class LocalStorageService {
-  private readonly STORAGE_KEY = "language-mate-data";
+  private readonly STORAGE_KEY = 'language-mate-data';
 
   private getDefaultData(): LocalAppData {
     const { model, apiKey, targetLanguage, streaming } =
@@ -61,12 +61,12 @@ class LocalStorageService {
         targetLanguage,
         streaming,
         chatMatePersonality:
-          "You are a friendly local who loves to chat about daily life, culture, and local experiences.",
+          'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
         editorMatePersonality:
-          "You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.",
-        chatMateBackground: "young professional, loves local culture",
-        editorMateExpertise: "10+ years teaching experience",
-        feedbackStyle: "encouraging",
+          'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+        chatMateBackground: 'young professional, loves local culture',
+        editorMateExpertise: '10+ years teaching experience',
+        feedbackStyle: 'encouraging',
         culturalContext: true,
         progressiveComplexity: true,
         enableReasoning: true,
@@ -93,7 +93,7 @@ class LocalStorageService {
         return { ...this.getDefaultData(), ...parsed };
       }
     } catch (error) {
-      console.error("Error loading data from localStorage:", error);
+      console.error('Error loading data from localStorage:', error);
     }
     return this.getDefaultData();
   }
@@ -102,7 +102,7 @@ class LocalStorageService {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error("Error saving data to localStorage:", error);
+      console.error('Error saving data to localStorage:', error);
     }
   }
 
@@ -138,7 +138,7 @@ class LocalStorageService {
 
   addMessage(
     conversationId: string,
-    message: Omit<LocalMessage, "id" | "timestamp">
+    message: Omit<LocalMessage, 'id' | 'timestamp'>
   ): LocalMessage {
     const data = this.getData();
     const conversation = data.conversations.find(
@@ -157,7 +157,7 @@ class LocalStorageService {
       return newMessage;
     }
 
-    throw new Error("Conversation not found");
+    throw new Error('Conversation not found');
   }
 
   updateMessage(messageId: string, updates: Partial<LocalMessage>): void {
@@ -215,7 +215,7 @@ class LocalStorageService {
     return this.getData().settings;
   }
 
-  updateSettings(newSettings: Partial<LocalAppData["settings"]>): void {
+  updateSettings(newSettings: Partial<LocalAppData['settings']>): void {
     const data = this.getData();
     data.settings = { ...data.settings, ...newSettings };
     this.saveData(data);
@@ -234,12 +234,12 @@ class LocalStorageService {
       const data = JSON.parse(jsonData);
       // Validate the structure
       if (!data.conversations || !data.settings) {
-        throw new Error("Invalid data structure");
+        throw new Error('Invalid data structure');
       }
       this.saveData(data);
       return true;
     } catch (error) {
-      console.error("Error importing data:", error);
+      console.error('Error importing data:', error);
       return false;
     }
   }

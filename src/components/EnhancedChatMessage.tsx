@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { 
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import {
   Brain,
-  MessageCircle, 
-  GraduationCap, 
-  User, 
+  MessageCircle,
+  GraduationCap,
+  User,
   MoreVertical,
   Edit3,
   Trash2,
@@ -16,7 +16,7 @@ import {
   Clock,
   Cpu,
   GitBranch,
-  Scissors
+  Scissors,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -24,12 +24,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from '@/components/ui/collapsible';
 import { Message } from '@/types/Message';
 import { useSettings } from '@/contexts/SettingsContext';
 
@@ -43,14 +43,14 @@ interface EnhancedChatMessageProps {
   onForkFrom?: (messageId: string) => void;
 }
 
-const EnhancedChatMessage = ({ 
-  message, 
+const EnhancedChatMessage = ({
+  message,
   onTextSelect,
   onRegenerateMessage,
   onEditMessage,
   onDeleteMessage,
   onDeleteAllBelow,
-  onForkFrom
+  onForkFrom,
 }: EnhancedChatMessageProps) => {
   const [selectedText, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -59,7 +59,7 @@ const EnhancedChatMessage = ({
 
   useEffect(() => {
     if (message.type !== 'user') {
-        console.log('EnhancedChatMessage received message:', {
+      console.log('EnhancedChatMessage received message:', {
         messageId: message.id,
         messageType: message.type,
         hasContent: !!message.content,
@@ -67,8 +67,8 @@ const EnhancedChatMessage = ({
         hasReasoning: !!message.reasoning,
         reasoningLength: message.reasoning?.length || 0,
         isStreaming: message.isStreaming,
-        globalReasoningEnabled: globalSettings.enableReasoning
-        });
+        globalReasoningEnabled: globalSettings.enableReasoning,
+      });
     }
   }, [message, globalSettings.enableReasoning]);
 
@@ -86,30 +86,33 @@ const EnhancedChatMessage = ({
       case 'user':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
+          bubble:
+            'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
           avatar: 'bg-user text-white',
-          icon: User
+          icon: User,
         };
       case 'chat-mate':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-chat-mate-light border border-chat-mate/20 dark:bg-chat-mate/10 dark:border-chat-mate/30',
+          bubble:
+            'bg-chat-mate-light border border-chat-mate/20 dark:bg-chat-mate/10 dark:border-chat-mate/30',
           avatar: 'bg-chat-mate text-white',
-          icon: MessageCircle
+          icon: MessageCircle,
         };
       case 'editor-mate':
         return {
           container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-editor-mate-light border border-editor-mate/20 dark:bg-editor-mate/10 dark:border-editor-mate/30',
+          bubble:
+            'bg-editor-mate-light border border-editor-mate/20 dark:bg-editor-mate/10 dark:border-editor-mate/30',
           avatar: 'bg-editor-mate text-white',
-          icon: GraduationCap
+          icon: GraduationCap,
         };
       default:
         return {
           container: 'mr-auto max-w-[80%]',
           bubble: 'bg-muted',
           avatar: 'bg-muted-foreground text-background',
-          icon: MessageCircle
+          icon: MessageCircle,
         };
     }
   };
@@ -166,7 +169,7 @@ const EnhancedChatMessage = ({
           <IconComponent className="w-4 h-4" />
         </AvatarFallback>
       </Avatar>
-      
+
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="secondary" className="text-xs">
@@ -175,27 +178,32 @@ const EnhancedChatMessage = ({
           <span className="text-xs text-muted-foreground">
             {formatTime(message.timestamp)}
           </span>
-          
+
           {/* Metadata display */}
-          {message.metadata && (message.metadata.model || message.metadata.generationTime) && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {message.metadata.model && (
-                <div className="flex items-center gap-1">
-                  <Cpu className="w-3 h-3" />
-                  <span>{message.metadata.model}</span>
-                </div>
-              )}
-              {message.metadata.generationTime && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{formatGenerationTime(message.metadata.generationTime)}</span>
-                </div>
-              )}
-            </div>
-          )}
+          {message.metadata &&
+            (message.metadata.model || message.metadata.generationTime) && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                {message.metadata.model && (
+                  <div className="flex items-center gap-1">
+                    <Cpu className="w-3 h-3" />
+                    <span>{message.metadata.model}</span>
+                  </div>
+                )}
+                {message.metadata.generationTime && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>
+                      {formatGenerationTime(message.metadata.generationTime)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
-        
-        <div className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}>
+
+        <div
+          className={`rounded-2xl px-4 py-3 ${styles.bubble} relative group`}
+        >
           {message.reasoning && (
             <Collapsible
               defaultOpen={globalSettings.reasoningExpanded}
@@ -233,19 +241,37 @@ const EnhancedChatMessage = ({
               </div>
             </div>
           ) : (
-            <div 
+            <div
               className="text-sm leading-relaxed select-text prose prose-sm max-w-none dark:prose-invert"
               onMouseUp={handleTextSelection}
             >
               <ReactMarkdown
                 components={{
-                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                  ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  p: ({ children }) => (
+                    <p className="mb-2 last:mb-0">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside mb-2 space-y-1">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside mb-2 space-y-1">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="leading-relaxed">{children}</li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold">{children}</strong>
+                  ),
                   em: ({ children }) => <em className="italic">{children}</em>,
-                  code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                  code: ({ children }) => (
+                    <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
+                      {children}
+                    </code>
+                  ),
                 }}
               >
                 {message.content}
@@ -255,7 +281,7 @@ const EnhancedChatMessage = ({
               )}
             </div>
           )}
-          
+
           {!isEditing && (
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
@@ -274,7 +300,9 @@ const EnhancedChatMessage = ({
                     Edit
                   </DropdownMenuItem>
                   {onRegenerateMessage && message.type !== 'user' && (
-                    <DropdownMenuItem onClick={() => onRegenerateMessage(message.id)}>
+                    <DropdownMenuItem
+                      onClick={() => onRegenerateMessage(message.id)}
+                    >
                       <RotateCcw className="w-3 h-3 mr-2" />
                       Regenerate
                     </DropdownMenuItem>
@@ -287,7 +315,7 @@ const EnhancedChatMessage = ({
                   )}
                   <DropdownMenuSeparator />
                   {onDeleteMessage && (
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onDeleteMessage(message.id)}
                       className="text-destructive"
                     >
@@ -296,7 +324,7 @@ const EnhancedChatMessage = ({
                     </DropdownMenuItem>
                   )}
                   {onDeleteAllBelow && (
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onDeleteAllBelow(message.id)}
                       className="text-destructive"
                     >

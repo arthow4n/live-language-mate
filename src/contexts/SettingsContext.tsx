@@ -1,5 +1,10 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 
 interface GlobalSettings {
   model: string;
@@ -37,13 +42,18 @@ interface SettingsContextType {
   chatSettings: Record<string, ChatSettings>;
   isLoaded: boolean;
   updateGlobalSettings: (newSettings: Partial<GlobalSettings>) => void;
-  updateChatSettings: (conversationId: string, newSettings: Partial<ChatSettings>) => void;
+  updateChatSettings: (
+    conversationId: string,
+    newSettings: Partial<ChatSettings>
+  ) => void;
   getChatSettings: (conversationId: string) => ChatSettings;
   getGlobalSettings: () => GlobalSettings;
   createChatSettings: (conversationId: string) => ChatSettings;
 }
 
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+const SettingsContext = createContext<SettingsContextType | undefined>(
+  undefined
+);
 
 export const getDefaultGlobalSettings = (): GlobalSettings => {
   return {
@@ -54,36 +64,48 @@ export const getDefaultGlobalSettings = (): GlobalSettings => {
     theme: 'system',
     enableReasoning: true,
     reasoningExpanded: true,
-  }
-}
+  };
+};
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(getDefaultGlobalSettings());
-  const [chatSettings, setChatSettings] = useState<Record<string, ChatSettings>>({});
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(
+    getDefaultGlobalSettings()
+  );
+  const [chatSettings, setChatSettings] = useState<
+    Record<string, ChatSettings>
+  >({});
 
   // Load settings once on mount
   useEffect(() => {
     const loadAllSettings = () => {
       try {
         // Load global settings
-        const savedGlobalSettings = localStorage.getItem('language-mate-global-settings');
+        const savedGlobalSettings = localStorage.getItem(
+          'language-mate-global-settings'
+        );
         if (savedGlobalSettings) {
           const parsed = JSON.parse(savedGlobalSettings);
           console.log('📱 Loaded global settings from localStorage:', {
             model: parsed.model,
             apiKey: parsed.apiKey ? 'Set' : 'Not set',
             targetLanguage: parsed.targetLanguage,
-            theme: parsed.theme
+            theme: parsed.theme,
           });
-          setGlobalSettings(prev => ({ ...prev, ...parsed }));
+          setGlobalSettings((prev) => ({ ...prev, ...parsed }));
         }
 
         // Load chat settings
-        const savedChatSettings = localStorage.getItem('language-mate-chat-settings');
+        const savedChatSettings = localStorage.getItem(
+          'language-mate-chat-settings'
+        );
         if (savedChatSettings) {
           const parsed = JSON.parse(savedChatSettings);
-          console.log('💬 Loaded chat settings from localStorage:', Object.keys(parsed).length, 'conversations');
+          console.log(
+            '💬 Loaded chat settings from localStorage:',
+            Object.keys(parsed).length,
+            'conversations'
+          );
           setChatSettings(parsed);
         }
       } catch (error) {
@@ -97,22 +119,34 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateGlobalSettings = (newSettings: Partial<GlobalSettings>) => {
-    setGlobalSettings(prev => {
+    setGlobalSettings((prev) => {
       const updatedSettings = { ...prev, ...newSettings };
-      localStorage.setItem('language-mate-global-settings', JSON.stringify(updatedSettings));
+      localStorage.setItem(
+        'language-mate-global-settings',
+        JSON.stringify(updatedSettings)
+      );
       console.log('✨ Updated global settings:', updatedSettings);
       return updatedSettings;
     });
   };
 
-  const updateChatSettings = (conversationId: string, newSettings: Partial<ChatSettings>) => {
-    setChatSettings(prev => {
+  const updateChatSettings = (
+    conversationId: string,
+    newSettings: Partial<ChatSettings>
+  ) => {
+    setChatSettings((prev) => {
       const updatedSettings = {
         ...prev,
-        [conversationId]: { ...prev[conversationId], ...newSettings }
+        [conversationId]: { ...prev[conversationId], ...newSettings },
       };
-      localStorage.setItem('language-mate-chat-settings', JSON.stringify(updatedSettings));
-      console.log(`✨ Updated chat settings for conversation ${conversationId}:`, updatedSettings[conversationId]);
+      localStorage.setItem(
+        'language-mate-chat-settings',
+        JSON.stringify(updatedSettings)
+      );
+      console.log(
+        `✨ Updated chat settings for conversation ${conversationId}:`,
+        updatedSettings[conversationId]
+      );
       return updatedSettings;
     });
   };
@@ -127,8 +161,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     reasoningExpanded: globalSettings.reasoningExpanded,
 
     // AI personalities
-    chatMatePersonality: 'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
-    editorMatePersonality: 'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+    chatMatePersonality:
+      'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+    editorMatePersonality:
+      'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
 
     // Advanced settings
     chatMateBackground: 'young professional, loves local culture',
@@ -139,7 +175,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const getChatSettings = (conversationId: string): ChatSettings => {
-    const baseSettings = chatSettings[conversationId] || getDefaultChatSettings();
+    const baseSettings =
+      chatSettings[conversationId] || getDefaultChatSettings();
     // For reasoning, always take the value from global settings, as it's a global toggle.
     // This ensures that toggling it in settings applies to all chats immediately.
     return {
@@ -167,7 +204,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     updateChatSettings,
     getChatSettings,
     getGlobalSettings,
-    createChatSettings
+    createChatSettings,
   };
 
   return (

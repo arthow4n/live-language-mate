@@ -1,12 +1,11 @@
-
-import { Label } from "@/components/ui/label";
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface UISettingsTabProps {
   settings: {
@@ -28,10 +27,7 @@ const UISettingsTab = ({ settings, onSettingChange }: UISettingsTabProps) => {
         <div className="space-y-4">
           <div>
             <Label htmlFor="theme">Theme</Label>
-            <Select
-              value={settings.theme}
-              onValueChange={handleThemeChange}
-            >
+            <Select value={settings.theme} onValueChange={handleThemeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

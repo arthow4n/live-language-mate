@@ -1,10 +1,19 @@
-
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import { Settings, MessageSquare, GraduationCap } from 'lucide-react';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from '@/components/ui/resizable';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import AskInterface from './AskInterface';
@@ -16,15 +25,25 @@ import { useTheme } from '@/components/ThemeProvider';
 import { LocalConversation } from '@/services/localStorageService';
 
 const LanguageMateApp = () => {
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<
+    string | null
+  >(null);
   const [globalSettingsOpen, setGlobalSettingsOpen] = useState(false);
   const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
   const [refreshSidebar, setRefreshSidebar] = useState(0);
   const [selectedText, setSelectedText] = useState('');
-  const [selectionSource, setSelectionSource] = useState<'main-chat' | 'ask-interface'>('main-chat');
+  const [selectionSource, setSelectionSource] = useState<
+    'main-chat' | 'ask-interface'
+  >('main-chat');
   const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
 
-  const { globalSettings, updateGlobalSettings, getChatSettings, updateChatSettings, createChatSettings } = useSettings();
+  const {
+    globalSettings,
+    updateGlobalSettings,
+    getChatSettings,
+    updateChatSettings,
+    createChatSettings,
+  } = useSettings();
   const { getConversation, updateSettings } = useLocalStorage();
   const { setTheme } = useTheme();
   const isMobile = useIsMobile();
@@ -35,7 +54,9 @@ const LanguageMateApp = () => {
   }, [globalSettings.theme, setTheme]);
 
   // Get current conversation
-  const currentConversation = currentConversationId ? getConversation(currentConversationId) : null;
+  const currentConversation = currentConversationId
+    ? getConversation(currentConversationId)
+    : null;
 
   const handleConversationSelect = (conversationId: string) => {
     setCurrentConversationId(conversationId);
@@ -46,7 +67,7 @@ const LanguageMateApp = () => {
   };
 
   const handleConversationUpdate = () => {
-    setRefreshSidebar(prev => prev + 1);
+    setRefreshSidebar((prev) => prev + 1);
   };
 
   const handleConversationCreated = (conversationId: string) => {
@@ -96,7 +117,10 @@ const LanguageMateApp = () => {
     return [70, 30];
   };
 
-  const handleTextSelect = (text: string, source: 'main-chat' | 'ask-interface' = 'main-chat') => {
+  const handleTextSelect = (
+    text: string,
+    source: 'main-chat' | 'ask-interface' = 'main-chat'
+  ) => {
     setSelectedText(text);
     setSelectionSource(source);
     if (isMobile && text.trim()) {
@@ -119,7 +143,7 @@ const LanguageMateApp = () => {
     const chatDefaults = getChatSettings('default');
     return {
       ...globalSettings,
-      ...chatDefaults
+      ...chatDefaults,
     };
   };
 
@@ -128,7 +152,7 @@ const LanguageMateApp = () => {
       const chatSpecificSettings = getChatSettings(currentConversationId);
       return {
         ...globalSettings,
-        ...chatSpecificSettings
+        ...chatSpecificSettings,
       };
     }
     return getCombinedGlobalSettings();
@@ -191,7 +215,9 @@ const LanguageMateApp = () => {
                       targetLanguage={globalSettings.targetLanguage}
                       onConversationUpdate={handleConversationUpdate}
                       onConversationCreated={handleConversationCreated}
-                      onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
+                      onTextSelect={(text) =>
+                        handleTextSelect(text, 'main-chat')
+                      }
                     />
                   </ResizablePanel>
 
@@ -205,7 +231,9 @@ const LanguageMateApp = () => {
                     <AskInterface
                       selectedText={selectedText}
                       targetLanguage={globalSettings.targetLanguage}
-                      editorMatePrompt={getCurrentChatSettings().editorMatePersonality}
+                      editorMatePrompt={
+                        getCurrentChatSettings().editorMatePersonality
+                      }
                       onTextSelect={handleAskInterfaceTextSelect}
                       selectionSource={selectionSource}
                     />
@@ -226,7 +254,10 @@ const LanguageMateApp = () => {
                 />
 
                 {/* Editor Mate Drawer for Mobile */}
-                <Drawer open={askInterfaceOpen} onOpenChange={setAskInterfaceOpen}>
+                <Drawer
+                  open={askInterfaceOpen}
+                  onOpenChange={setAskInterfaceOpen}
+                >
                   <DrawerContent className="h-[80vh]">
                     <DrawerHeader>
                       <DrawerTitle>Editor Mate</DrawerTitle>
@@ -235,7 +266,9 @@ const LanguageMateApp = () => {
                       <AskInterface
                         selectedText={selectedText}
                         targetLanguage={globalSettings.targetLanguage}
-                        editorMatePrompt={getCurrentChatSettings().editorMatePersonality}
+                        editorMatePrompt={
+                          getCurrentChatSettings().editorMatePersonality
+                        }
                         onClose={() => setAskInterfaceOpen(false)}
                         onTextSelect={handleAskInterfaceTextSelect}
                         selectionSource={selectionSource}
@@ -265,7 +298,7 @@ const LanguageMateApp = () => {
           mode="chat"
           initialSettings={getCombinedChatSettings()}
           onSave={handleChatSettingsSave}
-          conversationTitle={currentConversation?.title || "New Chat"}
+          conversationTitle={currentConversation?.title || 'New Chat'}
         />
       </div>
     </SidebarProvider>

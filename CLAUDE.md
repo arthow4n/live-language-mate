@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Building and Development
+
 - `npm run dev` - Start development server with Vite
 - `npm run build` - Production build
 - `npm run build:dev` - Development build
@@ -15,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run format` - Alias for prettier command
 
 ### Supabase Edge Functions
+
 - `supabase functions serve` - Run edge functions locally
 - `supabase functions deploy` - Deploy functions to Supabase
 
@@ -25,6 +27,7 @@ This is a React TypeScript language learning application called "Live Language M
 ### Core Architecture
 
 **Frontend Stack:**
+
 - React 18 with TypeScript
 - Vite for build tooling
 - Tailwind CSS + shadcn/ui components
@@ -32,6 +35,7 @@ This is a React TypeScript language learning application called "Live Language M
 - React Router for navigation
 
 **Backend:**
+
 - Supabase Edge Functions (Deno TypeScript)
 - OpenRouter API integration for AI models
 - Local storage for chat persistence
@@ -39,6 +43,7 @@ This is a React TypeScript language learning application called "Live Language M
 ### Key Components Structure
 
 **Main App Components:**
+
 - `LanguageMateApp.tsx` - Root component managing layout and state
 - `EnhancedChatInterface.tsx` - Main chat interface
 - `AskInterface.tsx` - Editor Mate panel for language help
@@ -46,25 +51,29 @@ This is a React TypeScript language learning application called "Live Language M
 - `UnifiedSettingsDialog.tsx` - Settings management
 
 **State Management:**
+
 - `SettingsContext.tsx` - Global and per-chat settings
 - `LocalStorageContext.tsx` - Chat data persistence
 - Settings are split between global (cross-chat) and chat-specific
 
 **AI Characters System:**
 The app implements a dual-AI system:
+
 - **Chat Mate**: Native speaker for natural conversation in target language
 - **Editor Mate**: Language teacher providing corrections and explanations
 
 ### AI Integration
 
 **Supabase Function: `ai-chat`**
+
 - Handles three message types: `chat-mate-response`, `editor-mate-user-comment`, `editor-mate-chatmate-comment`
 - Uses OpenRouter API with configurable models (default: `google/gemini-2.5-flash`)
 - Supports streaming responses and reasoning mode
 - Dynamic system prompts based on message type and user settings
 
 **Model Configuration:**
-- Models configurable via settings (supports OpenRouter format)  
+
+- Models configurable via settings (supports OpenRouter format)
 - API keys can be user-provided or environment-based
 - Reasoning mode support for compatible models
 
@@ -81,10 +90,12 @@ The app implements a dual-AI system:
 ### UI Patterns
 
 **Responsive Design:**
+
 - Desktop: Split-panel layout (chat + editor mate sidebar)
 - Mobile: Single panel with drawer for editor mate
 
 **Settings Architecture:**
+
 - Global settings (model, API key, theme, target language)
 - Per-chat settings (AI personalities, feedback style, cultural context)
 - Settings automatically inherit from global to chat-specific

@@ -1,32 +1,32 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import ModelSelector from "./ModelSelector";
-import DataManagementTab from "./DataManagementTab";
-import UISettingsTab from "./UISettingsTab";
+} from '@/components/ui/select';
+import ModelSelector from './ModelSelector';
+import DataManagementTab from './DataManagementTab';
+import UISettingsTab from './UISettingsTab';
 
 interface UnifiedSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: "global" | "chat";
+  mode: 'global' | 'chat';
   initialSettings: any;
   onSave: (settings: any) => void;
   conversationTitle?: string;
@@ -55,20 +55,20 @@ const UnifiedSettingsDialog = ({
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  const isGlobalMode = mode === "global";
+  const isGlobalMode = mode === 'global';
 
   // Define which tabs to show based on mode
   const tabs = [];
 
   // Both global and chat modes get general and personalities tabs
   tabs.push(
-    { value: "general", label: "General" },
-    { value: "personalities", label: "AI Personalities" }
+    { value: 'general', label: 'General' },
+    { value: 'personalities', label: 'AI Personalities' }
   );
 
   // Only global mode gets UI and data tabs
   if (isGlobalMode) {
-    tabs.push({ value: "ui", label: "UI" }, { value: "data", label: "Data" });
+    tabs.push({ value: 'ui', label: 'UI' }, { value: 'data', label: 'Data' });
   }
 
   return (
@@ -76,12 +76,12 @@ const UnifiedSettingsDialog = ({
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {isGlobalMode ? "Settings" : `Chat Settings - ${conversationTitle}`}
+            {isGlobalMode ? 'Settings' : `Chat Settings - ${conversationTitle}`}
           </DialogTitle>
           <DialogDescription>
             {isGlobalMode
-              ? "Configure your global application settings and AI model preferences."
-              : "Customize the AI personalities and behaviors for this specific conversation."}
+              ? 'Configure your global application settings and AI model preferences.'
+              : 'Customize the AI personalities and behaviors for this specific conversation.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -111,7 +111,7 @@ const UnifiedSettingsDialog = ({
                       <Select
                         value={settings.targetLanguage}
                         onValueChange={(value) =>
-                          handleSettingChange("targetLanguage", value)
+                          handleSettingChange('targetLanguage', value)
                         }
                       >
                         <SelectTrigger>
@@ -119,30 +119,30 @@ const UnifiedSettingsDialog = ({
                         </SelectTrigger>
                         <SelectContent>
                           {[
-                            "Burmese",
-                            "Cantonese",
-                            "Chinese (Simplified)",
-                            "Chinese (Traditional)",
-                            "Danish",
-                            "Dutch",
-                            "English",
-                            "French",
-                            "German",
-                            "Hakka",
-                            "Hindi",
-                            "Hokkien",
-                            "Italian",
-                            "Japanese",
-                            "Korean",
-                            "Norwegian",
-                            "Portuguese",
-                            "Russian",
-                            "Sinhala",
-                            "Spanish",
-                            "Swedish",
-                            "Thai",
-                            "Ukrainian",
-                            "Vietnamese",
+                            'Burmese',
+                            'Cantonese',
+                            'Chinese (Simplified)',
+                            'Chinese (Traditional)',
+                            'Danish',
+                            'Dutch',
+                            'English',
+                            'French',
+                            'German',
+                            'Hakka',
+                            'Hindi',
+                            'Hokkien',
+                            'Italian',
+                            'Japanese',
+                            'Korean',
+                            'Norwegian',
+                            'Portuguese',
+                            'Russian',
+                            'Sinhala',
+                            'Spanish',
+                            'Swedish',
+                            'Thai',
+                            'Ukrainian',
+                            'Vietnamese',
                           ].map((lang) => (
                             <SelectItem key={lang} value={lang}>
                               {lang}
@@ -159,7 +159,7 @@ const UnifiedSettingsDialog = ({
                         type="password"
                         value={settings.apiKey}
                         onChange={(e) =>
-                          handleSettingChange("apiKey", e.target.value)
+                          handleSettingChange('apiKey', e.target.value)
                         }
                         placeholder="sk-or-..."
                       />
@@ -172,7 +172,7 @@ const UnifiedSettingsDialog = ({
                           <ModelSelector
                             value={settings.model}
                             onValueChange={(value) =>
-                              handleSettingChange("model", value)
+                              handleSettingChange('model', value)
                             }
                           />
                         </div>
@@ -184,7 +184,7 @@ const UnifiedSettingsDialog = ({
                         id="streaming"
                         checked={settings.streaming}
                         onCheckedChange={(checked) =>
-                          handleSettingChange("streaming", checked)
+                          handleSettingChange('streaming', checked)
                         }
                       />
                       <Label htmlFor="streaming">
@@ -197,7 +197,7 @@ const UnifiedSettingsDialog = ({
                         id="enableReasoning"
                         checked={settings.enableReasoning}
                         onCheckedChange={(checked) =>
-                          handleSettingChange("enableReasoning", checked)
+                          handleSettingChange('enableReasoning', checked)
                         }
                       />
                       <Label htmlFor="enableReasoning">
@@ -210,7 +210,7 @@ const UnifiedSettingsDialog = ({
                         id="reasoningExpanded"
                         checked={settings.reasoningExpanded}
                         onCheckedChange={(checked) =>
-                          handleSettingChange("reasoningExpanded", checked)
+                          handleSettingChange('reasoningExpanded', checked)
                         }
                       />
                       <Label htmlFor="reasoningExpanded">
@@ -218,7 +218,6 @@ const UnifiedSettingsDialog = ({
                       </Label>
                     </div>
                   </div>
-
                 </div>
 
                 {/* Advanced Settings - available in both modes */}
@@ -237,7 +236,7 @@ const UnifiedSettingsDialog = ({
                           value={settings.chatMateBackground}
                           onChange={(e) =>
                             handleSettingChange(
-                              "chatMateBackground",
+                              'chatMateBackground',
                               e.target.value
                             )
                           }
@@ -254,7 +253,7 @@ const UnifiedSettingsDialog = ({
                           value={settings.editorMateExpertise}
                           onChange={(e) =>
                             handleSettingChange(
-                              "editorMateExpertise",
+                              'editorMateExpertise',
                               e.target.value
                             )
                           }
@@ -269,7 +268,7 @@ const UnifiedSettingsDialog = ({
                         <Select
                           value={settings.feedbackStyle}
                           onValueChange={(value) =>
-                            handleSettingChange("feedbackStyle", value)
+                            handleSettingChange('feedbackStyle', value)
                           }
                         >
                           <SelectTrigger>
@@ -292,7 +291,7 @@ const UnifiedSettingsDialog = ({
                             id="cultural-context"
                             checked={settings.culturalContext}
                             onCheckedChange={(checked) =>
-                              handleSettingChange("culturalContext", checked)
+                              handleSettingChange('culturalContext', checked)
                             }
                           />
                           <Label htmlFor="cultural-context">
@@ -306,7 +305,7 @@ const UnifiedSettingsDialog = ({
                             checked={settings.progressiveComplexity}
                             onCheckedChange={(checked) =>
                               handleSettingChange(
-                                "progressiveComplexity",
+                                'progressiveComplexity',
                                 checked
                               )
                             }
@@ -333,7 +332,7 @@ const UnifiedSettingsDialog = ({
                         value={settings.chatMatePersonality}
                         onChange={(e) =>
                           handleSettingChange(
-                            "chatMatePersonality",
+                            'chatMatePersonality',
                             e.target.value
                           )
                         }
@@ -351,7 +350,7 @@ const UnifiedSettingsDialog = ({
                         value={settings.editorMatePersonality}
                         onChange={(e) =>
                           handleSettingChange(
-                            "editorMatePersonality",
+                            'editorMatePersonality',
                             e.target.value
                           )
                         }

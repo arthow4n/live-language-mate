@@ -1,14 +1,14 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -16,14 +16,14 @@ serve(async (req) => {
       message,
       messageType,
       conversationHistory = [],
-      chatMatePrompt = "",
-      editorMatePrompt = "",
-      targetLanguage = "swedish",
-      model: originalModel = "anthropic/claude-3-5-sonnet",
+      chatMatePrompt = '',
+      editorMatePrompt = '',
+      targetLanguage = 'swedish',
+      model: originalModel = 'anthropic/claude-3-5-sonnet',
       apiKey,
-      chatMateBackground = "",
-      editorMateExpertise = "",
-      feedbackStyle = "encouraging",
+      chatMateBackground = '',
+      editorMateExpertise = '',
+      feedbackStyle = 'encouraging',
       culturalContext = true,
       progressiveComplexity = true,
       streaming = true,
@@ -32,17 +32,17 @@ serve(async (req) => {
       enableReasoning = false,
     } = await req.json();
 
-    const model = originalModel.replace(/:thinking$/, "");
+    const model = originalModel.replace(/:thinking$/, '');
 
-    console.log("🔍 AI Chat request received:", {
+    console.log('🔍 AI Chat request received:', {
       messageType,
       targetLanguage,
       model,
       originalModel,
       apiKey:
         apiKey && apiKey.trim()
-          ? "Provided by user"
-          : "Using environment API key",
+          ? 'Provided by user'
+          : 'Using environment API key',
       historyLength: conversationHistory.length,
       hasMessage: !!message,
       hasChatMatePrompt: !!chatMatePrompt,
@@ -54,25 +54,25 @@ serve(async (req) => {
     });
 
     const openRouterApiKey =
-      apiKey && apiKey.trim() ? apiKey.trim() : Deno.env.get("OPENAI_API_KEY");
+      apiKey && apiKey.trim() ? apiKey.trim() : Deno.env.get('OPENAI_API_KEY');
 
     if (!openRouterApiKey) {
       throw new Error(
-        "No API key provided. Please set your OpenRouter API key in the settings."
+        'No API key provided. Please set your OpenRouter API key in the settings.'
       );
     }
 
     console.log(
-      "🔑 API key source:",
-      apiKey && apiKey.trim() ? "User provided" : "Environment variable"
+      '🔑 API key source:',
+      apiKey && apiKey.trim() ? 'User provided' : 'Environment variable'
     );
 
     const dateTimeContext =
       currentDateTime && userTimezone
         ? `Current date and time: ${currentDateTime} (${userTimezone})`
-        : "";
+        : '';
 
-    let systemPrompt = "";
+    let systemPrompt = '';
     const editorMateChatMateCommentScenarioContext = `In the conversation history, there are three people:
 - the [user], who is talking with [chat-mate].
 - [chat-mate], which is the person talking with the user.
@@ -81,10 +81,10 @@ serve(async (req) => {
     const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the [user] is talking with [chat-mate], you should not reply to the [user] like [chat-mate] would do. Even if the [user] is writing a question, you should not answer the question or engage in the conversation, as answering question and engaging in the conversation are for [chat-mate] instead of you.
 `;
 
-    if (messageType === "chat-mate-response") {
+    if (messageType === 'chat-mate-response') {
       systemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage} talking with [user]. ${
         chatMatePrompt ||
-        "You love chatting about local culture, daily life, and helping with language practice."
+        'You love chatting about local culture, daily life, and helping with language practice.'
       } 
 
 Background: ${chatMateBackground}
@@ -94,20 +94,20 @@ You respond naturally in ${targetLanguage}, treating the conversation as if spea
 ${
   culturalContext
     ? `Include cultural context and local references when relevant to make the conversation authentic.`
-    : ""
+    : ''
 }
 ${
   progressiveComplexity
     ? `Gradually increase complexity based on the user's demonstrated language level.`
-    : ""
+    : ''
 }
 
 Do not begin your response with "[chat-mate]: ", just respond as if you are [chat-mate].
 `;
-    } else if (messageType === "editor-mate-response") {
+    } else if (messageType === 'editor-mate-response') {
       // For Editor Mate chat panel
       systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
-        editorMatePrompt || "You provide helpful feedback on language use."
+        editorMatePrompt || 'You provide helpful feedback on language use.'
       }
 
 Expertise: ${editorMateExpertise}
@@ -116,7 +116,7 @@ Feedback style: ${feedbackStyle}
 ${
   culturalContext
     ? `Include cultural context in your feedback when relevant.`
-    : ""
+    : ''
 }
 
 Keep your feedback ${feedbackStyle} and encouraging.
@@ -133,9 +133,9 @@ Review the [user]'s last message and provide constructive feedback. If the messa
 }}
 </format>
 `;
-    } else if (messageType === "editor-mate-user-comment") {
+    } else if (messageType === 'editor-mate-user-comment') {
       systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
-        editorMatePrompt || "You provide helpful feedback on language use."
+        editorMatePrompt || 'You provide helpful feedback on language use.'
       } 
 
 Expertise: ${editorMateExpertise}
@@ -144,7 +144,7 @@ Feedback style: ${feedbackStyle}
 ${
   culturalContext
     ? `Include cultural context in your feedback when relevant.`
-    : ""
+    : ''
 }
 
 Keep your feedback ${feedbackStyle} and encouraging.
@@ -164,7 +164,7 @@ If the message is well-written, just give a thumbs up 👍. If there are improve
 }}
 </format>
 `;
-    } else if (messageType === "editor-mate-chatmate-comment") {
+    } else if (messageType === 'editor-mate-chatmate-comment') {
       systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The [user] is your student.
 
 Keep responses natural and conversational.
@@ -187,22 +187,22 @@ Language notes:
       // Conversation history is less likely to change, put it at the beginning to improve implicit caching.
       ...conversationHistory,
       // System prompt is different depending on the character.
-      { role: "system", content: systemPrompt },
+      { role: 'system', content: systemPrompt },
       // Some jailbreak prompts to reduce strange behaviours.
       {
-        role: "system",
+        role: 'system',
         content:
-          "In your response, you should not repeat the conversation history.",
+          'In your response, you should not repeat the conversation history.',
       },
     ];
 
     // Dynamic content should go to the end of context to improve implicit caching.
     if (dateTimeContext) {
-      messages.push({ role: "system", content: dateTimeContext });
+      messages.push({ role: 'system', content: dateTimeContext });
     }
-    messages.push({ role: "user", content: message });
+    messages.push({ role: 'user', content: message });
 
-    console.log("🚀 Sending request to OpenRouter:", {
+    console.log('🚀 Sending request to OpenRouter:', {
       model,
       messageType,
       systemPromptLength: systemPrompt.length,
@@ -220,7 +220,7 @@ Language notes:
     };
 
     if (enableReasoning) {
-      console.log("🧠 Reasoning enabled. Modifying payload for OpenRouter.");
+      console.log('🧠 Reasoning enabled. Modifying payload for OpenRouter.');
       payload.reasoning = {
         max_tokens: 2000,
       };
@@ -228,14 +228,14 @@ Language notes:
     }
 
     const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
+      'https://openrouter.ai/api/v1/chat/completions',
       {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${openRouterApiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://expat-language-mate.lovable.app",
-          "X-Title": "Live Language Mate",
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://expat-language-mate.lovable.app',
+          'X-Title': 'Live Language Mate',
         },
         body: JSON.stringify(payload),
       }
@@ -243,23 +243,23 @@ Language notes:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ OpenRouter API error:", response.status, errorText);
+      console.error('❌ OpenRouter API error:', response.status, errorText);
       throw new Error(
         `OpenRouter API error: ${response.status} - ${errorText}`
       );
     }
 
     if (streaming) {
-      console.log("📡 Setting up streaming response");
+      console.log('📡 Setting up streaming response');
 
       const transformStream = new TransformStream({
         transform(chunk, controller) {
           const decoder = new TextDecoder();
           const text = decoder.decode(chunk);
 
-          const lines = text.split("\n");
+          const lines = text.split('\n');
           for (const line of lines) {
-            if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
               try {
                 const data = JSON.parse(line.slice(6));
                 const delta = data.choices?.[0]?.delta;
@@ -268,7 +268,7 @@ Language notes:
                   controller.enqueue(
                     new TextEncoder().encode(
                       `data: ${JSON.stringify({
-                        type: "content",
+                        type: 'content',
                         content: delta.content,
                       })}\n\n`
                     )
@@ -279,20 +279,20 @@ Language notes:
                   controller.enqueue(
                     new TextEncoder().encode(
                       `data: ${JSON.stringify({
-                        type: "reasoning",
+                        type: 'reasoning',
                         content: delta.reasoning,
                       })}\n\n`
                     )
                   );
                 }
               } catch (e) {
-                console.error("Error parsing stream chunk:", e, "line:", line);
+                console.error('Error parsing stream chunk:', e, 'line:', line);
               }
-            } else if (line.trim() === "data: [DONE]") {
+            } else if (line.trim() === 'data: [DONE]') {
               controller.enqueue(
                 new TextEncoder().encode(
                   `data: ${JSON.stringify({
-                    type: "done",
+                    type: 'done',
                   })}\n\n`
                 )
               );
@@ -305,9 +305,9 @@ Language notes:
       return new Response(response.body?.pipeThrough(transformStream), {
         headers: {
           ...corsHeaders,
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
         },
       });
     } else {
@@ -320,7 +320,7 @@ Language notes:
         reasoning = message.reasoning;
       }
 
-      console.log("✅ OpenRouter response received successfully:", {
+      console.log('✅ OpenRouter response received successfully:', {
         model,
         messageType,
         responseLength: aiResponse ? aiResponse.length : 0,
@@ -328,19 +328,19 @@ Language notes:
       });
 
       return new Response(JSON.stringify({ response: aiResponse, reasoning }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
   } catch (error) {
-    console.error("❌ Error in AI chat function:", error);
+    console.error('❌ Error in AI chat function:', error);
     return new Response(
       JSON.stringify({
         error:
-          error.message || "An error occurred while processing your request",
+          error.message || 'An error occurred while processing your request',
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

@@ -7,7 +7,7 @@ export interface MessageMetadata {
 
 export interface Message {
   id: string;
-  type: "user" | "chat-mate" | "editor-mate";
+  type: 'user' | 'chat-mate' | 'editor-mate';
   content: string;
   timestamp: Date;
   isStreaming?: boolean;

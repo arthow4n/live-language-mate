@@ -1,5 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { localStorageService, LocalConversation, LocalMessage, LocalAppData } from '@/services/localStorageService';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+import {
+  localStorageService,
+  LocalConversation,
+  LocalMessage,
+  LocalAppData,
+} from '@/services/localStorageService';
 
 interface LocalStorageContextType {
   conversations: LocalConversation[];
@@ -11,7 +22,10 @@ interface LocalStorageContextType {
   createConversation: (data: Partial<LocalConversation>) => LocalConversation;
   updateConversation: (id: string, updates: Partial<LocalConversation>) => void;
   deleteConversation: (id: string) => void;
-  addMessage: (conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>) => LocalMessage;
+  addMessage: (
+    conversationId: string,
+    message: Omit<LocalMessage, 'id' | 'timestamp'>
+  ) => LocalMessage;
   getMessages: (conversationId: string) => LocalMessage[];
   updateMessage: (messageId: string, updates: Partial<LocalMessage>) => void;
   deleteMessage: (messageId: string) => void;
@@ -22,11 +36,15 @@ interface LocalStorageContextType {
   importData: (jsonData: string) => boolean;
 }
 
-const LocalStorageContext = createContext<LocalStorageContextType | undefined>(undefined);
+const LocalStorageContext = createContext<LocalStorageContextType | undefined>(
+  undefined
+);
 
 export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
   const [conversations, setConversations] = useState<LocalConversation[]>([]);
-  const [settings, setSettings] = useState<LocalAppData['settings']>(localStorageService.getSettings());
+  const [settings, setSettings] = useState<LocalAppData['settings']>(
+    localStorageService.getSettings()
+  );
   const [isLoaded, setIsLoaded] = useState(false);
 
   const refreshConversations = () => {
@@ -49,7 +67,9 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     refreshConversations();
   };
 
-  const createConversation = (data: Partial<LocalConversation>): LocalConversation => {
+  const createConversation = (
+    data: Partial<LocalConversation>
+  ): LocalConversation => {
     const newConversation: LocalConversation = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substring(2)}`,
       title: data.title || 'New Chat',
@@ -59,7 +79,7 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
       editor_mate_prompt: data.editor_mate_prompt,
       created_at: new Date(),
       updated_at: new Date(),
-      messages: []
+      messages: [],
     };
 
     localStorageService.saveConversation(newConversation);
@@ -67,7 +87,10 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     return newConversation;
   };
 
-  const updateConversation = (id: string, updates: Partial<LocalConversation>) => {
+  const updateConversation = (
+    id: string,
+    updates: Partial<LocalConversation>
+  ) => {
     const conversation = localStorageService.getConversation(id);
     if (conversation) {
       const updated = { ...conversation, ...updates, updated_at: new Date() };
@@ -81,8 +104,14 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     refreshConversations();
   };
 
-  const addMessage = (conversationId: string, message: Omit<LocalMessage, 'id' | 'timestamp'>): LocalMessage => {
-    const savedMessage = localStorageService.addMessage(conversationId, message);
+  const addMessage = (
+    conversationId: string,
+    message: Omit<LocalMessage, 'id' | 'timestamp'>
+  ): LocalMessage => {
+    const savedMessage = localStorageService.addMessage(
+      conversationId,
+      message
+    );
     refreshConversations();
     return savedMessage;
   };
@@ -162,7 +191,9 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
 export const useLocalStorage = () => {
   const context = useContext(LocalStorageContext);
   if (context === undefined) {
-    throw new Error('useLocalStorage must be used within a LocalStorageProvider');
+    throw new Error(
+      'useLocalStorage must be used within a LocalStorageProvider'
+    );
   }
   return context;
 };
