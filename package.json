@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "check": "npm run lint:fix && npm run typecheck && npm test && npm run test:backend",
+    "check": "concurrently --group --names frontend-lint,frontend-typecheck,backend-deno-check 'npm run lint:fix' 'npm run typecheck' 'cd api && deno check'",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
@@ -13,8 +13,9 @@
     "prettier": "prettier --log-level warn --write .",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "concurrently --group --names frontend-test,backend-deno-test 'npm run test:frontend' 'npm run test:backend'",
+    "test:frontend": "vitest run --exclude=\"api/**\"",
+    "test:frontend:watch": "vitest --exclude=\"api/**\"",
     "test:backend": "cd api && deno test --allow-net --allow-env"
   },
   "dependencies": {

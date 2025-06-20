@@ -7,8 +7,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Building and Development
 
 - `npm run check` - Run linter, format the files, and type check.
+- `npm test:frontend` - Run frontend test.
+- `npm test:backend` - Run backend test.
 
-### API Server
+### API Server (backend)
 
 - `cd api && deno task start` - Run API server in production mode
 - `cd api && deno task dev` - Run API server in development mode with auto-reload
