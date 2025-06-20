@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Building and Development
 
-- `npm run check` - Run linter, format the files, and type check.
-- `npm test:frontend` - Run frontend test.
-- `npm test:backend` - Run backend test.
+- `npm run check` - Run linter and type check both frontend and backend.
+- `npm test:frontend` - Run frontend test (Vitest), this will also type check the frontend files.
+- `npm test:backend` - Run backend test (Deno), this will also type check the backend files.
 
 ### API Server (backend)
 
@@ -139,7 +139,7 @@ The API server can be deployed to any platform supporting Deno:
 
 ## Claude Code operations
 
-- Right before making any git commit, make sure you `npm run prettier`.
+- After you finish all the edits in the task, make sure to run `npm run prettier` and `npm run check` then fix the lint and type errors.
 - After each task completed, you should automatically and frequently make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
 - Instead of running individual lint and typecheck commands, you should use `npm run check` to perform type check and linting, `npm run check` performs lint and type check on all files.
