@@ -119,6 +119,10 @@ const AskInterface = ({
     // Build system prompt using the new prompt system
     const promptVariables: PromptVariables = {
       targetLanguage,
+      chatMatePersonality:
+        'A friendly native speaker who enjoys helping people learn the language.',
+      chatMateBackground:
+        'A friendly local who enjoys helping people learn the language and culture.',
       editorMatePersonality: editorMatePrompt,
       editorMateExpertise:
         settings.editorMateExpertise || '10+ years teaching experience',
@@ -138,15 +142,37 @@ const AskInterface = ({
 
     const startTime = Date.now();
 
+    const currentDateTime = new Date().toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const response = await apiClient.aiChat({
       message: contextMessage,
       messageType: 'editor-mate-response',
       conversationHistory,
       systemPrompt: builtPrompt.systemPrompt,
+      chatMatePrompt: promptVariables.chatMatePersonality,
+      editorMatePrompt: promptVariables.editorMatePersonality,
       targetLanguage,
       model: settings.model,
       apiKey: settings.apiKey,
+      chatMateBackground: promptVariables.chatMateBackground,
+      editorMateExpertise: promptVariables.editorMateExpertise,
+      feedbackStyle: promptVariables.feedbackStyle,
+      culturalContext: promptVariables.culturalContext,
+      progressiveComplexity: promptVariables.progressiveComplexity,
       streaming: settings.streaming ?? true,
+      currentDateTime,
+      userTimezone,
+      enableReasoning: settings.enableReasoning ?? false,
     });
 
     if (!response.ok) {

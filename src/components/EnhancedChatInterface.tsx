@@ -715,9 +715,16 @@ const EnhancedChatInterface = ({
         messageType,
         conversationHistory: history,
         systemPrompt: builtPrompt.systemPrompt,
+        chatMatePrompt: promptVariables.chatMatePersonality,
+        editorMatePrompt: promptVariables.editorMatePersonality,
         targetLanguage,
         model: effectiveModel,
         apiKey: effectiveApiKey,
+        chatMateBackground: promptVariables.chatMateBackground,
+        editorMateExpertise: promptVariables.editorMateExpertise,
+        feedbackStyle: promptVariables.feedbackStyle,
+        culturalContext: promptVariables.culturalContext,
+        progressiveComplexity: promptVariables.progressiveComplexity,
         streaming:
           (conversationId
             ? chatSettings?.streaming

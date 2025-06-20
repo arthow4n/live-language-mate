@@ -6,6 +6,7 @@ export const messageTypeSchema = z.enum([
   'editor-mate-response',
   'editor-mate-user-comment',
   'editor-mate-chatmate-comment',
+  'title-generation',
 ]);
 
 // Feedback styles
