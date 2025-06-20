@@ -71,17 +71,15 @@ export class PromptBuilder {
   }
 
   private buildTemplateVariables(variables: PromptVariables): Record<string, string> {
-    const { editorMatePromptDefaults, chatMatePromptDefaults } = promptDefaults;
-
     return {
       targetLanguage: variables.targetLanguage,
       chatMatePersonality: variables.chatMatePersonality || 'Chat Mate',
-      chatMatePrompt: chatMatePromptDefaults.chatMatePrompt,
+      chatMatePrompt: promptDefaults.chatMatePrompt,
       chatMateBackground: variables.chatMateBackground || 'A friendly local who enjoys helping people learn the language and culture.',
-      editorMatePersonality: variables.editorMatePersonality || editorMatePromptDefaults.editorMatePersonality,
-      editorMateExpertise: variables.editorMateExpertise || editorMatePromptDefaults.editorMateExpertise,
-      feedbackStyleDescription: editorMatePromptDefaults.feedbackStyleDescriptions[variables.feedbackStyle] || 'helpful and constructive',
-      feedbackStyleTone: editorMatePromptDefaults.feedbackStyleTones[variables.feedbackStyle] || 'supportive and clear',
+      editorMatePersonality: variables.editorMatePersonality || promptDefaults.editorMatePersonality,
+      editorMateExpertise: variables.editorMateExpertise || promptDefaults.editorMateExpertise,
+      feedbackStyleDescription: promptDefaults.feedbackStyleDescriptions?.[variables.feedbackStyle] || 'helpful and constructive',
+      feedbackStyleTone: promptDefaults.feedbackStyleTones?.[variables.feedbackStyle] || 'supportive and clear',
       culturalContextInstructions: variables.culturalContext 
         ? this.getCulturalContextInstructions()
         : '',
@@ -92,11 +90,11 @@ export class PromptBuilder {
   }
 
   private getCulturalContextInstructions(): string {
-    return chatMatePromptDefaults.culturalContextInstructions.enabled;
+    return promptDefaults.culturalContextInstructions?.enabled || '';
   }
 
   private getProgressiveComplexityInstructions(currentLevel?: string): string {
-    const baseInstructions = chatMatePromptDefaults.progressiveComplexityInstructions.enabled;
+    const baseInstructions = promptDefaults.progressiveComplexityInstructions?.enabled || '';
     if (currentLevel) {
       return `${baseInstructions}\n\nCurrent complexity level: ${currentLevel}`;
     }
