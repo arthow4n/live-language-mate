@@ -16,6 +16,7 @@ serve(async (req) => {
       message,
       messageType,
       conversationHistory = [],
+      systemPrompt = null, // New field for pre-built system prompts
       chatMatePrompt = '',
       editorMatePrompt = '',
       targetLanguage = 'swedish',
@@ -45,6 +46,7 @@ serve(async (req) => {
           : 'Using environment API key',
       historyLength: conversationHistory.length,
       hasMessage: !!message,
+      hasSystemPrompt: !!systemPrompt,
       hasChatMatePrompt: !!chatMatePrompt,
       hasEditorMatePrompt: !!editorMatePrompt,
       streaming,
@@ -72,23 +74,31 @@ serve(async (req) => {
         ? `Current date and time: ${currentDateTime} (${userTimezone})`
         : '';
 
-    let systemPrompt = '';
-    const editorMateChatMateCommentScenarioContext = `In the conversation history, there are three people:
+    let finalSystemPrompt = '';
+
+    // Use pre-built system prompt if provided, otherwise build dynamically (legacy support)
+    if (systemPrompt) {
+      finalSystemPrompt = systemPrompt;
+      console.log('🎯 Using pre-built system prompt from frontend');
+    } else {
+      console.log('🔧 Building system prompt dynamically (legacy mode)');
+      
+      const editorMateChatMateCommentScenarioContext = `In the conversation history, there are three people:
 - the [user], who is talking with [chat-mate].
 - [chat-mate], which is the person talking with the user.
 - [editor-mate], which is you.
 `;
-    const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the [user] is talking with [chat-mate], you should not reply to the [user] like [chat-mate] would do. Even if the [user] is writing a question, you should not answer the question or engage in the conversation, as answering question and engaging in the conversation are for [chat-mate] instead of you.
+      const editorMateUserCommentScenarioContext = `${editorMateChatMateCommentScenarioContext} Since the [user] is talking with [chat-mate], you should not reply to the [user] like [chat-mate] would do. Even if the [user] is writing a question, you should not answer the question or engage in the conversation, as answering question and engaging in the conversation are for [chat-mate] instead of you.
 `;
 
-    if (messageType === 'chat-mate-response') {
-      systemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage} talking with [user]. ${
-        chatMatePrompt ||
-        'You love chatting about local culture, daily life, and helping with language practice.'
-      } 
+      if (messageType === 'chat-mate-response') {
+        finalSystemPrompt = `You are [chat-mate], a friendly native speaker of ${targetLanguage} talking with [user]. ${
+          chatMatePrompt ||
+          'You love chatting about local culture, daily life, and helping with language practice.'
+        } 
 
 Background: ${chatMateBackground}
-      
+        
 You respond naturally in ${targetLanguage}, treating the conversation as if speaking with a local friend. You assume the user is already part of the community and don't focus on language learning explicitly - just have a natural conversation.
 
 ${
@@ -104,11 +114,11 @@ ${
 
 Do not begin your response with "[chat-mate]: ", just respond as if you are [chat-mate].
 `;
-    } else if (messageType === 'editor-mate-response') {
-      // For Editor Mate chat panel
-      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
-        editorMatePrompt || 'You provide helpful feedback on language use.'
-      }
+      } else if (messageType === 'editor-mate-response') {
+        // For Editor Mate chat panel
+        finalSystemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
+          editorMatePrompt || 'You provide helpful feedback on language use.'
+        }
 
 Expertise: ${editorMateExpertise}
 Feedback style: ${feedbackStyle}
@@ -133,10 +143,10 @@ Review the [user]'s last message and provide constructive feedback. If the messa
 }}
 </format>
 `;
-    } else if (messageType === 'editor-mate-user-comment') {
-      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
-        editorMatePrompt || 'You provide helpful feedback on language use.'
-      } 
+      } else if (messageType === 'editor-mate-user-comment') {
+        finalSystemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher. The [user] is your student. ${
+          editorMatePrompt || 'You provide helpful feedback on language use.'
+        } 
 
 Expertise: ${editorMateExpertise}
 Feedback style: ${feedbackStyle}
@@ -164,8 +174,8 @@ If the message is well-written, just give a thumbs up 👍. If there are improve
 }}
 </format>
 `;
-    } else if (messageType === 'editor-mate-chatmate-comment') {
-      systemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The [user] is your student.
+      } else if (messageType === 'editor-mate-chatmate-comment') {
+        finalSystemPrompt = `You are [editor-mate], an experienced ${targetLanguage} language teacher helping a student understand a response from a native speaker. The [user] is your student.
 
 Keep responses natural and conversational.
 
@@ -181,13 +191,14 @@ Language notes:
 {{As [editor-mate], add helpful language notes about the [chat-mate]'s last message, especially when there are interesting expressions, cultural references worth explaining, or words and expression which might be hard to understand for the [user].}}
 </format>
 `;
+      }
     }
 
     const messages = [
       // Conversation history is less likely to change, put it at the beginning to improve implicit caching.
       ...conversationHistory,
       // System prompt is different depending on the character.
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: finalSystemPrompt },
       // Some jailbreak prompts to reduce strange behaviours.
       {
         role: 'system',

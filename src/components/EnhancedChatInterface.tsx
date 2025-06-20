@@ -16,6 +16,7 @@ import {
   SUPABASE_PUBLISHABLE_KEY,
   SUPABASE_URL,
 } from '@/integrations/supabase/client';
+import { buildPrompt, MessageType, PromptVariables } from '@/services/prompts';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string | null;
@@ -654,6 +655,19 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const buildPromptVariables = (): PromptVariables => {
+    return {
+      targetLanguage,
+      chatMatePersonality: chatMatePrompt,
+      chatMateBackground: chatSettings?.chatMateBackground || 'A friendly local who enjoys helping people learn the language and culture.',
+      editorMatePersonality: currentEditorMatePrompt,
+      editorMateExpertise: chatSettings?.editorMateExpertise || '10+ years teaching experience',
+      feedbackStyle: (chatSettings?.feedbackStyle || 'encouraging') as 'encouraging' | 'gentle' | 'direct' | 'detailed',
+      culturalContext: chatSettings?.culturalContext ?? true,
+      progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
+    };
+  };
+
   const callAI = async (
     message: string,
     messageType: string,
@@ -669,6 +683,13 @@ const EnhancedChatInterface = ({
     metadata: MessageMetadata;
   }> => {
     console.log('🚀 Calling AI with model:', effectiveModel);
+
+    // Build system prompt using the new prompt system
+    const promptVariables = buildPromptVariables();
+    const builtPrompt = buildPrompt({
+      messageType: messageType as MessageType,
+      variables: promptVariables
+    });
 
     const startTime = Date.now();
     const now = new Date();
@@ -694,19 +715,10 @@ const EnhancedChatInterface = ({
         message,
         messageType,
         conversationHistory: history,
-        chatMatePrompt,
-        editorMatePrompt: currentEditorMatePrompt,
+        systemPrompt: builtPrompt.systemPrompt,
         targetLanguage,
         model: effectiveModel,
         apiKey: effectiveApiKey,
-        chatMateBackground:
-          chatSettings?.chatMateBackground ||
-          'young professional, loves local culture',
-        editorMateExpertise:
-          chatSettings?.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: chatSettings?.feedbackStyle || 'encouraging',
-        culturalContext: chatSettings?.culturalContext ?? true,
-        progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
         streaming:
           (conversationId
             ? chatSettings?.streaming

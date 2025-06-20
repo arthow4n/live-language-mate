@@ -20,6 +20,7 @@ import {
   SUPABASE_PUBLISHABLE_KEY,
   SUPABASE_URL,
 } from '@/integrations/supabase/client';
+import { buildPrompt, PromptVariables } from '@/services/prompts';
 
 interface AskInterfaceProps {
   selectedText: string;
@@ -118,6 +119,21 @@ const AskInterface = ({
       ? `The user has selected this text: "${editableSelectedText}". Answer their question about it: ${question}`
       : question;
 
+    // Build system prompt using the new prompt system
+    const promptVariables: PromptVariables = {
+      targetLanguage,
+      editorMatePersonality: editorMatePrompt,
+      editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
+      feedbackStyle: (settings.feedbackStyle || 'encouraging') as 'encouraging' | 'gentle' | 'direct' | 'detailed',
+      culturalContext: settings.culturalContext ?? true,
+      progressiveComplexity: settings.progressiveComplexity ?? true,
+    };
+
+    const builtPrompt = buildPrompt({
+      messageType: 'editor-mate-response',
+      variables: promptVariables
+    });
+
     const startTime = Date.now();
 
     const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-chat`, {
@@ -130,18 +146,10 @@ const AskInterface = ({
         message: contextMessage,
         messageType: 'editor-mate-response',
         conversationHistory,
-        editorMatePrompt,
+        systemPrompt: builtPrompt.systemPrompt,
         targetLanguage,
         model: settings.model,
         apiKey: settings.apiKey,
-        chatMateBackground:
-          settings.chatMateBackground ||
-          'young professional, loves local culture',
-        editorMateExpertise:
-          settings.editorMateExpertise || '10+ years teaching experience',
-        feedbackStyle: settings.feedbackStyle || 'encouraging',
-        culturalContext: settings.culturalContext ?? true,
-        progressiveComplexity: settings.progressiveComplexity ?? true,
         streaming: settings.streaming ?? true,
       }),
     });
