@@ -60,14 +60,12 @@ describe('EnhancedChatInterface Integration Tests', () => {
       })
     );
 
-    // Note: This test is skipped because it requires complex localStorage conversation setup
-    // The component expects a conversation to exist before it can save messages
     render(
       <TestWrapper>
         <EnhancedChatInterface
           conversationId="test-id"
           targetLanguage="Swedish"
-          onConversationUpdate={() => {}}
+          onConversationUpdate={() => { }}
         />
       </TestWrapper>
     );
@@ -107,7 +105,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
         <EnhancedChatInterface
           conversationId="test-id"
           targetLanguage="Swedish"
-          onConversationUpdate={() => {}}
+          onConversationUpdate={() => { }}
         />
       </TestWrapper>
     );
