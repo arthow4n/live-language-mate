@@ -30,3 +30,5 @@ dist-ssr
 
 *.tsbuildinfo
 .claude/settings.local.json
+
+repomix-output.xml
