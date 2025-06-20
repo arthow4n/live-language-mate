@@ -6,14 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Building and Development
 
-- `npm run dev` - Start development server with Vite
-- `npm run build` - Production build
-- `npm run build:dev` - Development build
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint for code quality
-- `npm run lint:fix` - Run ESLint and automatically fix issues
-- `npm run prettier` - Format all files with Prettier
-- `npm run format` - Alias for prettier command
+- `npm run check` - Run linter, format the files, and type check.
 
 ### Supabase Edge Functions
 
@@ -115,6 +108,7 @@ The app implements a dual-AI system:
 - Responsive design with mobile-first approach
 - Settings stored in localStorage with versioning
 
-## Git operations
+## Claude Code operations
 
-- After each task completed, you should automatically and frequently make small commits with descriptive messages.
+- After each task completed, you should automatically and frequently make small git commits with descriptive messages.
+- You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
