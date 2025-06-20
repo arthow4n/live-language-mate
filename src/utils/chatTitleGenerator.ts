@@ -2,7 +2,7 @@ import { apiClient } from '@/services/apiClient';
 import { localStorageService } from '@/services/localStorageService';
 
 export const generateChatTitle = async (
-  conversationHistory: Array<{ message_type: string; content: string }>,
+  conversationHistory: { message_type: string; content: string }[],
   targetLanguage: string,
   model: string
 ): Promise<string> => {

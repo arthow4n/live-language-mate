@@ -227,7 +227,9 @@ const EnhancedChatMessage = ({
             <div className="space-y-2">
               <textarea
                 value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
+                onChange={(e) => {
+                  setEditContent(e.target.value);
+                }}
                 className="w-full p-2 border rounded-md resize-none min-h-[100px] bg-background"
                 autoFocus
               />
@@ -301,14 +303,20 @@ const EnhancedChatMessage = ({
                   </DropdownMenuItem>
                   {onRegenerateMessage && message.type !== 'user' && (
                     <DropdownMenuItem
-                      onClick={() => onRegenerateMessage(message.id)}
+                      onClick={() => {
+                        onRegenerateMessage(message.id);
+                      }}
                     >
                       <RotateCcw className="w-3 h-3 mr-2" />
                       Regenerate
                     </DropdownMenuItem>
                   )}
                   {onForkFrom && (
-                    <DropdownMenuItem onClick={() => onForkFrom(message.id)}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onForkFrom(message.id);
+                      }}
+                    >
                       <GitBranch className="w-3 h-3 mr-2" />
                       Fork from here
                     </DropdownMenuItem>
@@ -316,7 +324,9 @@ const EnhancedChatMessage = ({
                   <DropdownMenuSeparator />
                   {onDeleteMessage && (
                     <DropdownMenuItem
-                      onClick={() => onDeleteMessage(message.id)}
+                      onClick={() => {
+                        onDeleteMessage(message.id);
+                      }}
                       className="text-destructive"
                     >
                       <Trash2 className="w-3 h-3 mr-2" />
@@ -325,7 +335,9 @@ const EnhancedChatMessage = ({
                   )}
                   {onDeleteAllBelow && (
                     <DropdownMenuItem
-                      onClick={() => onDeleteAllBelow(message.id)}
+                      onClick={() => {
+                        onDeleteAllBelow(message.id);
+                      }}
                       className="text-destructive"
                     >
                       <Scissors className="w-3 h-3 mr-2" />

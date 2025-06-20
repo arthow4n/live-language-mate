@@ -126,11 +126,7 @@ const AskInterface = ({
       editorMatePersonality: editorMatePrompt,
       editorMateExpertise:
         settings.editorMateExpertise || '10+ years teaching experience',
-      feedbackStyle: (settings.feedbackStyle || 'encouraging') as
-        | 'encouraging'
-        | 'gentle'
-        | 'direct'
-        | 'detailed',
+      feedbackStyle: settings.feedbackStyle || 'encouraging',
       culturalContext: settings.culturalContext ?? true,
       progressiveComplexity: settings.progressiveComplexity ?? true,
     };
@@ -184,7 +180,7 @@ const AskInterface = ({
       return { response: response.body, startTime, model: settings.model };
     } else {
       const data = await response.json();
-      if (!data || !data.response) {
+      if (!data?.response) {
         throw new Error('No response from Editor Mate');
       }
       const endTime = Date.now();
@@ -368,7 +364,9 @@ const AskInterface = ({
             </p>
             <Input
               value={editableSelectedText}
-              onChange={(e) => setEditableSelectedText(e.target.value)}
+              onChange={(e) => {
+                setEditableSelectedText(e.target.value);
+              }}
               placeholder="Enter or paste text you want to ask about..."
               className="bg-background"
             />
@@ -412,7 +410,9 @@ const AskInterface = ({
             </p>
             <Input
               value={editableSelectedText}
-              onChange={(e) => setEditableSelectedText(e.target.value)}
+              onChange={(e) => {
+                setEditableSelectedText(e.target.value);
+              }}
               placeholder="Enter or paste text you want to ask about..."
               className="bg-background"
             />
@@ -478,7 +478,9 @@ const AskInterface = ({
         <div className="flex items-end gap-2">
           <Textarea
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+            onChange={(e) => {
+              setQuestion(e.target.value);
+            }}
             onKeyPress={handleKeyPress}
             placeholder={`Ask Editor Mate about ${targetLanguage}...`}
             className="flex-1 text-sm min-h-[40px] max-h-[120px]"

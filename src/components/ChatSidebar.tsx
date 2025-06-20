@@ -179,7 +179,9 @@ const ChatSidebar = ({
                         }`}
                       >
                         <button
-                          onClick={() => onConversationSelect(conversation.id)}
+                          onClick={() => {
+                            onConversationSelect(conversation.id);
+                          }}
                           className="flex items-center flex-1 p-2 text-left min-w-0"
                         >
                           <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -198,7 +200,9 @@ const ChatSidebar = ({
                                   ? 'hover:bg-primary-foreground/20 text-primary-foreground'
                                   : 'hover:bg-accent text-muted-foreground hover:text-foreground'
                               }`}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
                             >
                               <MoreVertical className="w-3 h-3" />
                             </Button>
@@ -268,7 +272,9 @@ const ChatSidebar = ({
       {/* Rename Dialog */}
       <Dialog
         open={!!editingConversation}
-        onOpenChange={() => setEditingConversation(null)}
+        onOpenChange={() => {
+          setEditingConversation(null);
+        }}
       >
         <DialogContent>
           <DialogHeader>
@@ -276,7 +282,9 @@ const ChatSidebar = ({
           </DialogHeader>
           <Input
             value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
+            onChange={(e) => {
+              setEditTitle(e.target.value);
+            }}
             placeholder="Enter new title..."
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
@@ -287,7 +295,9 @@ const ChatSidebar = ({
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setEditingConversation(null)}
+              onClick={() => {
+                setEditingConversation(null);
+              }}
             >
               Cancel
             </Button>

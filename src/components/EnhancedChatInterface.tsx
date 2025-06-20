@@ -203,7 +203,9 @@ const EnhancedChatInterface = ({
         generateAndUpdateTitle(messages, conversationId);
       }, 500);
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
   }, [messages, conversationId]);
@@ -657,11 +659,7 @@ const EnhancedChatInterface = ({
       editorMatePersonality: currentEditorMatePrompt,
       editorMateExpertise:
         chatSettings?.editorMateExpertise || '10+ years teaching experience',
-      feedbackStyle: (chatSettings?.feedbackStyle || 'encouraging') as
-        | 'encouraging'
-        | 'gentle'
-        | 'direct'
-        | 'detailed',
+      feedbackStyle: chatSettings?.feedbackStyle || 'encouraging',
       culturalContext: chatSettings?.culturalContext ?? true,
       progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
     };
@@ -686,7 +684,7 @@ const EnhancedChatInterface = ({
     // Build system prompt using the new prompt system
     const promptVariables = buildPromptVariables();
     const builtPrompt = buildPrompt({
-      messageType: messageType as MessageType,
+      messageType: messageType,
       variables: promptVariables,
     });
 
@@ -1086,7 +1084,9 @@ const EnhancedChatInterface = ({
             <Textarea
               ref={textareaRef}
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={(e) => {
+                setInputMessage(e.target.value);
+              }}
               onKeyPress={handleKeyPress}
               placeholder={`Type in ${targetLanguage} or your native language...`}
               className="flex-1 min-h-[40px] max-h-[120px]"

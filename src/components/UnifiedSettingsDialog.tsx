@@ -121,9 +121,9 @@ const UnifiedSettingsDialog = ({
                       <Label htmlFor="target-language">Target Language</Label>
                       <Select
                         value={settings.targetLanguage}
-                        onValueChange={(value) =>
-                          handleSettingChange('targetLanguage', value)
-                        }
+                        onValueChange={(value) => {
+                          handleSettingChange('targetLanguage', value);
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -169,9 +169,9 @@ const UnifiedSettingsDialog = ({
                         id="api-key"
                         type="password"
                         value={settings.apiKey}
-                        onChange={(e) =>
-                          handleSettingChange('apiKey', e.target.value)
-                        }
+                        onChange={(e) => {
+                          handleSettingChange('apiKey', e.target.value);
+                        }}
                         placeholder="sk-or-..."
                       />
                     </div>
@@ -182,9 +182,9 @@ const UnifiedSettingsDialog = ({
                         <div>
                           <ModelSelector
                             value={settings.model}
-                            onValueChange={(value) =>
-                              handleSettingChange('model', value)
-                            }
+                            onValueChange={(value) => {
+                              handleSettingChange('model', value);
+                            }}
                           />
                         </div>
                       </div>
@@ -194,9 +194,9 @@ const UnifiedSettingsDialog = ({
                       <Switch
                         id="streaming"
                         checked={settings.streaming}
-                        onCheckedChange={(checked) =>
-                          handleSettingChange('streaming', checked)
-                        }
+                        onCheckedChange={(checked) => {
+                          handleSettingChange('streaming', checked);
+                        }}
                       />
                       <Label htmlFor="streaming">
                         Enable streaming responses
@@ -207,9 +207,9 @@ const UnifiedSettingsDialog = ({
                       <Switch
                         id="enableReasoning"
                         checked={settings.enableReasoning}
-                        onCheckedChange={(checked) =>
-                          handleSettingChange('enableReasoning', checked)
-                        }
+                        onCheckedChange={(checked) => {
+                          handleSettingChange('enableReasoning', checked);
+                        }}
                       />
                       <Label htmlFor="enableReasoning">
                         Enable reasoning tokens
@@ -220,9 +220,9 @@ const UnifiedSettingsDialog = ({
                       <Switch
                         id="reasoningExpanded"
                         checked={settings.reasoningExpanded}
-                        onCheckedChange={(checked) =>
-                          handleSettingChange('reasoningExpanded', checked)
-                        }
+                        onCheckedChange={(checked) => {
+                          handleSettingChange('reasoningExpanded', checked);
+                        }}
                       />
                       <Label htmlFor="reasoningExpanded">
                         Reasoning expanded by default
@@ -249,12 +249,12 @@ const UnifiedSettingsDialog = ({
                               ? (settings as ChatSettings).chatMateBackground
                               : ''
                           }
-                          onChange={(e) =>
+                          onChange={(e) => {
                             handleSettingChange(
                               'chatMateBackground',
                               e.target.value
-                            )
-                          }
+                            );
+                          }}
                           placeholder="e.g., young professional, loves local culture"
                         />
                       </div>
@@ -270,12 +270,12 @@ const UnifiedSettingsDialog = ({
                               ? (settings as ChatSettings).editorMateExpertise
                               : ''
                           }
-                          onChange={(e) =>
+                          onChange={(e) => {
                             handleSettingChange(
                               'editorMateExpertise',
                               e.target.value
-                            )
-                          }
+                            );
+                          }}
                           placeholder="e.g., 10+ years teaching experience"
                         />
                       </div>
@@ -290,9 +290,9 @@ const UnifiedSettingsDialog = ({
                               ? (settings as ChatSettings).feedbackStyle
                               : undefined
                           }
-                          onValueChange={(value) =>
-                            handleSettingChange('feedbackStyle', value)
-                          }
+                          onValueChange={(value) => {
+                            handleSettingChange('feedbackStyle', value);
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -317,9 +317,9 @@ const UnifiedSettingsDialog = ({
                                 ? (settings as ChatSettings).culturalContext
                                 : false
                             }
-                            onCheckedChange={(checked) =>
-                              handleSettingChange('culturalContext', checked)
-                            }
+                            onCheckedChange={(checked) => {
+                              handleSettingChange('culturalContext', checked);
+                            }}
                           />
                           <Label htmlFor="cultural-context">
                             Include cultural context
@@ -335,12 +335,12 @@ const UnifiedSettingsDialog = ({
                                     .progressiveComplexity
                                 : false
                             }
-                            onCheckedChange={(checked) =>
+                            onCheckedChange={(checked) => {
                               handleSettingChange(
                                 'progressiveComplexity',
                                 checked
-                              )
-                            }
+                              );
+                            }}
                           />
                           <Label htmlFor="progressive-complexity">
                             Progressive complexity
@@ -366,12 +366,12 @@ const UnifiedSettingsDialog = ({
                             ? (settings as ChatSettings).chatMatePersonality
                             : ''
                         }
-                        onChange={(e) =>
+                        onChange={(e) => {
                           handleSettingChange(
                             'chatMatePersonality',
                             e.target.value
-                          )
-                        }
+                          );
+                        }}
                         placeholder="Describe how Chat Mate should behave..."
                         className="min-h-[100px]"
                       />
@@ -388,12 +388,12 @@ const UnifiedSettingsDialog = ({
                             ? (settings as ChatSettings).editorMatePersonality
                             : ''
                         }
-                        onChange={(e) =>
+                        onChange={(e) => {
                           handleSettingChange(
                             'editorMatePersonality',
                             e.target.value
-                          )
-                        }
+                          );
+                        }}
                         placeholder="Describe how Editor Mate should provide feedback..."
                         className="min-h-[100px]"
                       />
@@ -423,7 +423,12 @@ const UnifiedSettingsDialog = ({
         </div>
 
         <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              onOpenChange(false);
+            }}
+          >
             Cancel
           </Button>
           <Button onClick={handleSave}>Save Changes</Button>

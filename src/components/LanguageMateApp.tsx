@@ -160,8 +160,12 @@ const LanguageMateApp = () => {
           currentConversationId={currentConversationId}
           onConversationSelect={handleConversationSelect}
           onNewConversation={handleNewConversation}
-          onChatSettingsOpen={() => setChatSettingsOpen(true)}
-          onMainSettingsOpen={() => setGlobalSettingsOpen(true)}
+          onChatSettingsOpen={() => {
+            setChatSettingsOpen(true);
+          }}
+          onMainSettingsOpen={() => {
+            setGlobalSettingsOpen(true);
+          }}
         />
 
         {/* Main Content */}
@@ -178,7 +182,9 @@ const LanguageMateApp = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setAskInterfaceOpen(true)}
+                onClick={() => {
+                  setAskInterfaceOpen(true);
+                }}
                 className="flex items-center gap-2"
               >
                 <GraduationCap className="w-4 h-4" />
@@ -207,9 +213,9 @@ const LanguageMateApp = () => {
                       targetLanguage={globalSettings.targetLanguage}
                       onConversationUpdate={handleConversationUpdate}
                       onConversationCreated={handleConversationCreated}
-                      onTextSelect={(text) =>
-                        handleTextSelect(text, 'main-chat')
-                      }
+                      onTextSelect={(text) => {
+                        handleTextSelect(text, 'main-chat');
+                      }}
                     />
                   </ResizablePanel>
 
@@ -242,7 +248,9 @@ const LanguageMateApp = () => {
                   targetLanguage={globalSettings.targetLanguage}
                   onConversationUpdate={handleConversationUpdate}
                   onConversationCreated={handleConversationCreated}
-                  onTextSelect={(text) => handleTextSelect(text, 'main-chat')}
+                  onTextSelect={(text) => {
+                    handleTextSelect(text, 'main-chat');
+                  }}
                 />
 
                 {/* Editor Mate Drawer for Mobile */}
@@ -261,7 +269,9 @@ const LanguageMateApp = () => {
                         editorMatePrompt={
                           getCurrentChatSettings().editorMatePersonality
                         }
-                        onClose={() => setAskInterfaceOpen(false)}
+                        onClose={() => {
+                          setAskInterfaceOpen(false);
+                        }}
                         onTextSelect={handleAskInterfaceTextSelect}
                         selectionSource={selectionSource}
                         hideHeader={true}

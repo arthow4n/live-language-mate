@@ -24,9 +24,15 @@ const TestWrapper = ({ children }: TestWrapperProps) => (
 const server = setupServer();
 
 // Test setup and cleanup
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+beforeAll(() => {
+  server.listen();
+});
+afterEach(() => {
+  server.resetHandlers();
+});
+afterAll(() => {
+  server.close();
+});
 
 describe('EnhancedChatInterface Integration Tests', () => {
   test.skip('sending message creates valid API request', async () => {

@@ -24,9 +24,15 @@ const TestWrapper = ({ children }: TestWrapperProps) => (
 const server = setupServer();
 
 // Test setup and cleanup
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+beforeAll(() => {
+  server.listen();
+});
+afterEach(() => {
+  server.resetHandlers();
+});
+afterAll(() => {
+  server.close();
+});
 
 describe('AskInterface Integration Tests', () => {
   test.skip('editor mate request includes all required fields', async () => {

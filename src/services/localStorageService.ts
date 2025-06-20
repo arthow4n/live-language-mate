@@ -46,7 +46,7 @@ class LocalStorageService {
         // Convert date strings back to Date objects before validation
         // Type for raw parsed data from localStorage (with string dates)
         interface ParsedStorageData {
-          conversations?: Array<{
+          conversations?: {
             id: string;
             title: string;
             language: string;
@@ -55,7 +55,7 @@ class LocalStorageService {
             editor_mate_prompt?: string;
             created_at: string;
             updated_at: string;
-            messages?: Array<{
+            messages?: {
               id: string;
               type: string;
               content: string;
@@ -64,8 +64,8 @@ class LocalStorageService {
               parentMessageId?: string;
               reasoning?: string;
               metadata?: object;
-            }>;
-          }>;
+            }[];
+          }[];
           settings?: object;
         }
 
