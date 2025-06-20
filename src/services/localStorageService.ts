@@ -1,13 +1,10 @@
 import { getDefaultGlobalSettings } from '@/contexts/SettingsContext';
-import { 
-  localAppDataSchema, 
+import {
+  localAppDataSchema,
   LocalStorageKeys,
-  type LocalAppData
+  type LocalAppData,
 } from '@/schemas/storage';
-import { 
-  type LocalConversation, 
-  type LocalMessage 
-} from '@/schemas/messages';
+import { type LocalConversation, type LocalMessage } from '@/schemas/messages';
 
 // Re-export types for backward compatibility
 export type { LocalMessage, LocalConversation, LocalAppData };
@@ -45,7 +42,7 @@ class LocalStorageService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        
+
         // Convert date strings back to Date objects before validation
         // Type for raw parsed data from localStorage (with string dates)
         interface ParsedStorageData {
@@ -71,28 +68,33 @@ class LocalStorageService {
           }>;
           settings?: object;
         }
-        
+
         const parsedData = parsed as ParsedStorageData;
         const dataWithDates = {
           ...parsedData,
-          conversations: parsedData.conversations?.map((conv) => ({
-            ...conv,
-            created_at: new Date(conv.created_at),
-            updated_at: new Date(conv.updated_at),
-            messages: conv.messages?.map((msg) => ({
-              ...msg,
-              timestamp: new Date(msg.timestamp),
+          conversations:
+            parsedData.conversations?.map((conv) => ({
+              ...conv,
+              created_at: new Date(conv.created_at),
+              updated_at: new Date(conv.updated_at),
+              messages:
+                conv.messages?.map((msg) => ({
+                  ...msg,
+                  timestamp: new Date(msg.timestamp),
+                })) || [],
             })) || [],
-          })) || []
         };
-        
+
         // Validate with Zod schema - strict validation
         const validatedData = localAppDataSchema.parse(dataWithDates);
         return validatedData;
       }
     } catch (error) {
-      console.error('Error loading data from localStorage - clearing invalid data:', error);
-      // Clear invalid data and start fresh  
+      console.error(
+        'Error loading data from localStorage - clearing invalid data:',
+        error
+      );
+      // Clear invalid data and start fresh
       localStorage.removeItem(this.STORAGE_KEY);
     }
     return this.getDefaultData();

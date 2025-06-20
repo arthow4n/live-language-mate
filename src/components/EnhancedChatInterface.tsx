@@ -656,10 +656,17 @@ const EnhancedChatInterface = ({
     return {
       targetLanguage,
       chatMatePersonality: chatMatePrompt,
-      chatMateBackground: chatSettings?.chatMateBackground || 'A friendly local who enjoys helping people learn the language and culture.',
+      chatMateBackground:
+        chatSettings?.chatMateBackground ||
+        'A friendly local who enjoys helping people learn the language and culture.',
       editorMatePersonality: currentEditorMatePrompt,
-      editorMateExpertise: chatSettings?.editorMateExpertise || '10+ years teaching experience',
-      feedbackStyle: (chatSettings?.feedbackStyle || 'encouraging') as 'encouraging' | 'gentle' | 'direct' | 'detailed',
+      editorMateExpertise:
+        chatSettings?.editorMateExpertise || '10+ years teaching experience',
+      feedbackStyle: (chatSettings?.feedbackStyle || 'encouraging') as
+        | 'encouraging'
+        | 'gentle'
+        | 'direct'
+        | 'detailed',
       culturalContext: chatSettings?.culturalContext ?? true,
       progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
     };
@@ -685,7 +692,7 @@ const EnhancedChatInterface = ({
     const promptVariables = buildPromptVariables();
     const builtPrompt = buildPrompt({
       messageType: messageType as MessageType,
-      variables: promptVariables
+      variables: promptVariables,
     });
 
     const startTime = Date.now();
@@ -702,25 +709,28 @@ const EnhancedChatInterface = ({
     });
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const response = await apiClient.aiChat({
-      message,
-      messageType,
-      conversationHistory: history,
-      systemPrompt: builtPrompt.systemPrompt,
-      targetLanguage,
-      model: effectiveModel,
-      apiKey: effectiveApiKey,
-      streaming:
-        (conversationId
-          ? chatSettings?.streaming
-          : globalSettings.streaming) ?? true,
-      currentDateTime,
-      userTimezone,
-      enableReasoning:
-        (conversationId
-          ? chatSettings?.enableReasoning
-          : globalSettings.enableReasoning) ?? false,
-    }, { signal });
+    const response = await apiClient.aiChat(
+      {
+        message,
+        messageType,
+        conversationHistory: history,
+        systemPrompt: builtPrompt.systemPrompt,
+        targetLanguage,
+        model: effectiveModel,
+        apiKey: effectiveApiKey,
+        streaming:
+          (conversationId
+            ? chatSettings?.streaming
+            : globalSettings.streaming) ?? true,
+        currentDateTime,
+        userTimezone,
+        enableReasoning:
+          (conversationId
+            ? chatSettings?.enableReasoning
+            : globalSettings.enableReasoning) ?? false,
+      },
+      { signal }
+    );
 
     if (!response.ok) {
       const errorData = await response.json();

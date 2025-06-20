@@ -25,7 +25,7 @@ export interface BuiltPrompt {
   timestamp: Date;
 }
 
-export type MessageType = 
+export type MessageType =
   | 'chat-mate-response'
   | 'editor-mate-response'
   | 'editor-mate-user-comment'

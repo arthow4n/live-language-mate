@@ -120,15 +120,20 @@ const AskInterface = ({
     const promptVariables: PromptVariables = {
       targetLanguage,
       editorMatePersonality: editorMatePrompt,
-      editorMateExpertise: settings.editorMateExpertise || '10+ years teaching experience',
-      feedbackStyle: (settings.feedbackStyle || 'encouraging') as 'encouraging' | 'gentle' | 'direct' | 'detailed',
+      editorMateExpertise:
+        settings.editorMateExpertise || '10+ years teaching experience',
+      feedbackStyle: (settings.feedbackStyle || 'encouraging') as
+        | 'encouraging'
+        | 'gentle'
+        | 'direct'
+        | 'detailed',
       culturalContext: settings.culturalContext ?? true,
       progressiveComplexity: settings.progressiveComplexity ?? true,
     };
 
     const builtPrompt = buildPrompt({
       messageType: 'editor-mate-response',
-      variables: promptVariables
+      variables: promptVariables,
     });
 
     const startTime = Date.now();

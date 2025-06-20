@@ -6,7 +6,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
   try {
     // Strict validation with no defaults - BREAKING CHANGE
     const requestData = await validateApiRequest(req, aiChatRequestSchema);
-    
+
     const {
       message,
       messageType,
@@ -77,7 +77,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
       console.log('🎯 Using pre-built system prompt from frontend');
     } else {
       console.log('🔧 Building system prompt dynamically (legacy mode)');
-      
+
       const editorMateChatMateCommentScenarioContext = `In the conversation history, there are three people:
 - the [user], who is talking with [chat-mate].
 - [chat-mate], which is the person talking with the user.
@@ -328,9 +328,9 @@ Language notes:
       // Validate response before sending - strict validation
       const responseData = {
         response: aiResponse || '',
-        reasoning: reasoning || null
+        reasoning: reasoning || null,
       };
-      
+
       return new Response(JSON.stringify(responseData), {
         headers: { 'Content-Type': 'application/json' },
       });
@@ -339,7 +339,10 @@ Language notes:
     console.error('❌ Error in AI chat function:', error);
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : 'An error occurred while processing your request',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'An error occurred while processing your request',
       }),
       {
         status: 500,

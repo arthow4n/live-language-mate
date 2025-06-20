@@ -9,5 +9,5 @@ export type {
   GlobalSettingsUpdate,
   ChatSettingsUpdate,
   StoredGlobalSettings,
-  StoredChatSettings
+  StoredChatSettings,
 } from '@/schemas/settings';

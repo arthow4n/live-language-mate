@@ -23,9 +23,9 @@ import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/components/ThemeProvider';
 import { LocalConversation } from '@/services/localStorageService';
-import { 
-  type GlobalSettingsUpdate, 
-  type ChatSettingsUpdate 
+import {
+  type GlobalSettingsUpdate,
+  type ChatSettingsUpdate,
 } from '@/types/settings';
 
 const LanguageMateApp = () => {

@@ -115,18 +115,22 @@ The app implements a dual-AI system:
 **Environment Variables:**
 
 API Server (`api/.env`):
+
 - `OPENAI_API_KEY` - OpenRouter API key for AI models
 - `PORT` - Server port (default: 8000)
 
 Frontend (`.env`):
+
 - `VITE_API_BASE_URL` - API server URL (default: http://localhost:8000)
 
 **API Endpoints:**
+
 - `POST /ai-chat` - AI chat completions
 - `GET /models` - Available OpenRouter models
 
 **Deployment:**
 The API server can be deployed to any platform supporting Deno:
+
 - Deno Deploy
 - Docker containers
 - VPS with Deno runtime

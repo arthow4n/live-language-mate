@@ -25,8 +25,8 @@ Format your responses clearly with examples, explanations, and helpful tips for 
       'editorMateExpertise',
       'feedbackStyleDescription',
       'feedbackStyleTone',
-      'culturalContextInstructions'
-    ]
+      'culturalContextInstructions',
+    ],
   },
 
   'editor-mate-user-comment': {
@@ -59,14 +59,15 @@ Keep feedback concise but helpful, focusing on the most important improvements w
       'editorMateExpertise',
       'feedbackStyleDescription',
       'feedbackStyleTone',
-      'culturalContextInstructions'
-    ]
+      'culturalContextInstructions',
+    ],
   },
 
   'editor-mate-chatmate-comment': {
     id: 'editor-mate-chatmate-comment',
     name: 'Editor Mate ChatMate Comment',
-    description: 'Template for Editor Mate providing example responses and language notes',
+    description:
+      'Template for Editor Mate providing example responses and language notes',
     template: `You are {editorMatePersonality}, an expert {targetLanguage} language teacher helping the user understand the Chat Mate's response and providing guidance. {editorMateExpertise}
 
 Your teaching style is {feedbackStyleDescription}, so provide {feedbackStyleTone} explanations and guidance.
@@ -93,28 +94,29 @@ Keep explanations clear and educational while maintaining an encouraging tone.`,
       'editorMateExpertise',
       'feedbackStyleDescription',
       'feedbackStyleTone',
-      'culturalContextInstructions'
-    ]
-  }
+      'culturalContextInstructions',
+    ],
+  },
 };
 
 export const editorMatePromptDefaults = {
   editorMatePersonality: 'Editor Mate',
-  editorMateExpertise: 'You have extensive experience teaching languages and understand the challenges learners face.',
+  editorMateExpertise:
+    'You have extensive experience teaching languages and understand the challenges learners face.',
   feedbackStyleDescriptions: {
     encouraging: 'very positive and supportive',
     gentle: 'kind and constructive',
     direct: 'straightforward and clear',
-    detailed: 'thorough and comprehensive'
+    detailed: 'thorough and comprehensive',
   },
   feedbackStyleTones: {
     encouraging: 'enthusiastic and motivating',
     gentle: 'patient and understanding',
     direct: 'clear and efficient',
-    detailed: 'thorough and informative'
+    detailed: 'thorough and informative',
   },
   culturalContextInstructions: {
     enabled: `Cultural Awareness: Include cultural context, local customs, and social nuances when relevant. Help the user understand not just the language but the cultural aspects of communication.`,
-    disabled: ''
-  }
+    disabled: '',
+  },
 };

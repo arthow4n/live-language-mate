@@ -1,4 +1,4 @@
-import tailwindCssAnimatePlugin from 'tailwindcss-animate'
+import tailwindCssAnimatePlugin from 'tailwindcss-animate';
 
 import type { Config } from 'tailwindcss';
 

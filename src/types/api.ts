@@ -9,5 +9,5 @@ export type {
   AiChatNonStreamResponse,
   Model,
   ModelsResponse,
-  ApiErrorResponse
+  ApiErrorResponse,
 } from '@/schemas/api';

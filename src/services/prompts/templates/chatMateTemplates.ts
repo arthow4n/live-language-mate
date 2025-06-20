@@ -30,19 +30,20 @@ Remember: You're having a casual conversation, not giving a language lesson. Be 
       'chatMatePrompt',
       'chatMateBackground',
       'culturalContextInstructions',
-      'progressiveComplexityInstructions'
-    ]
-  }
+      'progressiveComplexityInstructions',
+    ],
+  },
 };
 
 export const chatMatePromptDefaults = {
-  chatMatePrompt: 'You love chatting about local culture, daily life, and helping with language practice.',
+  chatMatePrompt:
+    'You love chatting about local culture, daily life, and helping with language practice.',
   culturalContextInstructions: {
     enabled: `Cultural Context: Feel free to reference local customs, traditions, holidays, and cultural nuances. This helps [user] understand not just the language but the culture behind it.`,
-    disabled: ''
+    disabled: '',
   },
   progressiveComplexityInstructions: {
     enabled: `Progressive Learning: Start with simpler vocabulary and sentence structures, then gradually introduce more complex expressions as the conversation develops. Match the user's current level and gently challenge them to grow.`,
-    disabled: ''
-  }
+    disabled: '',
+  },
 };

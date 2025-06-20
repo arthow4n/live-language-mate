@@ -11,5 +11,5 @@ export type {
   MessageCreate,
   MessageUpdate,
   ConversationCreate,
-  ConversationUpdate
+  ConversationUpdate,
 } from '@/schemas/messages';

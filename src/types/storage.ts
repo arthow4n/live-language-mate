@@ -7,7 +7,7 @@ export type {
   StoredChatSettings,
   SettingsContextStorage,
   PanelSizes,
-  LocalStorageKeyType
+  LocalStorageKeyType,
 } from '@/schemas/storage';
 
 // Re-export LocalStorageKeys for convenience

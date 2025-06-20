@@ -5,21 +5,24 @@ A standalone Deno HTTP API server that provides AI chat completions and model li
 ## Quick Start
 
 1. **Install Deno** (if not already installed):
+
    ```bash
    curl -fsSL https://deno.land/x/install/install.sh | sh
    ```
 
 2. **Set up environment variables**:
+
    ```bash
    cp .env.example .env
    # Edit .env and add your OpenRouter API key
    ```
 
 3. **Run the server**:
+
    ```bash
    # Development mode (auto-reload on changes)
    deno task dev
-   
+
    # Production mode
    deno task start
    ```
@@ -33,6 +36,7 @@ The server will start on port 8000 by default.
 Handles AI chat completions for the Language Mate application.
 
 **Request Body:**
+
 ```typescript
 {
   message: string;
@@ -49,6 +53,7 @@ Handles AI chat completions for the Language Mate application.
 ```
 
 **Response:**
+
 - Streaming: Server-Sent Events with `data:` prefix
 - Non-streaming: JSON with `response` and optional `reasoning` fields
 
@@ -57,6 +62,7 @@ Handles AI chat completions for the Language Mate application.
 Fetches available AI models from OpenRouter.
 
 **Response:**
+
 ```typescript
 {
   models: Array<{
@@ -130,6 +136,7 @@ deno run --allow-net --allow-env main.ts
 ## Development
 
 The API uses:
+
 - **Deno** - Modern JavaScript/TypeScript runtime
 - **OpenRouter** - AI model access
 - **Server-Sent Events** - Real-time streaming responses

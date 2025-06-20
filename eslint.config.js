@@ -25,5 +25,5 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
     },
-  },
+  }
 );

@@ -21,9 +21,11 @@ const routes: Route[] = [
 ];
 
 function matchRoute(url: URL, method: string): Route | null {
-  return routes.find(route => 
-    route.path === url.pathname && route.method === method
-  ) || null;
+  return (
+    routes.find(
+      (route) => route.path === url.pathname && route.method === method
+    ) || null
+  );
 }
 
 async function requestHandler(req: Request): Promise<Response> {
@@ -36,18 +38,15 @@ async function requestHandler(req: Request): Promise<Response> {
   const route = matchRoute(url, req.method);
 
   if (!route) {
-    return new Response(
-      JSON.stringify({ error: 'Not found' }),
-      { 
-        status: 404, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+      status: 404,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
     const response = await route.handler(req);
-    
+
     // Add CORS headers to all responses
     const headers = new Headers(response.headers);
     Object.entries(corsHeaders).forEach(([key, value]) => {
@@ -62,12 +61,12 @@ async function requestHandler(req: Request): Promise<Response> {
   } catch (error) {
     console.error('Request handler error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Internal server error',
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

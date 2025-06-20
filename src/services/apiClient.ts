@@ -1,21 +1,22 @@
 import { z } from 'zod';
-import { 
-  aiChatRequestSchema, 
+import {
+  aiChatRequestSchema,
   aiChatNonStreamResponseSchema,
   modelsResponseSchema,
-  apiErrorResponseSchema
+  apiErrorResponseSchema,
 } from '@/schemas/api';
 import { parseStoredData } from '@/utils/validation';
 
 // Configuration for the standalone API
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Import types from schemas - no more manual interfaces
-import type { 
-  AiChatRequest, 
-  AiChatNonStreamResponse, 
+import type {
+  AiChatRequest,
+  AiChatNonStreamResponse,
   ModelsResponse,
-  ApiErrorResponse 
+  ApiErrorResponse,
 } from '@/types/api';
 
 // Generic API Response wrapper
@@ -31,10 +32,13 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async aiChat(request: AiChatRequest, options?: { signal?: AbortSignal }): Promise<Response> {
+  async aiChat(
+    request: AiChatRequest,
+    options?: { signal?: AbortSignal }
+  ): Promise<Response> {
     // Validate request before sending - strict validation
     const validatedRequest = aiChatRequestSchema.parse(request);
-    
+
     const response = await fetch(`${this.baseUrl}/ai-chat`, {
       method: 'POST',
       headers: {
@@ -82,7 +86,9 @@ class ApiClient {
       return { data: validatedData };
     } catch (error) {
       console.error('Failed to fetch models from API:', error);
-      return { error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 }
@@ -91,8 +97,8 @@ class ApiClient {
 export const apiClient = new ApiClient();
 
 // Re-export types from schemas for convenience
-export type { 
-  AiChatRequest, 
-  AiChatNonStreamResponse as AiChatResponse, 
-  ModelsResponse 
+export type {
+  AiChatRequest,
+  AiChatNonStreamResponse as AiChatResponse,
+  ModelsResponse,
 } from '@/types/api';

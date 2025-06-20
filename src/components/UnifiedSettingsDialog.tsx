@@ -22,11 +22,11 @@ import {
 import ModelSelector from './ModelSelector';
 import DataManagementTab from './DataManagementTab';
 import UISettingsTab from './UISettingsTab';
-import { 
-  type GlobalSettings, 
+import {
+  type GlobalSettings,
   type ChatSettings,
   type GlobalSettingsUpdate,
-  type ChatSettingsUpdate 
+  type ChatSettingsUpdate,
 } from '@/types/settings';
 
 interface UnifiedSettingsDialogProps {
@@ -46,7 +46,9 @@ const UnifiedSettingsDialog = ({
   onSave,
   conversationTitle,
 }: UnifiedSettingsDialogProps) => {
-  const [settings, setSettings] = useState<GlobalSettings | ChatSettings>(initialSettings);
+  const [settings, setSettings] = useState<GlobalSettings | ChatSettings>(
+    initialSettings
+  );
 
   useEffect(() => {
     setSettings(initialSettings);
@@ -57,7 +59,10 @@ const UnifiedSettingsDialog = ({
     onOpenChange(false);
   };
 
-  const handleSettingChange = (key: string, value: string | boolean | number) => {
+  const handleSettingChange = (
+    key: string,
+    value: string | boolean | number
+  ) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 

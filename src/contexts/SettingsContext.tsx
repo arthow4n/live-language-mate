@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
-import { 
+import {
   globalSettingsSchema,
   chatSettingsSchema,
   storedGlobalSettingsSchema,
@@ -13,7 +13,7 @@ import {
   type GlobalSettings,
   type ChatSettings,
   type GlobalSettingsUpdate,
-  type ChatSettingsUpdate
+  type ChatSettingsUpdate,
 } from '@/schemas/settings';
 import { LocalStorageKeys } from '@/schemas/storage';
 
@@ -61,30 +61,42 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const loadAllSettings = () => {
       try {
         // Load global settings with Zod validation
-        const savedGlobalSettings = localStorage.getItem(LocalStorageKeys.GLOBAL_SETTINGS);
+        const savedGlobalSettings = localStorage.getItem(
+          LocalStorageKeys.GLOBAL_SETTINGS
+        );
         if (savedGlobalSettings) {
           try {
             const parsed = JSON.parse(savedGlobalSettings);
-            const validatedGlobalSettings = storedGlobalSettingsSchema.parse(parsed);
+            const validatedGlobalSettings =
+              storedGlobalSettingsSchema.parse(parsed);
             console.log('📱 Loaded global settings from localStorage:', {
               model: validatedGlobalSettings.model,
               apiKey: validatedGlobalSettings.apiKey ? 'Set' : 'Not set',
               targetLanguage: validatedGlobalSettings.targetLanguage,
               theme: validatedGlobalSettings.theme,
             });
-            setGlobalSettings((prev) => ({ ...prev, ...validatedGlobalSettings }));
+            setGlobalSettings((prev) => ({
+              ...prev,
+              ...validatedGlobalSettings,
+            }));
           } catch (validationError) {
-            console.error('Invalid global settings in localStorage - clearing:', validationError);
+            console.error(
+              'Invalid global settings in localStorage - clearing:',
+              validationError
+            );
             localStorage.removeItem(LocalStorageKeys.GLOBAL_SETTINGS);
           }
         }
 
         // Load chat settings with Zod validation
-        const savedChatSettings = localStorage.getItem(LocalStorageKeys.CHAT_SETTINGS);
+        const savedChatSettings = localStorage.getItem(
+          LocalStorageKeys.CHAT_SETTINGS
+        );
         if (savedChatSettings) {
           try {
             const parsed = JSON.parse(savedChatSettings);
-            const validatedChatSettings = storedChatSettingsSchema.parse(parsed);
+            const validatedChatSettings =
+              storedChatSettingsSchema.parse(parsed);
             console.log(
               '💬 Loaded chat settings from localStorage:',
               Object.keys(validatedChatSettings).length,
@@ -92,7 +104,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             );
             setChatSettings(validatedChatSettings);
           } catch (validationError) {
-            console.error('Invalid chat settings in localStorage - clearing:', validationError);
+            console.error(
+              'Invalid chat settings in localStorage - clearing:',
+              validationError
+            );
             localStorage.removeItem(LocalStorageKeys.CHAT_SETTINGS);
           }
         }
@@ -111,7 +126,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       const updatedSettings = { ...prev, ...newSettings };
       try {
         // Validate before saving - strict validation
-        const validatedSettings = storedGlobalSettingsSchema.parse(updatedSettings);
+        const validatedSettings =
+          storedGlobalSettingsSchema.parse(updatedSettings);
         localStorage.setItem(
           LocalStorageKeys.GLOBAL_SETTINGS,
           JSON.stringify(validatedSettings)
@@ -130,19 +146,22 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     newSettings: ChatSettingsUpdate
   ) => {
     setChatSettings((prev) => {
-      const currentChatSettings = prev[conversationId] || getDefaultChatSettings();
+      const currentChatSettings =
+        prev[conversationId] || getDefaultChatSettings();
       const updatedChatSettings = { ...currentChatSettings, ...newSettings };
-      
+
       try {
         // Validate individual chat settings
-        const validatedChatSettings = chatSettingsSchema.parse(updatedChatSettings);
+        const validatedChatSettings =
+          chatSettingsSchema.parse(updatedChatSettings);
         const updatedAllSettings = {
           ...prev,
           [conversationId]: validatedChatSettings,
         };
-        
+
         // Validate entire chat settings object before saving
-        const validatedAllSettings = storedChatSettingsSchema.parse(updatedAllSettings);
+        const validatedAllSettings =
+          storedChatSettingsSchema.parse(updatedAllSettings);
         localStorage.setItem(
           LocalStorageKeys.CHAT_SETTINGS,
           JSON.stringify(validatedAllSettings)
