@@ -23,6 +23,10 @@ import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/components/ThemeProvider';
 import { LocalConversation } from '@/services/localStorageService';
+import { 
+  type GlobalSettingsUpdate, 
+  type ChatSettingsUpdate 
+} from '@/types/settings';
 
 const LanguageMateApp = () => {
   const [currentConversationId, setCurrentConversationId] = useState<
@@ -76,7 +80,7 @@ const LanguageMateApp = () => {
     createChatSettings(conversationId);
   };
 
-  const handleGlobalSettingsSave = (newSettings: any) => {
+  const handleGlobalSettingsSave = (newSettings: GlobalSettingsUpdate) => {
     updateGlobalSettings(newSettings);
     // Also update the legacy settings format for backwards compatibility
     updateSettings({
@@ -94,7 +98,7 @@ const LanguageMateApp = () => {
     });
   };
 
-  const handleChatSettingsSave = (chatSettings: any) => {
+  const handleChatSettingsSave = (chatSettings: ChatSettingsUpdate) => {
     if (currentConversationId) {
       updateChatSettings(currentConversationId, chatSettings);
     }

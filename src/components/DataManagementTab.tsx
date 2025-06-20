@@ -8,6 +8,7 @@ import {
   useSettings,
 } from '@/contexts/SettingsContext';
 import { Download, Upload, Trash2 } from 'lucide-react';
+import { type ChatSettingsUpdate } from '@/types/settings';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,7 +94,7 @@ const DataManagementTab = () => {
         if (importedData.chatSettings) {
           Object.entries(importedData.chatSettings).forEach(
             ([id, settings]) => {
-              updateChatSettings(id, settings as any);
+              updateChatSettings(id, settings as ChatSettingsUpdate);
             }
           );
         }

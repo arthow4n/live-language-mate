@@ -6,16 +6,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { type Theme } from '@/types/settings';
 
 interface UISettingsTabProps {
   settings: {
-    theme: 'light' | 'dark' | 'system';
+    theme: Theme;
   };
-  onSettingChange: (key: string, value: any) => void;
+  onSettingChange: (key: string, value: string | boolean | number) => void;
 }
 
 const UISettingsTab = ({ settings, onSettingChange }: UISettingsTabProps) => {
-  const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
+  const handleThemeChange = (value: Theme) => {
     onSettingChange('theme', value);
     // Remove the immediate setTheme call to prevent conflicts
   };

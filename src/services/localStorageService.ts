@@ -1,54 +1,19 @@
 import { getDefaultGlobalSettings } from '@/contexts/SettingsContext';
+import { 
+  localAppDataSchema, 
+  LocalStorageKeys,
+  type LocalAppData
+} from '@/schemas/storage';
+import { 
+  type LocalConversation, 
+  type LocalMessage 
+} from '@/schemas/messages';
 
-export interface LocalMessage {
-  id: string;
-  type: 'user' | 'chat-mate' | 'editor-mate';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-  parentMessageId?: string;
-  reasoning?: string;
-  metadata?: {
-    model?: string;
-    generationTime?: number; // in milliseconds
-    startTime?: number;
-    endTime?: number;
-  };
-}
-
-export interface LocalConversation {
-  id: string;
-  title: string;
-  language: string;
-  ai_mode: string;
-  chat_mate_prompt?: string;
-  editor_mate_prompt?: string;
-  created_at: Date;
-  updated_at: Date;
-  messages: LocalMessage[];
-}
-
-export interface LocalAppData {
-  conversations: LocalConversation[];
-  settings: {
-    model: string;
-    apiKey: string;
-    targetLanguage: string;
-    streaming: boolean;
-    chatMatePersonality: string;
-    editorMatePersonality: string;
-    chatMateBackground: string;
-    editorMateExpertise: string;
-    feedbackStyle: 'encouraging' | 'gentle' | 'direct' | 'detailed';
-    culturalContext: boolean;
-    progressiveComplexity: boolean;
-    enableReasoning: boolean;
-    reasoningExpanded: boolean;
-  };
-}
+// Re-export types for backward compatibility
+export type { LocalMessage, LocalConversation, LocalAppData };
 
 class LocalStorageService {
-  private readonly STORAGE_KEY = 'language-mate-data';
+  private readonly STORAGE_KEY = LocalStorageKeys.APP_DATA;
 
   private getDefaultData(): LocalAppData {
     const { model, apiKey, targetLanguage, streaming } =
@@ -80,29 +45,67 @@ class LocalStorageService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Convert date strings back to Date objects
-        parsed.conversations = parsed.conversations.map((conv: any) => ({
-          ...conv,
-          created_at: new Date(conv.created_at),
-          updated_at: new Date(conv.updated_at),
-          messages: conv.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          })),
-        }));
-        return { ...this.getDefaultData(), ...parsed };
+        
+        // Convert date strings back to Date objects before validation
+        // Type for raw parsed data from localStorage (with string dates)
+        interface ParsedStorageData {
+          conversations?: Array<{
+            id: string;
+            title: string;
+            language: string;
+            ai_mode: string;
+            chat_mate_prompt?: string;
+            editor_mate_prompt?: string;
+            created_at: string;
+            updated_at: string;
+            messages?: Array<{
+              id: string;
+              type: string;
+              content: string;
+              timestamp: string;
+              isStreaming?: boolean;
+              parentMessageId?: string;
+              reasoning?: string;
+              metadata?: object;
+            }>;
+          }>;
+          settings?: object;
+        }
+        
+        const parsedData = parsed as ParsedStorageData;
+        const dataWithDates = {
+          ...parsedData,
+          conversations: parsedData.conversations?.map((conv) => ({
+            ...conv,
+            created_at: new Date(conv.created_at),
+            updated_at: new Date(conv.updated_at),
+            messages: conv.messages?.map((msg) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp),
+            })) || [],
+          })) || []
+        };
+        
+        // Validate with Zod schema - strict validation
+        const validatedData = localAppDataSchema.parse(dataWithDates);
+        return validatedData;
       }
     } catch (error) {
-      console.error('Error loading data from localStorage:', error);
+      console.error('Error loading data from localStorage - clearing invalid data:', error);
+      // Clear invalid data and start fresh  
+      localStorage.removeItem(this.STORAGE_KEY);
     }
     return this.getDefaultData();
   }
 
   saveData(data: LocalAppData): void {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+      // Validate data before saving - strict validation
+      const validatedData = localAppDataSchema.parse(data);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(validatedData));
     } catch (error) {
       console.error('Error saving data to localStorage:', error);
+      throw error; // Re-throw to let caller handle validation errors
     }
   }
 
