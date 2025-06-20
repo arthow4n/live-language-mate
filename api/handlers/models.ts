@@ -26,7 +26,7 @@ interface OpenRouterModelsResponse {
   data: OpenRouterModel[];
 }
 
-export async function modelsHandler(req: Request): Promise<Response> {
+export async function modelsHandler(): Promise<Response> {
   try {
     const openrouterApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openrouterApiKey) {

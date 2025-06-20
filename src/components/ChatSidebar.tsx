@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -32,7 +32,6 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
@@ -43,8 +42,6 @@ interface ChatSidebarProps {
   currentConversationId: string | null;
   onConversationSelect: (id: string | null) => void;
   onNewConversation: () => void;
-  targetLanguage: string;
-  refreshTrigger?: number;
   onChatSettingsOpen: () => void;
   onMainSettingsOpen: () => void;
 }
@@ -53,8 +50,6 @@ const ChatSidebar = ({
   currentConversationId,
   onConversationSelect,
   onNewConversation,
-  targetLanguage,
-  refreshTrigger = 0,
   onChatSettingsOpen,
   onMainSettingsOpen,
 }: ChatSidebarProps) => {

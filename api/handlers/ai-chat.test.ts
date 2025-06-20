@@ -2,8 +2,8 @@ import {
   assertEquals,
   assertExists,
 } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { handleAiChat } from './ai-chat.ts';
-import type { AiChatRequest } from '../types/api.ts';
+import { aiChatHandler } from './ai-chat.ts';
+import type { AiChatRequest } from '../../src/schemas/api.ts';
 
 // Import factory function (needs to be created for Deno)
 const createRealChatRequest = (
@@ -89,7 +89,7 @@ Deno.test('AI Chat Handler - validates real frontend requests', async () => {
   // Mock environment variable
   Deno.env.set('OPENAI_API_KEY', 'test-key');
 
-  const response = await handleAiChat(realFrontendRequest);
+  const response = await aiChatHandler(realFrontendRequest);
 
   // Should not fail validation
   assertEquals(response.status, 200);
@@ -110,7 +110,7 @@ Deno.test('AI Chat Handler - rejects invalid requests', async () => {
     body: JSON.stringify(invalidRequestBody),
   });
 
-  const response = await handleAiChat(invalidRequest);
+  const response = await aiChatHandler(invalidRequest);
 
   assertEquals(response.status, 400);
 
@@ -121,7 +121,7 @@ Deno.test('AI Chat Handler - rejects invalid requests', async () => {
 Deno.test(
   'AI Chat Handler - OpenRouter payload structure validation',
   async () => {
-    let capturedPayload: OpenRouterPayload | null = null;
+    let capturedPayload: OpenRouterPayload = {} as OpenRouterPayload;
 
     // Mock fetch to capture the payload sent to OpenRouter
     const originalFetch = globalThis.fetch;
@@ -163,7 +163,7 @@ Deno.test(
     });
 
     Deno.env.set('OPENAI_API_KEY', 'test-key');
-    await handleAiChat(realFrontendRequest);
+    await aiChatHandler(realFrontendRequest);
 
     // Verify the OpenRouter payload structure with proper null check
     assertExists(capturedPayload);

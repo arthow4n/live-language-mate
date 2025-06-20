@@ -62,7 +62,7 @@ const DataManagementTab = () => {
         title: 'Data exported',
         description: 'Your data has been successfully exported as a JSON file.',
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Export failed',
         description: 'There was an error exporting your data.',
@@ -145,7 +145,7 @@ const DataManagementTab = () => {
         'import-file'
       ) as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-    } catch (error) {
+    } catch {
       toast({
         title: 'Import failed',
         description:

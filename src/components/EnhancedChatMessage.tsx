@@ -52,7 +52,7 @@ const EnhancedChatMessage = ({
   onDeleteAllBelow,
   onForkFrom,
 }: EnhancedChatMessageProps) => {
-  const [selectedText, setSelectedText] = useState('');
+  const [, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const { globalSettings } = useSettings();

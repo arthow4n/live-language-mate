@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, MessageSquare, GraduationCap } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   ResizablePanelGroup,
@@ -12,7 +12,6 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from '@/components/ui/drawer';
 import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
@@ -22,7 +21,6 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/components/ThemeProvider';
-import { LocalConversation } from '@/services/localStorageService';
 import {
   type GlobalSettingsUpdate,
   type ChatSettingsUpdate,

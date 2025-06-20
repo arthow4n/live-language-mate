@@ -1,11 +1,8 @@
-import { z } from 'zod';
 import {
   aiChatRequestSchema,
-  aiChatNonStreamResponseSchema,
   modelsResponseSchema,
   apiErrorResponseSchema,
 } from '@/schemas/api';
-import { parseStoredData } from '@/utils/validation';
 
 // Configuration for the standalone API
 const API_BASE_URL =
@@ -14,9 +11,7 @@ const API_BASE_URL =
 // Import types from schemas - no more manual interfaces
 import type {
   AiChatRequest,
-  AiChatNonStreamResponse,
   ModelsResponse,
-  ApiErrorResponse,
 } from '@/types/api';
 
 // Generic API Response wrapper
@@ -53,7 +48,7 @@ class ApiClient {
         const errorData = await response.json();
         const validatedError = apiErrorResponseSchema.parse(errorData);
         throw new Error(validatedError.error);
-      } catch (parseError) {
+      } catch {
         throw new Error(`API request failed: ${response.status}`);
       }
     }
@@ -75,7 +70,7 @@ class ApiClient {
           const errorData = await response.json();
           const validatedError = apiErrorResponseSchema.parse(errorData);
           throw new Error(validatedError.error);
-        } catch (parseError) {
+        } catch {
           throw new Error(`API request failed: ${response.status}`);
         }
       }

@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from '../__tests__/setup';
 import { apiClient } from './apiClient';
@@ -8,7 +8,6 @@ import {
 } from '../__tests__/factories';
 import {
   aiChatRequestSchema,
-  aiChatNonStreamResponseSchema,
 } from '@/schemas/api';
 import type { AiChatRequest } from '@/schemas/api';
 

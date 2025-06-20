@@ -308,7 +308,7 @@ const AskInterface = ({
                       )
                     );
                   }
-                } catch (e) {
+                } catch {
                   // Skip invalid JSON
                 }
               }

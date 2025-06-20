@@ -6,7 +6,6 @@ import React, {
   ReactNode,
 } from 'react';
 import {
-  globalSettingsSchema,
   chatSettingsSchema,
   storedGlobalSettingsSchema,
   storedChatSettingsSchema,

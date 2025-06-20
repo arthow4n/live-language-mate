@@ -1,6 +1,5 @@
 import type {
   AiChatRequest,
-  MessageType,
   AiChatNonStreamResponse,
   ChatMessage,
 } from '@/schemas/api';

@@ -8,7 +8,6 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   generateChatTitle,
-  updateConversationTitle,
 } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message, MessageMetadata } from '@/types/Message';
@@ -33,9 +32,7 @@ const EnhancedChatInterface = ({
   onConversationUpdate,
   onConversationCreated,
   onTextSelect,
-  onChatSettingsOpen,
   onAskInterfaceOpen,
-  selectedText,
   editorMatePrompt,
 }: EnhancedChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -799,7 +796,7 @@ const EnhancedChatInterface = ({
         setIsCreatingNewConversation(true);
         currentConversationId = createNewConversation();
         onConversationCreated(currentConversationId);
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Failed to create conversation',
