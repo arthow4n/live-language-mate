@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "MultiEdit",
+      "Write",
+      "TodoRead",
+      "TodoWrite",
+      "WebFetch",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git revert:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reflog:*)",
+      "Bash(git stash:*)",
+      "Bash(git status:*)"
+    ],
+    "deny": []
+  }
+}
