@@ -9,22 +9,14 @@ import { SettingsProvider } from '@/contexts/SettingsContext';
 import { createMockAiResponse } from '../__tests__/factories';
 import { aiChatRequestSchema } from '@/schemas/api';
 import type { AiChatRequest } from '@/schemas/api';
-import type { GlobalSettings } from '@/contexts/SettingsContext';
 
-// Mock the settings with realistic data
-const mockSettings: Partial<GlobalSettings> = {
-  model: 'google/gemini-2.5-flash',
-  apiKey: 'test-key',
-  streaming: false,
-  enableReasoning: false,
-} satisfies Partial<GlobalSettings>;
 
 interface TestWrapperProps {
   children: React.ReactNode;
 }
 
 const TestWrapper = ({ children }: TestWrapperProps) => (
-  <SettingsProvider value={mockSettings as GlobalSettings}>
+  <SettingsProvider>
     <LocalStorageProvider>{children}</LocalStorageProvider>
   </SettingsProvider>
 );

@@ -8,23 +8,15 @@ import { SettingsProvider } from '@/contexts/SettingsContext';
 import { LocalStorageProvider } from '@/contexts/LocalStorageContext';
 import { createMockAiResponse } from '../__tests__/factories';
 import { aiChatRequestSchema } from '@/schemas/api';
-import type { GlobalSettings } from '@/contexts/SettingsContext';
 import type { AiChatRequest } from '@/schemas/api';
 
-// Mock the settings and localStorage contexts with realistic data
-const mockSettings: Partial<GlobalSettings> = {
-  model: 'google/gemini-2.5-flash',
-  apiKey: 'test-key',
-  streaming: false,
-  enableReasoning: false,
-} satisfies Partial<GlobalSettings>;
 
 interface TestWrapperProps {
   children: React.ReactNode;
 }
 
 const TestWrapper = ({ children }: TestWrapperProps) => (
-  <SettingsProvider value={mockSettings as GlobalSettings}>
+  <SettingsProvider>
     <LocalStorageProvider>{children}</LocalStorageProvider>
   </SettingsProvider>
 );
@@ -66,6 +58,8 @@ describe('EnhancedChatInterface Integration Tests', () => {
           conversationId="test-id"
           targetLanguage="Swedish"
           onConversationUpdate={() => { }}
+          onConversationCreated={() => { }}
+          onTextSelect={() => { }}
         />
       </TestWrapper>
     );
@@ -106,6 +100,8 @@ describe('EnhancedChatInterface Integration Tests', () => {
           conversationId="test-id"
           targetLanguage="Swedish"
           onConversationUpdate={() => { }}
+          onConversationCreated={() => { }}
+          onTextSelect={() => { }}
         />
       </TestWrapper>
     );

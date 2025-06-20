@@ -393,7 +393,7 @@ const EnhancedChatInterface = ({
       const historyMessages = messages.slice(0, messageIndex);
       const conversationHistory = historyMessages.map((msg) => ({
         // Always send as user to prevent the assistant from misunderstanding its role.
-        role: 'user',
+        role: 'user' as const,
         content: `[${msg.type}]: ${msg.content}`,
       }));
 
@@ -412,7 +412,7 @@ const EnhancedChatInterface = ({
 
       const response = await callAI(
         userMessage,
-        messageType,
+        messageType as MessageType,
         conversationHistory,
         messageId,
         controller.signal
@@ -671,9 +671,9 @@ const EnhancedChatInterface = ({
 
   const callAI = async (
     message: string,
-    messageType: string,
+    messageType: MessageType,
     history: {
-      role: string;
+      role: 'system' | 'user' | 'assistant';
       content: string;
     }[],
     streamingMessageId: string,
@@ -835,13 +835,13 @@ const EnhancedChatInterface = ({
         .filter((msg) => msg.type === 'user' || msg.type === 'chat-mate')
         .map((msg) => ({
           // Always send as user to prevent the assistant from misunderstanding its role.
-          role: 'user',
+          role: 'user' as const,
           content: `[${msg.type}]: ${msg.content}`,
         }));
 
       const fullHistory = messages.map((msg) => ({
         // Always send as user to prevent the assistant from misunderstanding its role.
-        role: 'user',
+        role: 'user' as const,
         content: `[${msg.type}]: ${msg.content}`,
       }));
 

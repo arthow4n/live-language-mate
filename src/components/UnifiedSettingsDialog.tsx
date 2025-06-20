@@ -27,7 +27,7 @@ import {
   type ChatSettings,
   type GlobalSettingsUpdate,
   type ChatSettingsUpdate,
-} from '@/types/settings';
+} from '@/contexts/SettingsContext';
 
 interface UnifiedSettingsDialogProps {
   open: boolean;
@@ -244,7 +244,7 @@ const UnifiedSettingsDialog = ({
                         </Label>
                         <Input
                           id="chat-mate-background"
-                          value={settings.chatMateBackground}
+                          value={!isGlobalMode ? (settings as ChatSettings).chatMateBackground : ''}
                           onChange={(e) =>
                             handleSettingChange(
                               'chatMateBackground',
@@ -261,7 +261,7 @@ const UnifiedSettingsDialog = ({
                         </Label>
                         <Input
                           id="editor-mate-expertise"
-                          value={settings.editorMateExpertise}
+                          value={!isGlobalMode ? (settings as ChatSettings).editorMateExpertise : ''}
                           onChange={(e) =>
                             handleSettingChange(
                               'editorMateExpertise',
@@ -277,7 +277,7 @@ const UnifiedSettingsDialog = ({
                       <div>
                         <Label htmlFor="feedback-style">Feedback Style</Label>
                         <Select
-                          value={settings.feedbackStyle}
+                          value={!isGlobalMode ? (settings as ChatSettings).feedbackStyle : undefined}
                           onValueChange={(value) =>
                             handleSettingChange('feedbackStyle', value)
                           }
@@ -300,7 +300,7 @@ const UnifiedSettingsDialog = ({
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="cultural-context"
-                            checked={settings.culturalContext}
+                            checked={!isGlobalMode ? (settings as ChatSettings).culturalContext : false}
                             onCheckedChange={(checked) =>
                               handleSettingChange('culturalContext', checked)
                             }
@@ -313,7 +313,7 @@ const UnifiedSettingsDialog = ({
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="progressive-complexity"
-                            checked={settings.progressiveComplexity}
+                            checked={!isGlobalMode ? (settings as ChatSettings).progressiveComplexity : false}
                             onCheckedChange={(checked) =>
                               handleSettingChange(
                                 'progressiveComplexity',
@@ -340,7 +340,7 @@ const UnifiedSettingsDialog = ({
                       </Label>
                       <Textarea
                         id="chat-mate-personality"
-                        value={settings.chatMatePersonality}
+                        value={!isGlobalMode ? (settings as ChatSettings).chatMatePersonality : ''}
                         onChange={(e) =>
                           handleSettingChange(
                             'chatMatePersonality',
@@ -358,7 +358,7 @@ const UnifiedSettingsDialog = ({
                       </Label>
                       <Textarea
                         id="editor-mate-personality"
-                        value={settings.editorMatePersonality}
+                        value={!isGlobalMode ? (settings as ChatSettings).editorMatePersonality : ''}
                         onChange={(e) =>
                           handleSettingChange(
                             'editorMatePersonality',
@@ -376,7 +376,9 @@ const UnifiedSettingsDialog = ({
               {isGlobalMode && (
                 <TabsContent value="ui" className="mt-0">
                   <UISettingsTab
-                    settings={settings}
+                    settings={{
+                      theme: (settings as GlobalSettings).theme || 'system'
+                    }}
                     onSettingChange={handleSettingChange}
                   />
                 </TabsContent>

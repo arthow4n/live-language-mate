@@ -103,6 +103,3 @@ export const internalApiHandlers = [
 
 // Export all handlers
 export const apiHandlers = [...openRouterHandlers, ...internalApiHandlers];
-
-// Export individual handler groups for specific test needs
-export { openRouterHandlers, internalApiHandlers };

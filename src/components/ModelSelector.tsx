@@ -65,7 +65,14 @@ const ModelSelector = ({
         }
 
         if (data?.models) {
-          setModels(data.models);
+          // Filter out models that don't have required properties
+          const validModels = data.models.filter((model: unknown): model is OpenRouterModel => 
+            typeof model === 'object' && model !== null && 
+            'id' in model && 'name' in model &&
+            typeof (model as {id?: unknown}).id === 'string' &&
+            typeof (model as {name?: unknown}).name === 'string'
+          );
+          setModels(validModels);
           console.log(
             `Loaded ${data.models.length} models${data.fallback ? ' (using fallback)' : ''}`
           );

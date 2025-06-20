@@ -32,7 +32,6 @@ const LanguageMateApp = () => {
   >(null);
   const [globalSettingsOpen, setGlobalSettingsOpen] = useState(false);
   const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
-  const [refreshSidebar, setRefreshSidebar] = useState(0);
   const [selectedText, setSelectedText] = useState('');
   const [selectionSource, setSelectionSource] = useState<
     'main-chat' | 'ask-interface'
@@ -69,7 +68,7 @@ const LanguageMateApp = () => {
   };
 
   const handleConversationUpdate = () => {
-    setRefreshSidebar((prev) => prev + 1);
+    // Sidebar will auto-refresh from localStorage context
   };
 
   const handleConversationCreated = (conversationId: string) => {
@@ -86,13 +85,6 @@ const LanguageMateApp = () => {
       apiKey: newSettings.apiKey,
       targetLanguage: newSettings.targetLanguage,
       streaming: newSettings.streaming,
-      chatMatePersonality: newSettings.chatMatePersonality,
-      editorMatePersonality: newSettings.editorMatePersonality,
-      chatMateBackground: newSettings.chatMateBackground,
-      editorMateExpertise: newSettings.editorMateExpertise,
-      feedbackStyle: newSettings.feedbackStyle,
-      culturalContext: newSettings.culturalContext,
-      progressiveComplexity: newSettings.progressiveComplexity,
     });
   };
 
@@ -168,8 +160,6 @@ const LanguageMateApp = () => {
           currentConversationId={currentConversationId}
           onConversationSelect={handleConversationSelect}
           onNewConversation={handleNewConversation}
-          targetLanguage={globalSettings.targetLanguage}
-          refreshTrigger={refreshSidebar}
           onChatSettingsOpen={() => setChatSettingsOpen(true)}
           onMainSettingsOpen={() => setGlobalSettingsOpen(true)}
         />

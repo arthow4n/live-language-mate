@@ -4,7 +4,6 @@ import { server } from '../__tests__/setup';
 import { generateChatTitle } from './chatTitleGenerator';
 import { createMockAiResponse } from '../__tests__/factories';
 import { aiChatRequestSchema } from '@/schemas/api';
-import type { Message } from '@/types/chat';
 import type { AiChatRequest } from '@/schemas/api';
 
 // Use the global server from setup instead of creating a new one
@@ -31,10 +30,10 @@ describe('Chat Title Generator Integration Tests', () => {
       })
     );
 
-    const history: Message[] = [
+    const history = [
       { message_type: 'user', content: 'How do I say hello in Swedish?' },
       { message_type: 'assistant', content: 'You can say "Hej" or "Hallo"' },
-    ] satisfies Message[];
+    ];
 
     const title = await generateChatTitle(
       history,
