@@ -1,12 +1,15 @@
-import { describe, test, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import AskInterface from './AskInterface';
+import { describe, expect, test } from 'vitest';
+
+import type { AiChatRequest } from '@/schemas/api';
+
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+
 import { createMockAiResponse } from '../__tests__/factories';
 import { server } from '../__tests__/setup';
-import type { AiChatRequest } from '@/schemas/api';
+import AskInterface from './AskInterface';
 
 interface TestWrapperProps {
   children: React.ReactNode;
@@ -44,8 +47,8 @@ describe('Text Selection Workflow Integration Tests', () => {
       <TestWrapper>
         <AskInterface
           selectedText="Hej på dig"
-          targetLanguage="Swedish"
           selectionSource="main-chat"
+          targetLanguage="Swedish"
         />
       </TestWrapper>
     );

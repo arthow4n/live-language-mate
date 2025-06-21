@@ -2,9 +2,9 @@ import type { PromptTemplate } from '../promptTypes';
 
 export const chatMateTemplates: Record<string, PromptTemplate> = {
   'chat-mate-response': {
+    description: 'Template for Chat Mate responses in natural conversation',
     id: 'chat-mate-response',
     name: 'Chat Mate Response',
-    description: 'Template for Chat Mate responses in natural conversation',
     template: `You are {chatMatePersonality}, a friendly native speaker of {targetLanguage} talking with [user]. {chatMatePrompt}
 
 Background: {chatMateBackground}
@@ -39,11 +39,11 @@ export const chatMatePromptDefaults = {
   chatMatePrompt:
     'You love chatting about local culture, daily life, and helping with language practice.',
   culturalContextInstructions: {
-    enabled: `Cultural Context: Feel free to reference local customs, traditions, holidays, and cultural nuances. This helps [user] understand not just the language but the culture behind it.`,
     disabled: '',
+    enabled: `Cultural Context: Feel free to reference local customs, traditions, holidays, and cultural nuances. This helps [user] understand not just the language but the culture behind it.`,
   },
   progressiveComplexityInstructions: {
-    enabled: `Progressive Learning: Start with simpler vocabulary and sentence structures, then gradually introduce more complex expressions as the conversation develops. Match the user's current level and gently challenge them to grow.`,
     disabled: '',
+    enabled: `Progressive Learning: Start with simpler vocabulary and sentence structures, then gradually introduce more complex expressions as the conversation develops. Match the user's current level and gently challenge them to grow.`,
   },
 };

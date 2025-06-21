@@ -19,71 +19,71 @@ export const feedbackStyleSchema = z.enum([
 
 // Chat message structure
 export const chatMessageSchema = z.object({
-  role: z.enum(['system', 'user', 'assistant']),
   content: z.string(),
+  role: z.enum(['system', 'user', 'assistant']),
 });
 
 // AI Chat Request Schema - STRICT, no defaults
 export const aiChatRequestSchema = z
   .object({
-    message: z.string().min(1),
-    messageType: messageTypeSchema,
-    conversationHistory: z.array(chatMessageSchema),
-    systemPrompt: z.string().nullable(),
-    chatMatePrompt: z.string(),
-    editorMatePrompt: z.string(),
-    targetLanguage: z.string().min(1),
-    model: z.string().min(1),
     apiKey: z.string().optional(),
     chatMateBackground: z.string(),
-    editorMateExpertise: z.string(),
-    feedbackStyle: feedbackStyleSchema,
+    chatMatePrompt: z.string(),
+    conversationHistory: z.array(chatMessageSchema),
     culturalContext: z.boolean(),
+    currentDateTime: z.string().nullable(),
+    editorMateExpertise: z.string(),
+    editorMatePrompt: z.string(),
+    enableReasoning: z.boolean(),
+    feedbackStyle: feedbackStyleSchema,
+    message: z.string().min(1),
+    messageType: messageTypeSchema,
+    model: z.string().min(1),
     progressiveComplexity: z.boolean(),
     streaming: z.boolean(),
-    currentDateTime: z.string().nullable(),
+    systemPrompt: z.string().nullable(),
+    targetLanguage: z.string().min(1),
     userTimezone: z.string().nullable(),
-    enableReasoning: z.boolean(),
   })
   .strict();
 
 // AI Chat Response Schemas
 export const aiChatStreamResponseSchema = z
   .object({
-    type: z.enum(['content', 'reasoning', 'done']),
     content: z.string().optional(),
+    type: z.enum(['content', 'reasoning', 'done']),
   })
   .strict();
 
 export const aiChatNonStreamResponseSchema = z
   .object({
-    response: z.string(),
     reasoning: z.string().optional(),
+    response: z.string(),
   })
   .strict();
 
 // Models API Schemas
 export const modelPricingSchema = z
   .object({
-    prompt: z.string(),
     completion: z.string(),
+    prompt: z.string(),
   })
   .strict();
 
 export const modelSchema = z
   .object({
+    context_length: z.number().optional(),
+    description: z.string().optional(),
     id: z.string(),
     name: z.string(),
-    description: z.string().optional(),
     pricing: modelPricingSchema.optional(),
-    context_length: z.number().optional(),
   })
   .strict();
 
 export const modelsResponseSchema = z
   .object({
-    models: z.array(modelSchema),
     fallback: z.boolean().optional(),
+    models: z.array(modelSchema),
   })
   .strict();
 
@@ -103,15 +103,15 @@ export const apiErrorResponseSchema = z
   })
   .strict();
 
-// Export type helpers for better DX
-export type MessageType = z.infer<typeof messageTypeSchema>;
-export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
-export type ChatMessage = z.infer<typeof chatMessageSchema>;
-export type AiChatRequest = z.infer<typeof aiChatRequestSchema>;
-export type AiChatStreamResponse = z.infer<typeof aiChatStreamResponseSchema>;
 export type AiChatNonStreamResponse = z.infer<
   typeof aiChatNonStreamResponseSchema
 >;
+export type AiChatRequest = z.infer<typeof aiChatRequestSchema>;
+export type AiChatStreamResponse = z.infer<typeof aiChatStreamResponseSchema>;
+export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
+export type ChatMessage = z.infer<typeof chatMessageSchema>;
+export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
+// Export type helpers for better DX
+export type MessageType = z.infer<typeof messageTypeSchema>;
 export type Model = z.infer<typeof modelSchema>;
 export type ModelsResponse = z.infer<typeof modelsResponseSchema>;
-export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;

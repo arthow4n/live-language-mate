@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
-import { beforeAll, afterEach, afterAll } from 'vitest';
 import { setupServer } from 'msw/node';
+import { afterAll, afterEach, beforeAll } from 'vitest';
+
 import { apiHandlers } from './mocks/handlers';
 
 // Setup MSW server with our API handlers
@@ -15,27 +16,27 @@ beforeAll(() => {
 
   // Mock window.matchMedia for components that use responsive design
   Object.defineProperty(window, 'matchMedia', {
-    writable: true,
     value: (query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: () => {
-        /* Mock implementation */
-      },
-      removeListener: () => {
-        /* Mock implementation */
-      },
       addEventListener: () => {
         /* Mock implementation */
       },
-      removeEventListener: () => {
+      addListener: () => {
         /* Mock implementation */
       },
       dispatchEvent: () => {
         /* Mock implementation */
       },
+      matches: false,
+      media: query,
+      onchange: null,
+      removeEventListener: () => {
+        /* Mock implementation */
+      },
+      removeListener: () => {
+        /* Mock implementation */
+      },
     }),
+    writable: true,
   });
 
   // Mock scrollIntoView for components that use auto-scrolling

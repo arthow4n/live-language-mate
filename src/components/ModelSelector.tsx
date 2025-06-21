@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -17,19 +18,25 @@ import {
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
 
+interface ModelSelectorProps {
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+  value: string;
+}
+
 interface OpenRouterModel {
-  id: string;
-  name: string;
-  description?: string;
-  pricing?: {
-    prompt: string;
-    completion: string;
-  };
-  context_length?: number;
   architecture?: {
+    instruct_type?: string;
     modality: string;
     tokenizer: string;
-    instruct_type?: string;
+  };
+  context_length?: number;
+  description?: string;
+  id: string;
+  name: string;
+  pricing?: {
+    completion: string;
+    prompt: string;
   };
   top_provider?: {
     context_length: number;
@@ -37,16 +44,10 @@ interface OpenRouterModel {
   };
 }
 
-interface ModelSelectorProps {
-  value: string;
-  onValueChange: (value: string) => void;
-  placeholder?: string;
-}
-
 const ModelSelector = ({
-  value,
   onValueChange,
   placeholder = 'Select model...',
+  value,
 }: ModelSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [models, setModels] = useState<OpenRouterModel[]>([]);
@@ -97,13 +98,13 @@ const ModelSelector = ({
   const selectedModel = models.find((model) => model.id === value);
 
   return (
-    <Popover open={open} onOpenChange={setOpen} modal>
+    <Popover modal onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          role="combobox"
           aria-expanded={open}
           className="justify-between"
+          role="combobox"
+          variant="outline"
         >
           {selectedModel ? selectedModel.name : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -120,11 +121,11 @@ const ModelSelector = ({
               {models.map((model) => (
                 <CommandItem
                   key={model.id}
-                  value={model.id}
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? '' : currentValue);
                     setOpen(false);
                   }}
+                  value={model.id}
                 >
                   <Check
                     className={cn(

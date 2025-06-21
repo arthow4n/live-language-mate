@@ -1,17 +1,11 @@
+import { Download, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import {
-  getDefaultGlobalSettings,
-  useUnifiedStorage,
-} from '@/contexts/UnifiedStorageContext';
-import { Download, Upload, Trash2 } from 'lucide-react';
+
 import type {
   ConversationSettingsUpdate,
   GlobalSettings,
 } from '@/schemas/settings';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,23 +17,28 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  getDefaultGlobalSettings,
+  useUnifiedStorage,
+} from '@/contexts/UnifiedStorageContext';
+import { useToast } from '@/hooks/use-toast';
 
 const DataManagementTab = () => {
   const [importFile, setImportFile] = useState<File | null>(null);
   const {
-    globalSettings,
     conversationSettings,
-    updateGlobalSettings,
+    globalSettings,
     updateConversationSettings,
+    updateGlobalSettings,
   } = useUnifiedStorage();
   const { toast } = useToast();
 
   const handleExportData = () => {
     try {
       const exportData = {
-        version: '1.0.0',
-        exportDate: new Date().toISOString(),
-        globalSettings,
         chatSettings: conversationSettings,
         // Include conversations from localStorage for backwards compatibility
         conversations:
@@ -49,6 +48,9 @@ const DataManagementTab = () => {
                 '{"conversations": []}'
             ) as { conversations?: unknown[] }
           ).conversations ?? [],
+        exportDate: new Date().toISOString(),
+        globalSettings,
+        version: '1.0.0',
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], {
@@ -64,13 +66,13 @@ const DataManagementTab = () => {
       URL.revokeObjectURL(url);
 
       toast({
-        title: 'Data exported',
         description: 'Your data has been successfully exported as a JSON file.',
+        title: 'Data exported',
       });
     } catch {
       toast({
-        title: 'Export failed',
         description: 'There was an error exporting your data.',
+        title: 'Export failed',
         variant: 'destructive',
       });
     }
@@ -79,8 +81,8 @@ const DataManagementTab = () => {
   const handleImportData = async () => {
     if (!importFile) {
       toast({
-        title: 'No file selected',
         description: 'Please select a file to import.',
+        title: 'No file selected',
         variant: 'destructive',
       });
       return;
@@ -89,11 +91,11 @@ const DataManagementTab = () => {
     try {
       const text = await importFile.text();
       const importedData = JSON.parse(text) as {
-        version?: string;
-        globalSettings?: Partial<GlobalSettings>;
         chatSettings?: Record<string, Partial<ConversationSettingsUpdate>>;
         conversations?: unknown[];
+        globalSettings?: Partial<GlobalSettings>;
         settings?: unknown;
+        version?: string;
       };
 
       // Handle different export formats for backwards compatibility
@@ -131,23 +133,23 @@ const DataManagementTab = () => {
           const oldSettings = importedData.settings as Record<string, unknown>;
           if (Object.keys(oldSettings).length > 0) {
             const newGlobalSettings: Partial<GlobalSettings> = {
-              model:
-                (oldSettings.model as string | undefined) ??
-                globalSettings.model,
               apiKey:
                 (oldSettings.apiKey as string | undefined) ??
                 globalSettings.apiKey,
-              targetLanguage:
-                (oldSettings.targetLanguage as string | undefined) ??
-                globalSettings.targetLanguage,
+              model:
+                (oldSettings.model as string | undefined) ??
+                globalSettings.model,
               streaming:
                 oldSettings.streaming !== undefined
                   ? (oldSettings.streaming as boolean)
                   : globalSettings.streaming,
+              targetLanguage:
+                (oldSettings.targetLanguage as string | undefined) ??
+                globalSettings.targetLanguage,
               theme:
                 (oldSettings.theme as
-                  | 'light'
                   | 'dark'
+                  | 'light'
                   | 'system'
                   | undefined) ?? globalSettings.theme,
             };
@@ -157,8 +159,8 @@ const DataManagementTab = () => {
       }
 
       toast({
-        title: 'Data imported',
         description: 'Your data has been successfully imported.',
+        title: 'Data imported',
       });
       setImportFile(null);
       // Reset the file input
@@ -170,9 +172,9 @@ const DataManagementTab = () => {
       }
     } catch {
       toast({
-        title: 'Import failed',
         description:
           'The selected file contains invalid data or an unsupported format.',
+        title: 'Import failed',
         variant: 'destructive',
       });
     }
@@ -182,8 +184,8 @@ const DataManagementTab = () => {
     localStorage.removeItem('language-mate-data');
 
     toast({
-      title: 'All chats deleted',
       description: 'All conversations have been permanently deleted.',
+      title: 'All chats deleted',
     });
   };
 
@@ -197,9 +199,9 @@ const DataManagementTab = () => {
     updateGlobalSettings(getDefaultGlobalSettings());
 
     toast({
-      title: 'All data deleted',
       description:
         'All conversations and settings have been permanently deleted.',
+      title: 'All data deleted',
     });
   };
 
@@ -217,7 +219,7 @@ const DataManagementTab = () => {
             Download all your conversations, settings, and preferences as a JSON
             file.
           </p>
-          <Button onClick={handleExportData} className="w-full">
+          <Button className="w-full" onClick={handleExportData}>
             <Download className="w-4 h-4 mr-2" />
             Export All Data
           </Button>
@@ -232,16 +234,16 @@ const DataManagementTab = () => {
           <div className="space-y-2">
             <Label htmlFor="import-file">Select backup file</Label>
             <Input
-              id="import-file"
-              type="file"
               accept=".json"
-              onChange={handleFileChange}
               className="cursor-pointer"
+              id="import-file"
+              onChange={handleFileChange}
+              type="file"
             />
             <Button
-              onClick={() => void handleImportData()}
-              disabled={!importFile}
               className="w-full"
+              disabled={!importFile}
+              onClick={() => void handleImportData()}
             >
               <Upload className="w-4 h-4 mr-2" />
               Import Data
@@ -260,7 +262,7 @@ const DataManagementTab = () => {
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full">
+              <Button className="w-full" variant="destructive">
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete All Chats
               </Button>
@@ -276,8 +278,8 @@ const DataManagementTab = () => {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={handleDeleteAllChats}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={handleDeleteAllChats}
                 >
                   Yes, delete all chats
                 </AlertDialogAction>
@@ -286,7 +288,7 @@ const DataManagementTab = () => {
           </AlertDialog>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full">
+              <Button className="w-full" variant="destructive">
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete All Data
               </Button>
@@ -302,8 +304,8 @@ const DataManagementTab = () => {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={handleDeleteAllData}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={handleDeleteAllData}
                 >
                   Yes, delete all data
                 </AlertDialogAction>

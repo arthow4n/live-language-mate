@@ -1,9 +1,12 @@
-import { describe, test, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import EnhancedChatMessage from './EnhancedChatMessage';
-import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+import { describe, expect, test, vi } from 'vitest';
+
 import type { Message } from '@/schemas/messages';
+
+import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+
+import EnhancedChatMessage from './EnhancedChatMessage';
 
 interface TestWrapperProps {
   children: React.ReactNode;
@@ -14,22 +17,22 @@ const TestWrapper = ({ children }: TestWrapperProps) => (
 );
 
 const createMockMessage = (overrides: Partial<Message> = {}): Message => ({
-  id: 'test-message-id',
-  type: 'chat-mate',
   content: 'This is a test message with some **bold** text.',
+  id: 'test-message-id',
   timestamp: new Date('2024-01-01T12:00:00Z'),
+  type: 'chat-mate',
   ...overrides,
 });
 
 describe('EnhancedChatMessage Integration Tests', () => {
   test('displays message content and metadata correctly', () => {
     const message = createMockMessage({
-      type: 'user',
       content: 'Hello, how are you?',
       metadata: {
-        model: 'google/gemini-2.5-flash',
         generationTime: 1500,
+        model: 'google/gemini-2.5-flash',
       },
+      type: 'user',
     });
 
     render(
@@ -60,19 +63,19 @@ describe('EnhancedChatMessage Integration Tests', () => {
     });
 
     const message = createMockMessage({
-      type: 'chat-mate',
       content: 'AI response message',
+      type: 'chat-mate',
     });
 
     render(
       <TestWrapper>
         <EnhancedChatMessage
           message={message}
-          onTextSelect={vi.fn()}
-          onEditMessage={onEdit}
           onDeleteMessage={onDelete}
-          onRegenerateMessage={onRegenerate}
+          onEditMessage={onEdit}
           onForkFrom={onFork}
+          onRegenerateMessage={onRegenerate}
+          onTextSelect={vi.fn()}
         />
       </TestWrapper>
     );
@@ -112,8 +115,8 @@ describe('EnhancedChatMessage Integration Tests', () => {
       <TestWrapper>
         <EnhancedChatMessage
           message={message}
-          onTextSelect={vi.fn()}
           onEditMessage={onEditMessage}
+          onTextSelect={vi.fn()}
         />
       </TestWrapper>
     );
@@ -151,8 +154,8 @@ describe('EnhancedChatMessage Integration Tests', () => {
       <TestWrapper>
         <EnhancedChatMessage
           message={message}
-          onTextSelect={vi.fn()}
           onEditMessage={onEditMessage}
+          onTextSelect={vi.fn()}
         />
       </TestWrapper>
     );
@@ -183,16 +186,16 @@ describe('EnhancedChatMessage Integration Tests', () => {
 
     // Test with user message - should not show regenerate
     const userMessage = createMockMessage({
-      type: 'user',
       content: 'User message',
+      type: 'user',
     });
 
     const { rerender } = render(
       <TestWrapper>
         <EnhancedChatMessage
           message={userMessage}
-          onTextSelect={vi.fn()}
           onRegenerateMessage={onRegenerate}
+          onTextSelect={vi.fn()}
         />
       </TestWrapper>
     );
@@ -206,16 +209,16 @@ describe('EnhancedChatMessage Integration Tests', () => {
 
     // Test with AI message - should show regenerate
     const aiMessage = createMockMessage({
-      type: 'chat-mate',
       content: 'AI message',
+      type: 'chat-mate',
     });
 
     rerender(
       <TestWrapper>
         <EnhancedChatMessage
           message={aiMessage}
-          onTextSelect={vi.fn()}
           onRegenerateMessage={onRegenerate}
+          onTextSelect={vi.fn()}
         />
       </TestWrapper>
     );
@@ -278,10 +281,10 @@ describe('EnhancedChatMessage Integration Tests', () => {
       <TestWrapper>
         <EnhancedChatMessage
           message={message}
-          onTextSelect={vi.fn()}
-          onForkFrom={onFork}
-          onDeleteMessage={onDelete}
           onDeleteAllBelow={onDeleteAllBelow}
+          onDeleteMessage={onDelete}
+          onForkFrom={onFork}
+          onTextSelect={vi.fn()}
         />
       </TestWrapper>
     );

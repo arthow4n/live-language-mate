@@ -1,43 +1,46 @@
-import { useState, useEffect, useRef } from 'react';
+import {
+  Book,
+  BookOpen,
+  ExternalLink,
+  Globe,
+  Play,
+  Search,
+  Send,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+import type { Message } from '@/schemas/messages';
+import type { PromptVariables } from '@/services/prompts';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Search,
-  Send,
-  ExternalLink,
-  Globe,
-  Book,
-  Play,
-  BookOpen,
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
-import EnhancedChatMessage from './EnhancedChatMessage';
-import type { Message } from '@/schemas/messages';
+import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/services/apiClient';
-import type { PromptVariables } from '@/services/prompts';
 import { buildPrompt } from '@/services/prompts';
 
+import EnhancedChatMessage from './EnhancedChatMessage';
+
 interface AskInterfaceProps {
-  selectedText: string;
-  onClose?: () => void;
-  targetLanguage?: string;
   editorMatePrompt?: string;
-  onTextSelect?: (text: string) => void;
-  selectionSource?: 'main-chat' | 'ask-interface';
   hideHeader?: boolean;
+  onClose?: () => void;
+  onTextSelect?: (text: string) => void;
+  selectedText: string;
+  selectionSource?: 'ask-interface' | 'main-chat';
+  targetLanguage?: string;
 }
 
 const AskInterface = ({
-  selectedText,
-  onClose,
-  targetLanguage = 'Swedish',
   editorMatePrompt = 'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.',
-  onTextSelect,
-  selectionSource = 'main-chat',
   hideHeader = false,
+  onClose,
+  onTextSelect,
+  selectedText,
+  selectionSource = 'main-chat',
+  targetLanguage = 'Swedish',
 }: AskInterfaceProps) => {
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
@@ -69,10 +72,10 @@ const AskInterface = ({
 
       if (selectionSource === 'main-chat') {
         const welcomeMessage: Message = {
-          id: Date.now().toString(),
-          type: 'editor-mate',
           content: `I can help you understand "${selectedText}". What would you like to know about this text?`,
+          id: Date.now().toString(),
           timestamp: new Date(),
+          type: 'editor-mate',
         };
         setConversation([welcomeMessage]);
       }
@@ -81,26 +84,26 @@ const AskInterface = ({
 
   const quickLinks = [
     {
-      name: 'Google Quoted',
       icon: Globe,
+      name: 'Google Quoted',
       url: (text: string) =>
         `https://www.google.com/search?q=${encodeURIComponent(`"${text}"`)}`,
     },
     {
-      name: 'Wiktionary',
       icon: Book,
+      name: 'Wiktionary',
       url: (text: string) =>
         `https://en.wiktionary.org/wiki/${encodeURIComponent(text)}`,
     },
     {
-      name: 'SAOL',
       icon: BookOpen,
+      name: 'SAOL',
       url: (text: string) =>
         `https://svenska.se/tre/?sok=${encodeURIComponent(text)}`,
     },
     {
-      name: 'YouGlish',
       icon: Play,
+      name: 'YouGlish',
       url: (text: string) =>
         `https://youglish.com/pronounce/${encodeURIComponent(text)}/${targetLanguage.toLowerCase()}`,
     },
@@ -108,9 +111,9 @@ const AskInterface = ({
 
   const callEditorMateStreaming = async (question: string) => {
     const conversationHistory = conversation.map((msg) => ({
+      content: `[${msg.type}]: ${msg.content}`,
       // Always send as user to prevent the assistant from misunderstanding its role.
       role: 'user' as const,
-      content: `[${msg.type}]: ${msg.content}`,
     }));
 
     const contextMessage = editableSelectedText
@@ -119,16 +122,16 @@ const AskInterface = ({
 
     // Build system prompt using the new prompt system
     const promptVariables: PromptVariables = {
-      targetLanguage,
-      chatMatePersonality:
-        'A friendly native speaker who enjoys helping people learn the language.',
       chatMateBackground:
         'A friendly local who enjoys helping people learn the language and culture.',
-      editorMatePersonality: editorMatePrompt,
-      editorMateExpertise: globalSettings.editorMateExpertise,
-      feedbackStyle: globalSettings.feedbackStyle,
+      chatMatePersonality:
+        'A friendly native speaker who enjoys helping people learn the language.',
       culturalContext: globalSettings.culturalContext,
+      editorMateExpertise: globalSettings.editorMateExpertise,
+      editorMatePersonality: editorMatePrompt,
+      feedbackStyle: globalSettings.feedbackStyle,
       progressiveComplexity: globalSettings.progressiveComplexity,
+      targetLanguage,
     };
 
     const builtPrompt = buildPrompt({
@@ -139,40 +142,40 @@ const AskInterface = ({
     const startTime: number = Date.now();
 
     const currentDateTime = new Date().toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
       hour12: true,
+      minute: '2-digit',
+      month: 'long',
+      second: '2-digit',
+      weekday: 'long',
+      year: 'numeric',
     });
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const response = await apiClient.aiChat({
-      message: contextMessage,
-      messageType: 'editor-mate-response',
-      conversationHistory,
-      systemPrompt: builtPrompt.systemPrompt,
-      chatMatePrompt:
-        promptVariables.chatMatePersonality ?? 'A friendly native speaker',
-      editorMatePrompt:
-        promptVariables.editorMatePersonality ?? editorMatePrompt,
-      targetLanguage,
-      model: globalSettings.model || 'google/gemini-2.5-flash',
       apiKey: globalSettings.apiKey || '',
       chatMateBackground:
         promptVariables.chatMateBackground ?? 'A friendly local',
+      chatMatePrompt:
+        promptVariables.chatMatePersonality ?? 'A friendly native speaker',
+      conversationHistory,
+      culturalContext: promptVariables.culturalContext,
+      currentDateTime,
       editorMateExpertise:
         promptVariables.editorMateExpertise ?? '10+ years teaching experience',
+      editorMatePrompt:
+        promptVariables.editorMatePersonality ?? editorMatePrompt,
+      enableReasoning: globalSettings.enableReasoning,
       feedbackStyle: promptVariables.feedbackStyle,
-      culturalContext: promptVariables.culturalContext,
+      message: contextMessage,
+      messageType: 'editor-mate-response',
+      model: globalSettings.model || 'google/gemini-2.5-flash',
       progressiveComplexity: promptVariables.progressiveComplexity,
       streaming: globalSettings.streaming,
-      currentDateTime,
+      systemPrompt: builtPrompt.systemPrompt,
+      targetLanguage,
       userTimezone,
-      enableReasoning: globalSettings.enableReasoning,
     });
 
     if (!response.ok) {
@@ -182,14 +185,14 @@ const AskInterface = ({
 
     if (globalSettings.streaming && response.body) {
       return {
+        model: globalSettings.model,
         response: response.body,
         startTime,
-        model: globalSettings.model,
       };
     } else {
       const data = (await response.json()) as {
-        response?: string;
         reasoning?: string;
+        response?: string;
       };
       if (!data.response) {
         throw new Error('No response from Editor Mate');
@@ -197,9 +200,9 @@ const AskInterface = ({
       const endTime = Date.now();
       const generationTime = endTime - startTime;
       return {
-        response: data.response,
         generationTime,
         model: globalSettings.model,
+        response: data.response,
       };
     }
   };
@@ -208,10 +211,10 @@ const AskInterface = ({
     if (!question.trim() || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
       content: question.trim(),
+      id: Date.now().toString(),
       timestamp: new Date(),
+      type: 'user',
     };
 
     setConversation((prev) => [...prev, userMessage]);
@@ -223,25 +226,25 @@ const AskInterface = ({
 
     // Create initial streaming message
     const initialEditorMessage: Message = {
-      id: editorMessageId,
-      type: 'editor-mate',
       content: '',
-      timestamp: new Date(),
+      id: editorMessageId,
       isStreaming: true,
       metadata: {
         startTime: Date.now(),
       },
+      timestamp: new Date(),
+      type: 'editor-mate',
     };
 
     setConversation((prev) => [...prev, initialEditorMessage]);
 
     try {
       const result = await callEditorMateStreaming(currentQuestion);
-      const { response, startTime, model } = result as {
-        response: string | ReadableStream;
-        startTime?: number;
-        model: string;
+      const { model, response, startTime } = result as {
         generationTime?: number;
+        model: string;
+        response: ReadableStream | string;
+        startTime?: number;
       };
 
       if (typeof response === 'string') {
@@ -257,10 +260,10 @@ const AskInterface = ({
                   content: response,
                   isStreaming: false,
                   metadata: {
-                    model,
-                    generationTime,
-                    startTime,
                     endTime,
+                    generationTime,
+                    model,
+                    startTime,
                   },
                 }
               : msg
@@ -297,10 +300,10 @@ const AskInterface = ({
                             ...msg,
                             isStreaming: false,
                             metadata: {
-                              model,
-                              generationTime,
-                              startTime,
                               endTime,
+                              generationTime,
+                              model,
+                              startTime,
                             },
                           }
                         : msg
@@ -346,9 +349,9 @@ const AskInterface = ({
         prev.filter((msg) => msg.id !== editorMessageId)
       );
       toast({
-        title: 'Error',
         description:
           (error as Error).message || 'Failed to get response from Editor Mate',
+        title: 'Error',
         variant: 'destructive',
       });
     } finally {
@@ -388,12 +391,12 @@ const AskInterface = ({
               Selected text:
             </p>
             <Input
-              value={editableSelectedText}
+              className="bg-background"
               onChange={(e) => {
                 setEditableSelectedText(e.target.value);
               }}
               placeholder="Enter or paste text you want to ask about..."
-              className="bg-background"
+              value={editableSelectedText}
             />
           </div>
 
@@ -406,13 +409,13 @@ const AskInterface = ({
               <div className="grid grid-cols-2 gap-1">
                 {quickLinks.map((link) => (
                   <Button
-                    key={link.name}
-                    variant="outline"
-                    size="sm"
                     className="justify-start h-6 text-xs px-2"
+                    key={link.name}
                     onClick={() =>
                       window.open(link.url(editableSelectedText), '_blank')
                     }
+                    size="sm"
+                    variant="outline"
                   >
                     <link.icon className="w-2.5 h-2.5 mr-1" />
                     {link.name}
@@ -434,12 +437,12 @@ const AskInterface = ({
               Selected text:
             </p>
             <Input
-              value={editableSelectedText}
+              className="bg-background"
               onChange={(e) => {
                 setEditableSelectedText(e.target.value);
               }}
               placeholder="Enter or paste text you want to ask about..."
-              className="bg-background"
+              value={editableSelectedText}
             />
           </div>
 
@@ -452,13 +455,13 @@ const AskInterface = ({
               <div className="grid grid-cols-2 gap-1">
                 {quickLinks.map((link) => (
                   <Button
-                    key={link.name}
-                    variant="outline"
-                    size="sm"
                     className="justify-start h-6 text-xs px-2"
+                    key={link.name}
                     onClick={() =>
                       window.open(link.url(editableSelectedText), '_blank')
                     }
+                    size="sm"
+                    variant="outline"
                   >
                     <link.icon className="w-2.5 h-2.5 mr-1" />
                     {link.name}
@@ -507,21 +510,21 @@ const AskInterface = ({
       <div className="p-4 border-t border-border">
         <div className="flex items-end gap-2">
           <Textarea
-            value={question}
+            className="flex-1 text-sm min-h-[40px] max-h-[120px]"
+            disabled={isLoading}
             onChange={(e) => {
               setQuestion(e.target.value);
             }}
             onKeyDown={handleKeyDown}
             placeholder={`Ask Editor Mate about ${targetLanguage}...`}
-            className="flex-1 text-sm min-h-[40px] max-h-[120px]"
-            disabled={isLoading}
             rows={1}
+            value={question}
           />
           <Button
-            size="icon"
-            onClick={() => void handleSendQuestion()}
-            disabled={!question.trim() || isLoading}
             className="h-10 w-10 flex-shrink-0"
+            disabled={!question.trim() || isLoading}
+            onClick={() => void handleSendQuestion()}
+            size="icon"
           >
             <Send className="w-4 h-4" />
           </Button>

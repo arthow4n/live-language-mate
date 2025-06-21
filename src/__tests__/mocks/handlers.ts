@@ -1,23 +1,24 @@
 import { http, HttpResponse } from 'msw';
+
 import type { AiChatNonStreamResponse } from '@/schemas/api';
 
 // Default responses for different API endpoints
 const defaultAiChatResponse: AiChatNonStreamResponse = {
-  response: 'Default mock AI response',
   reasoning: undefined,
+  response: 'Default mock AI response',
 };
 
 const defaultModelsResponse = {
+  fallback: false,
   models: [
     {
+      context_length: 8192,
+      description: 'Fast and efficient model',
       id: 'google/gemini-2.5-flash',
       name: 'Gemini 2.5 Flash',
-      description: 'Fast and efficient model',
-      pricing: { prompt: '0.00001', completion: '0.00002' },
-      context_length: 8192,
+      pricing: { completion: '0.00002', prompt: '0.00001' },
     },
   ],
-  fallback: false,
 };
 
 // OpenRouter API handlers

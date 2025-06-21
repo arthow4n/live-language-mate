@@ -1,9 +1,10 @@
-import { chatMateTemplates, chatMatePromptDefaults } from './chatMateTemplates';
+import type { MessageType, PromptTemplate } from '../promptTypes';
+
+import { chatMatePromptDefaults, chatMateTemplates } from './chatMateTemplates';
 import {
-  editorMateTemplates,
   editorMatePromptDefaults,
+  editorMateTemplates,
 } from './editorMateTemplates';
-import type { PromptTemplate, MessageType } from '../promptTypes';
 
 export const promptTemplates: Record<MessageType, PromptTemplate> = {
   ...chatMateTemplates,

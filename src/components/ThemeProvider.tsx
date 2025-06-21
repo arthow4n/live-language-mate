@@ -9,11 +9,11 @@ interface ThemeProviderProps {
 }
 
 interface ThemeProviderState {
-  theme: Theme;
   setTheme: (theme: Theme) => void;
+  theme: Theme;
 }
 
-const ThemeProviderContext = createContext<ThemeProviderState | null>(null);
+const ThemeProviderContext = createContext<null | ThemeProviderState>(null);
 
 export function ThemeProvider({
   children,
@@ -64,12 +64,12 @@ export function ThemeProvider({
   }, [theme]);
 
   const value = {
-    theme,
     setTheme: (theme: Theme) => {
       console.log('🎨 Setting theme to:', theme);
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
+    theme,
   };
 
   return (

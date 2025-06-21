@@ -14,53 +14,53 @@ export const feedbackStyleSchema = z.enum([
 // Unified Settings Schema - contains all settings for a conversation
 export const conversationSettingsSchema = z
   .object({
-    // Core API settings
-    model: z.string().min(1),
     apiKey: z.string(),
-    targetLanguage: z.string().min(1),
-    streaming: z.boolean(),
-    enableReasoning: z.boolean(),
-    reasoningExpanded: z.boolean(),
-
-    // UI settings (only stored globally)
-    theme: themeSchema,
-
+    chatMateBackground: z.string().min(1),
     // AI Personalities (per conversation)
     chatMatePersonality: z.string().min(1),
-    editorMatePersonality: z.string().min(1),
-    chatMateBackground: z.string().min(1),
-    editorMateExpertise: z.string().min(1),
-    feedbackStyle: feedbackStyleSchema,
     culturalContext: z.boolean(),
+    editorMateExpertise: z.string().min(1),
+    editorMatePersonality: z.string().min(1),
+
+    enableReasoning: z.boolean(),
+
+    feedbackStyle: feedbackStyleSchema,
+    // Core API settings
+    model: z.string().min(1),
     progressiveComplexity: z.boolean(),
+    reasoningExpanded: z.boolean(),
+    streaming: z.boolean(),
+    targetLanguage: z.string().min(1),
+    // UI settings (only stored globally)
+    theme: themeSchema,
   })
   .strict();
 
 // Global Settings Schema - UI and default settings
 export const globalSettingsSchema = z
   .object({
-    model: z.string().min(1),
     apiKey: z.string(),
-    targetLanguage: z.string().min(1),
-    streaming: z.boolean(),
-    theme: themeSchema,
-    enableReasoning: z.boolean(),
-    reasoningExpanded: z.boolean(),
-    chatMatePersonality: z.string().min(1),
-    editorMatePersonality: z.string().min(1),
     chatMateBackground: z.string().min(1),
-    editorMateExpertise: z.string().min(1),
-    feedbackStyle: feedbackStyleSchema,
+    chatMatePersonality: z.string().min(1),
     culturalContext: z.boolean(),
+    editorMateExpertise: z.string().min(1),
+    editorMatePersonality: z.string().min(1),
+    enableReasoning: z.boolean(),
+    feedbackStyle: feedbackStyleSchema,
+    model: z.string().min(1),
     progressiveComplexity: z.boolean(),
+    reasoningExpanded: z.boolean(),
+    streaming: z.boolean(),
+    targetLanguage: z.string().min(1),
+    theme: themeSchema,
   })
   .strict();
 
 // Settings Context State Schema
 export const settingsContextStateSchema = z
   .object({
-    globalSettings: globalSettingsSchema,
     conversationSettings: z.record(z.string(), conversationSettingsSchema), // conversationId -> ConversationSettings
+    globalSettings: globalSettingsSchema,
     isLoaded: z.boolean(),
   })
   .strict();
@@ -77,22 +77,22 @@ export const storedConversationSettingsSchema = z.record(
   conversationSettingsSchema
 );
 
-// Export type helpers
-export type Theme = z.infer<typeof themeSchema>;
-export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
-export type GlobalSettings = z.infer<typeof globalSettingsSchema>;
-export type ConversationSettings = z.infer<typeof conversationSettingsSchema>;
-export type SettingsContextState = z.infer<typeof settingsContextStateSchema>;
-export type GlobalSettingsUpdate = z.infer<typeof globalSettingsUpdateSchema>;
-export type ConversationSettingsUpdate = z.infer<
-  typeof conversationSettingsUpdateSchema
->;
-export type StoredGlobalSettings = z.infer<typeof storedGlobalSettingsSchema>;
-export type StoredConversationSettings = z.infer<
-  typeof storedConversationSettingsSchema
->;
-
 // Legacy aliases for backward compatibility during migration
 export type ChatSettings = ConversationSettings;
 export type ChatSettingsUpdate = ConversationSettingsUpdate;
+export type ConversationSettings = z.infer<typeof conversationSettingsSchema>;
+export type ConversationSettingsUpdate = z.infer<
+  typeof conversationSettingsUpdateSchema
+>;
+export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
+export type GlobalSettings = z.infer<typeof globalSettingsSchema>;
+export type GlobalSettingsUpdate = z.infer<typeof globalSettingsUpdateSchema>;
+export type SettingsContextState = z.infer<typeof settingsContextStateSchema>;
 export type StoredChatSettings = StoredConversationSettings;
+
+export type StoredConversationSettings = z.infer<
+  typeof storedConversationSettingsSchema
+>;
+export type StoredGlobalSettings = z.infer<typeof storedGlobalSettingsSchema>;
+// Export type helpers
+export type Theme = z.infer<typeof themeSchema>;

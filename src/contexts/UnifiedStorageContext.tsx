@@ -1,94 +1,97 @@
 import type { ReactNode } from 'react';
+
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from 'react';
+
+import type { LocalConversation, LocalMessage } from '@/schemas/messages';
+
 import {
-  globalSettingsSchema,
-  conversationSettingsSchema,
-  type GlobalSettings,
   type ConversationSettings,
-  type GlobalSettingsUpdate,
+  conversationSettingsSchema,
   type ConversationSettingsUpdate,
+  type GlobalSettings,
+  globalSettingsSchema,
+  type GlobalSettingsUpdate,
 } from '@/schemas/settings';
 import { localAppDataSchema, LocalStorageKeys } from '@/schemas/storage';
-import type { LocalConversation, LocalMessage } from '@/schemas/messages';
 
 // Re-export types for components
 export type {
-  GlobalSettings,
   ConversationSettings,
-  GlobalSettingsUpdate,
   ConversationSettingsUpdate,
+  GlobalSettings,
+  GlobalSettingsUpdate,
   LocalConversation,
   LocalMessage,
 };
 
 interface UnifiedStorageContextType {
-  // Data state
-  conversations: LocalConversation[];
-  globalSettings: GlobalSettings;
-  conversationSettings: Record<string, ConversationSettings>;
-  isLoaded: boolean;
-
-  // Settings methods
-  updateGlobalSettings: (newSettings: GlobalSettingsUpdate) => void;
-  updateConversationSettings: (
-    conversationId: string,
-    newSettings: ConversationSettingsUpdate
-  ) => void;
-  getConversationSettings: (conversationId: string) => ConversationSettings;
-  createConversationSettings: (conversationId: string) => ConversationSettings;
-
-  // Conversation methods
-  refreshConversations: () => void;
-  getConversation: (id: string) => LocalConversation | null;
-  saveConversation: (conversation: LocalConversation) => void;
-  createConversation: (data: Partial<LocalConversation>) => LocalConversation;
-  updateConversation: (id: string, updates: Partial<LocalConversation>) => void;
-  deleteConversation: (id: string) => void;
-  updateConversationTitle: (id: string, title: string) => void;
-
   // Message methods
   addMessage: (
     conversationId: string,
     message: Omit<LocalMessage, 'id' | 'timestamp'>
   ) => LocalMessage;
-  getMessages: (conversationId: string) => LocalMessage[];
-  updateMessage: (messageId: string, updates: Partial<LocalMessage>) => void;
-  deleteMessage: (messageId: string) => void;
+  // Data state
+  conversations: LocalConversation[];
+  conversationSettings: Record<string, ConversationSettings>;
+  createConversation: (data: Partial<LocalConversation>) => LocalConversation;
 
+  createConversationSettings: (conversationId: string) => ConversationSettings;
   // Data management
   deleteAllChats: () => void;
+  deleteConversation: (id: string) => void;
+  deleteMessage: (messageId: string) => void;
+
   exportData: () => string;
+  getConversation: (id: string) => LocalConversation | null;
+  getConversationSettings: (conversationId: string) => ConversationSettings;
+  getMessages: (conversationId: string) => LocalMessage[];
+  globalSettings: GlobalSettings;
   importData: (jsonData: string) => boolean;
+  isLoaded: boolean;
+
+  // Conversation methods
+  refreshConversations: () => void;
+  saveConversation: (conversation: LocalConversation) => void;
+  updateConversation: (id: string, updates: Partial<LocalConversation>) => void;
+  updateConversationSettings: (
+    conversationId: string,
+    newSettings: ConversationSettingsUpdate
+  ) => void;
+
+  updateConversationTitle: (id: string, title: string) => void;
+  // Settings methods
+  updateGlobalSettings: (newSettings: GlobalSettingsUpdate) => void;
+  updateMessage: (messageId: string, updates: Partial<LocalMessage>) => void;
 }
 
 const UnifiedStorageContext = createContext<
-  UnifiedStorageContextType | undefined
+  undefined | UnifiedStorageContextType
 >(undefined);
 
 export const getDefaultGlobalSettings = (): GlobalSettings => {
   return {
-    model: 'google/gemini-2.5-flash',
     apiKey: '',
-    targetLanguage: 'Swedish',
-    streaming: true,
-    theme: 'system',
-    enableReasoning: true,
-    reasoningExpanded: true,
+    chatMateBackground: 'young professional, loves local culture',
     chatMatePersonality:
       'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+    culturalContext: true,
+    editorMateExpertise: '10+ years teaching experience',
     editorMatePersonality:
       'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
-    chatMateBackground: 'young professional, loves local culture',
-    editorMateExpertise: '10+ years teaching experience',
+    enableReasoning: true,
     feedbackStyle: 'encouraging',
-    culturalContext: true,
+    model: 'google/gemini-2.5-flash',
     progressiveComplexity: true,
+    reasoningExpanded: true,
+    streaming: true,
+    targetLanguage: 'Swedish',
+    theme: 'system',
   };
 };
 
@@ -117,27 +120,27 @@ export const UnifiedStorageProvider = ({
           // Convert date strings back to Date objects
           interface ParsedStorageData {
             conversations?: {
-              id: string;
-              title: string;
-              language: string;
               ai_mode: string;
               chat_mate_prompt?: string;
-              editor_mate_prompt?: string;
               created_at: string;
-              updated_at: string;
+              editor_mate_prompt?: string;
+              id: string;
+              language: string;
               messages?: {
-                id: string;
-                type: string;
                 content: string;
-                timestamp: string;
+                id: string;
                 isStreaming?: boolean;
+                metadata?: object;
                 parentMessageId?: string;
                 reasoning?: string;
-                metadata?: object;
+                timestamp: string;
+                type: string;
               }[];
+              title: string;
+              updated_at: string;
             }[];
-            globalSettings?: object;
             conversationSettings?: Record<string, object>;
+            globalSettings?: object;
           }
 
           const parsedData = parsed as ParsedStorageData;
@@ -146,16 +149,16 @@ export const UnifiedStorageProvider = ({
               parsedData.conversations?.map((conv) => ({
                 ...conv,
                 created_at: new Date(conv.created_at),
-                updated_at: new Date(conv.updated_at),
                 messages:
                   conv.messages?.map((msg) => ({
                     ...msg,
                     timestamp: new Date(msg.timestamp),
                   })) ?? [],
+                updated_at: new Date(conv.updated_at),
               })) ?? [],
+            conversationSettings: parsedData.conversationSettings ?? {},
             globalSettings:
               parsedData.globalSettings ?? getDefaultGlobalSettings(),
-            conversationSettings: parsedData.conversationSettings ?? {},
           };
 
           // Validate with Zod schema
@@ -167,13 +170,13 @@ export const UnifiedStorageProvider = ({
 
           console.log('✅ Loaded unified data from localStorage:', {
             conversations: validatedData.conversations.length,
+            conversationSettings: Object.keys(
+              validatedData.conversationSettings
+            ).length,
             globalSettings: {
               model: validatedData.globalSettings.model,
               targetLanguage: validatedData.globalSettings.targetLanguage,
             },
-            conversationSettings: Object.keys(
-              validatedData.conversationSettings
-            ).length,
           });
         }
       } catch (error) {
@@ -195,8 +198,8 @@ export const UnifiedStorageProvider = ({
     try {
       const data = {
         conversations,
-        globalSettings,
         conversationSettings,
+        globalSettings,
       };
 
       // Validate before saving
@@ -226,21 +229,21 @@ export const UnifiedStorageProvider = ({
   };
 
   const getDefaultConversationSettings = (): ConversationSettings => ({
+    apiKey: globalSettings.apiKey,
+    chatMateBackground: globalSettings.chatMateBackground,
+    chatMatePersonality: globalSettings.chatMatePersonality,
+    culturalContext: globalSettings.culturalContext,
+    editorMateExpertise: globalSettings.editorMateExpertise,
+    editorMatePersonality: globalSettings.editorMatePersonality,
+    enableReasoning: globalSettings.enableReasoning,
+    feedbackStyle: globalSettings.feedbackStyle,
     // Inherit from global settings
     model: globalSettings.model,
-    apiKey: globalSettings.apiKey,
-    targetLanguage: globalSettings.targetLanguage,
-    streaming: globalSettings.streaming,
-    enableReasoning: globalSettings.enableReasoning,
-    reasoningExpanded: globalSettings.reasoningExpanded,
-    theme: globalSettings.theme,
-    chatMatePersonality: globalSettings.chatMatePersonality,
-    editorMatePersonality: globalSettings.editorMatePersonality,
-    chatMateBackground: globalSettings.chatMateBackground,
-    editorMateExpertise: globalSettings.editorMateExpertise,
-    feedbackStyle: globalSettings.feedbackStyle,
-    culturalContext: globalSettings.culturalContext,
     progressiveComplexity: globalSettings.progressiveComplexity,
+    reasoningExpanded: globalSettings.reasoningExpanded,
+    streaming: globalSettings.streaming,
+    targetLanguage: globalSettings.targetLanguage,
+    theme: globalSettings.theme,
   });
 
   const updateConversationSettings = (
@@ -326,15 +329,15 @@ export const UnifiedStorageProvider = ({
     data: Partial<LocalConversation>
   ): LocalConversation => {
     const newConversation: LocalConversation = {
-      id: `conv_${Date.now().toString()}_${Math.random().toString(36).substring(2)}`,
-      title: data.title ?? 'New Chat',
-      language: data.language ?? globalSettings.targetLanguage,
       ai_mode: data.ai_mode ?? 'dual',
       chat_mate_prompt: data.chat_mate_prompt,
-      editor_mate_prompt: data.editor_mate_prompt,
       created_at: new Date(),
-      updated_at: new Date(),
+      editor_mate_prompt: data.editor_mate_prompt,
+      id: `conv_${Date.now().toString()}_${Math.random().toString(36).substring(2)}`,
+      language: data.language ?? globalSettings.targetLanguage,
       messages: [],
+      title: data.title ?? 'New Chat',
+      updated_at: new Date(),
     };
 
     saveConversation(newConversation);
@@ -457,8 +460,8 @@ export const UnifiedStorageProvider = ({
     return JSON.stringify(
       {
         conversations,
-        globalSettings,
         conversationSettings,
+        globalSettings,
       },
       null,
       2
@@ -489,28 +492,28 @@ export const UnifiedStorageProvider = ({
   }, [isLoaded, saveData]);
 
   const value = {
-    conversations,
-    globalSettings,
-    conversationSettings,
-    isLoaded,
-    updateGlobalSettings,
-    updateConversationSettings,
-    getConversationSettings,
-    createConversationSettings,
-    refreshConversations,
-    getConversation,
-    saveConversation,
-    createConversation,
-    updateConversation,
-    deleteConversation,
-    updateConversationTitle,
     addMessage,
-    getMessages,
-    updateMessage,
-    deleteMessage,
+    conversations,
+    conversationSettings,
+    createConversation,
+    createConversationSettings,
     deleteAllChats,
+    deleteConversation,
+    deleteMessage,
     exportData,
+    getConversation,
+    getConversationSettings,
+    getMessages,
+    globalSettings,
     importData,
+    isLoaded,
+    refreshConversations,
+    saveConversation,
+    updateConversation,
+    updateConversationSettings,
+    updateConversationTitle,
+    updateGlobalSettings,
+    updateMessage,
   };
 
   return (

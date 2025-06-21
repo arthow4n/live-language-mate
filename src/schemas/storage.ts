@@ -1,13 +1,14 @@
 import { z } from 'zod';
+
 import { localConversationSchema } from './messages';
-import { globalSettingsSchema, conversationSettingsSchema } from './settings';
+import { conversationSettingsSchema, globalSettingsSchema } from './settings';
 
 // Unified app data structure for localStorage - STRICT
 export const localAppDataSchema = z
   .object({
     conversations: z.array(localConversationSchema),
-    globalSettings: globalSettingsSchema,
     conversationSettings: z.record(z.string(), conversationSettingsSchema),
+    globalSettings: globalSettingsSchema,
   })
   .strict();
 
@@ -33,5 +34,5 @@ export const localStorageSchemas = {
 
 // Export type helpers
 export type LocalAppData = z.infer<typeof localAppDataSchema>;
-export type PanelSizes = z.infer<typeof panelSizesSchema>;
 export type LocalStorageKeyType = keyof typeof localStorageSchemas;
+export type PanelSizes = z.infer<typeof panelSizesSchema>;

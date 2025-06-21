@@ -1,10 +1,13 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ChatSidebar from './ChatSidebar';
-import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+
 import type { LocalConversation } from '@/schemas/messages';
+
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+
+import ChatSidebar from './ChatSidebar';
 
 interface TestWrapperProps {
   children: React.ReactNode;
@@ -21,13 +24,13 @@ const createMockConversation = (
   title: string,
   updatedAt: Date = new Date()
 ): LocalConversation => ({
-  id,
-  title,
-  language: 'Swedish',
   ai_mode: 'dual',
   created_at: new Date(),
-  updated_at: updatedAt,
+  id,
+  language: 'Swedish',
   messages: [],
+  title,
+  updated_at: updatedAt,
 });
 
 // Mock toast hook
@@ -51,10 +54,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={vi.fn()}
-          onNewConversation={onNewConversation}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={onMainSettingsOpen}
+          onNewConversation={onNewConversation}
         />
       </TestWrapper>
     );
@@ -81,10 +84,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={vi.fn()}
-          onNewConversation={onNewConversation}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={onNewConversation}
         />
       </TestWrapper>
     );
@@ -103,10 +106,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={vi.fn()}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={onMainSettingsOpen}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -138,10 +141,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={onConversationSelect}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={onConversationSelect}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -174,10 +177,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv-1"
-          onConversationSelect={vi.fn()}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -210,10 +213,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv-1"
-          onConversationSelect={vi.fn()}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={onChatSettingsOpen}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -264,10 +267,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv-1"
-          onConversationSelect={vi.fn()}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -337,10 +340,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv-1"
-          onConversationSelect={vi.fn()}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -394,10 +397,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv-1"
-          onConversationSelect={vi.fn()}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -458,10 +461,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv-1"
-          onConversationSelect={onConversationSelect}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={onConversationSelect}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -522,10 +525,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv-1"
-          onConversationSelect={onConversationSelect}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={onConversationSelect}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );
@@ -583,10 +586,10 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={vi.fn()}
-          onNewConversation={vi.fn()}
           onChatSettingsOpen={vi.fn()}
+          onConversationSelect={vi.fn()}
           onMainSettingsOpen={vi.fn()}
+          onNewConversation={vi.fn()}
         />
       </TestWrapper>
     );

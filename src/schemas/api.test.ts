@@ -1,9 +1,10 @@
-import { describe, test, expect } from 'vitest';
-import { aiChatRequestSchema, messageTypeSchema } from './api';
+import { describe, expect, test } from 'vitest';
+
 import {
-  createRealChatRequest,
   createInvalidChatRequest,
+  createRealChatRequest,
 } from '../__tests__/factories';
+import { aiChatRequestSchema, messageTypeSchema } from './api';
 
 describe('API Schema Integration Tests', () => {
   test('real chat request passes schema validation', () => {

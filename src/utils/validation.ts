@@ -17,7 +17,7 @@ export const createStrictParser =
 export const parseStoredData = <T>(
   key: string,
   schema: z.ZodSchema<T>
-): T | null => {
+): null | T => {
   const stored = localStorage.getItem(key);
   if (!stored) return null;
 

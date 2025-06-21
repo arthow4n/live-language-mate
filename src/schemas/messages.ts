@@ -13,24 +13,24 @@ export const aiModeSchema = z.enum([
 // Message metadata schema
 export const messageMetadataSchema = z
   .object({
-    model: z.string().optional(),
-    generationTime: z.number().optional(), // in milliseconds
-    startTime: z.number().optional(),
     endTime: z.number().optional(),
+    generationTime: z.number().optional(), // in milliseconds
+    model: z.string().optional(),
+    startTime: z.number().optional(),
   })
   .strict();
 
 // Core message schema - STRICT, no defaults
 export const messageSchema = z
   .object({
-    id: z.string().min(1),
-    type: messageTypeSchema,
     content: z.string(),
-    timestamp: z.date(),
+    id: z.string().min(1),
     isStreaming: z.boolean().optional(),
+    metadata: messageMetadataSchema.optional(),
     parentMessageId: z.string().optional(),
     reasoning: z.string().optional(),
-    metadata: messageMetadataSchema.optional(),
+    timestamp: z.date(),
+    type: messageTypeSchema,
   })
   .strict();
 
@@ -40,15 +40,15 @@ export const localMessageSchema = messageSchema;
 // Conversation schema - STRICT, no defaults
 export const conversationSchema = z
   .object({
-    id: z.string().min(1),
-    title: z.string().min(1),
-    language: z.string().min(1),
     ai_mode: aiModeSchema,
     chat_mate_prompt: z.string().optional(),
-    editor_mate_prompt: z.string().optional(),
     created_at: z.date(),
-    updated_at: z.date(),
+    editor_mate_prompt: z.string().optional(),
+    id: z.string().min(1),
+    language: z.string().min(1),
     messages: z.array(localMessageSchema),
+    title: z.string().min(1),
+    updated_at: z.date(),
   })
   .strict();
 
@@ -67,10 +67,10 @@ export const messageUpdateSchema = messageSchema.partial();
 // Conversation creation input schema (excludes auto-generated fields)
 export const conversationCreateSchema = conversationSchema
   .omit({
-    id: true,
     created_at: true,
-    updated_at: true,
+    id: true,
     messages: true,
+    updated_at: true,
   })
   .extend({
     messages: z.array(localMessageSchema).default([]),
@@ -79,15 +79,15 @@ export const conversationCreateSchema = conversationSchema
 // Conversation update schema (partial for updates)
 export const conversationUpdateSchema = conversationSchema.partial();
 
-// Export type helpers
-export type MessageType = z.infer<typeof messageTypeSchema>;
 export type AiMode = z.infer<typeof aiModeSchema>;
-export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
-export type Message = z.infer<typeof messageSchema>;
-export type LocalMessage = z.infer<typeof localMessageSchema>;
 export type Conversation = z.infer<typeof conversationSchema>;
-export type LocalConversation = z.infer<typeof localConversationSchema>;
-export type MessageCreate = z.infer<typeof messageCreateSchema>;
-export type MessageUpdate = z.infer<typeof messageUpdateSchema>;
 export type ConversationCreate = z.infer<typeof conversationCreateSchema>;
 export type ConversationUpdate = z.infer<typeof conversationUpdateSchema>;
+export type LocalConversation = z.infer<typeof localConversationSchema>;
+export type LocalMessage = z.infer<typeof localMessageSchema>;
+export type Message = z.infer<typeof messageSchema>;
+export type MessageCreate = z.infer<typeof messageCreateSchema>;
+export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
+// Export type helpers
+export type MessageType = z.infer<typeof messageTypeSchema>;
+export type MessageUpdate = z.infer<typeof messageUpdateSchema>;

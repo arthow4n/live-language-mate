@@ -9,11 +9,11 @@ async function aiChat(
   options?: { signal?: AbortSignal }
 ): Promise<Response> {
   const response = await fetch(`${API_BASE_URL}/ai-chat`, {
-    method: 'POST',
+    body: JSON.stringify(request),
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(request),
+    method: 'POST',
     signal: options?.signal,
   });
 
@@ -35,10 +35,10 @@ async function aiChat(
 
 async function getModels(): Promise<ModelsResponse> {
   const response = await fetch(`${API_BASE_URL}/models`, {
-    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
+    method: 'GET',
   });
 
   if (!response.ok) {

@@ -1,13 +1,16 @@
-import { describe, test, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
+import { describe, expect, test } from 'vitest';
+
+import type { AiChatRequest } from '@/schemas/api';
+
+import { aiChatRequestSchema } from '@/schemas/api';
+
+import {
+  createMockAiResponse,
+  createRealChatRequest,
+} from '../__tests__/factories';
 import { server } from '../__tests__/setup';
 import { apiClient } from './apiClient';
-import {
-  createRealChatRequest,
-  createMockAiResponse,
-} from '../__tests__/factories';
-import { aiChatRequestSchema } from '@/schemas/api';
-import type { AiChatRequest } from '@/schemas/api';
 
 // Import the global server from setup instead of creating a new one
 

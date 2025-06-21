@@ -1,12 +1,12 @@
-import js from '@eslint/js';
-import globals from 'globals';
-import reactHooks from 'eslint-plugin-react-hooks';
-import tseslint from 'typescript-eslint';
-import prettierConfig from 'eslint-config-prettier';
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
+import js from '@eslint/js';
+import prettierConfig from 'eslint-config-prettier';
 // import jsdoc from 'eslint-plugin-jsdoc';
 // import testingLibrary from 'eslint-plugin-testing-library';
-// import perfectionist from 'eslint-plugin-perfectionist';
+import perfectionist from 'eslint-plugin-perfectionist';
+import reactHooks from 'eslint-plugin-react-hooks';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   { ignores: ['dist'] },
@@ -40,6 +40,12 @@ export default tseslint.config(
         { ignore: [] },
       ],
 
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          fixStyle: 'separate-type-imports',
+        },
+      ],
       // "@typescript-eslint/explicit-function-return-type": "error"
       // '@typescript-eslint/ban-ts-comment': 'error',
       // '@typescript-eslint/consistent-type-assertions': [
@@ -52,13 +58,7 @@ export default tseslint.config(
       // ],
       // '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/no-import-type-side-effects': 'error',
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        {
-          fixStyle: 'separate-type-imports',
-        },
-      ],
     },
-  }
-  // perfectionist.configs['recommended-natural'],
+  },
+  perfectionist.configs['recommended-natural']
 );

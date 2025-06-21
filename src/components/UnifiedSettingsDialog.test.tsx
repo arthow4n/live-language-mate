@@ -1,9 +1,12 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import UnifiedSettingsDialog from './UnifiedSettingsDialog';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+
+import type { ConversationSettings, GlobalSettings } from '@/schemas/settings';
+
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
-import type { GlobalSettings, ConversationSettings } from '@/schemas/settings';
+
+import UnifiedSettingsDialog from './UnifiedSettingsDialog';
 
 interface TestWrapperProps {
   children: React.ReactNode;
@@ -16,58 +19,58 @@ const TestWrapper = ({ children }: TestWrapperProps) => (
 const createMockGlobalSettings = (
   overrides: Partial<GlobalSettings> = {}
 ): GlobalSettings => ({
-  targetLanguage: 'Swedish',
   apiKey: '',
-  model: 'google/gemini-2.5-flash',
-  streaming: false,
-  enableReasoning: false,
-  reasoningExpanded: false,
-  theme: 'system',
-  chatMatePersonality: 'Friendly and helpful',
-  editorMatePersonality: 'Patient and detailed',
   chatMateBackground: 'Local guide',
-  editorMateExpertise: 'Language teacher',
-  feedbackStyle: 'encouraging',
+  chatMatePersonality: 'Friendly and helpful',
   culturalContext: false,
+  editorMateExpertise: 'Language teacher',
+  editorMatePersonality: 'Patient and detailed',
+  enableReasoning: false,
+  feedbackStyle: 'encouraging',
+  model: 'google/gemini-2.5-flash',
   progressiveComplexity: false,
+  reasoningExpanded: false,
+  streaming: false,
+  targetLanguage: 'Swedish',
+  theme: 'system',
   ...overrides,
 });
 
 const createMockConversationSettings = (
   overrides: Partial<ConversationSettings> = {}
 ): ConversationSettings => ({
-  targetLanguage: 'Swedish',
   apiKey: '',
-  model: 'google/gemini-2.5-flash',
-  streaming: false,
-  enableReasoning: false,
-  reasoningExpanded: false,
-  theme: 'system',
   chatMateBackground: 'Local guide',
-  editorMateExpertise: 'Language teacher',
-  feedbackStyle: 'encouraging',
-  culturalContext: false,
-  progressiveComplexity: false,
   chatMatePersonality: 'Friendly and helpful',
+  culturalContext: false,
+  editorMateExpertise: 'Language teacher',
   editorMatePersonality: 'Patient and detailed',
+  enableReasoning: false,
+  feedbackStyle: 'encouraging',
+  model: 'google/gemini-2.5-flash',
+  progressiveComplexity: false,
+  reasoningExpanded: false,
+  streaming: false,
+  targetLanguage: 'Swedish',
+  theme: 'system',
   ...overrides,
 });
 
 // Mock ModelSelector component
 vi.mock('./ModelSelector', () => ({
   default: ({
-    value,
     onValueChange,
+    value,
   }: {
-    value: string;
     onValueChange: (value: string) => void;
+    value: string;
   }) => (
     <select
       data-testid="model-selector"
-      value={value}
       onChange={(e) => {
         onValueChange(e.target.value);
       }}
+      value={value}
     >
       <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
       <option value="anthropic/claude-3-5-sonnet">Claude 3.5 Sonnet</option>
@@ -113,11 +116,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={onSave}
+          open={true}
         />
       </TestWrapper>
     );
@@ -147,12 +150,12 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="chat"
-          initialSettings={mockSettings}
-          onSave={onSave}
           conversationTitle="Test Conversation"
+          initialSettings={mockSettings}
+          mode="chat"
+          onOpenChange={vi.fn()}
+          onSave={onSave}
+          open={true}
         />
       </TestWrapper>
     );
@@ -181,11 +184,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={vi.fn()}
+          open={true}
         />
       </TestWrapper>
     );
@@ -232,20 +235,20 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
   test('form controls update settings state', async () => {
     const user = userEvent.setup();
     const mockSettings = createMockGlobalSettings({
-      targetLanguage: 'Swedish',
-      streaming: false,
       enableReasoning: false,
+      streaming: false,
+      targetLanguage: 'Swedish',
     });
     const onSave = vi.fn();
 
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={onSave}
+          open={true}
         />
       </TestWrapper>
     );
@@ -289,10 +292,10 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Verify onSave was called with updated settings
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
-        targetLanguage: 'French',
         apiKey: 'sk-or-test-key',
-        streaming: true,
         enableReasoning: true,
+        streaming: true,
+        targetLanguage: 'French',
       })
     );
   });
@@ -300,8 +303,8 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
   test('conversation-specific settings for chat mode', async () => {
     const user = userEvent.setup();
     const mockSettings = createMockConversationSettings({
-      feedbackStyle: 'encouraging',
       culturalContext: false,
+      feedbackStyle: 'encouraging',
       progressiveComplexity: false,
     });
     const onSave = vi.fn();
@@ -309,12 +312,12 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="chat"
-          initialSettings={mockSettings}
-          onSave={onSave}
           conversationTitle="Test Chat"
+          initialSettings={mockSettings}
+          mode="chat"
+          onOpenChange={vi.fn()}
+          onSave={onSave}
+          open={true}
         />
       </TestWrapper>
     );
@@ -360,9 +363,9 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
         chatMateBackground: 'Young professional from Stockholm',
+        culturalContext: true,
         editorMateExpertise: '15 years teaching Swedish',
         feedbackStyle: 'direct',
-        culturalContext: true,
         progressiveComplexity: true,
       })
     );
@@ -376,11 +379,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="chat"
           initialSettings={mockSettings}
+          mode="chat"
+          onOpenChange={vi.fn()}
           onSave={onSave}
+          open={true}
         />
       </TestWrapper>
     );
@@ -437,11 +440,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={onSave}
+          open={true}
         />
       </TestWrapper>
     );
@@ -474,11 +477,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={onOpenChange}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={onOpenChange}
           onSave={onSave}
+          open={true}
         />
       </TestWrapper>
     );
@@ -510,11 +513,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     const { rerender } = render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={false}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={vi.fn()}
+          open={false}
         />
       </TestWrapper>
     );
@@ -523,11 +526,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     rerender(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={vi.fn()}
+          open={true}
         />
       </TestWrapper>
     );
@@ -543,11 +546,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     rerender(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={false}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={vi.fn()}
+          open={false}
         />
       </TestWrapper>
     );
@@ -555,11 +558,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     rerender(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={vi.fn()}
+          open={true}
         />
       </TestWrapper>
     );
@@ -583,11 +586,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     render(
       <TestWrapper>
         <UnifiedSettingsDialog
-          open={true}
-          onOpenChange={vi.fn()}
-          mode="global"
           initialSettings={mockSettings}
+          mode="global"
+          onOpenChange={vi.fn()}
           onSave={vi.fn()}
+          open={true}
         />
       </TestWrapper>
     );

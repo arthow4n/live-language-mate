@@ -1,31 +1,34 @@
-/// <reference types="vitest/globals" />
-import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
+
+import { act, renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import type { ConversationSettings } from '@/schemas/settings';
+
 import {
+  getDefaultGlobalSettings,
   UnifiedStorageProvider,
   useUnifiedStorage,
-  getDefaultGlobalSettings,
 } from '../UnifiedStorageContext';
-import type { ConversationSettings } from '@/schemas/settings';
 
 // Mock localStorage
 const mockLocalStorage = (() => {
   let store: Record<string, string> = {};
   return {
+    clear: () => {
+      store = {};
+    },
     getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
+    key: (index: number) => Object.keys(store)[index] || null,
+    get length() {
+      return Object.keys(store).length;
     },
     removeItem: (key: string) => {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- mock localStorage requires dynamic deletion for removeItem
       delete store[key];
     },
-    clear: () => {
-      store = {};
-    },
-    key: (index: number) => Object.keys(store)[index] || null,
-    get length() {
-      return Object.keys(store).length;
+    setItem: (key: string, value: string) => {
+      store[key] = value;
     },
   } as const;
 })();
@@ -61,8 +64,8 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
     it('should merge stored settings with global defaults for missing properties', () => {
       // Setup: Create conversation settings missing some properties
       const storedSettings: Partial<ConversationSettings> = {
-        targetLanguage: 'French',
         chatMatePersonality: 'Custom chat mate personality',
+        targetLanguage: 'French',
         // Missing: editorMatePersonality, feedbackStyle, etc.
       };
 
@@ -134,8 +137,8 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
       act(() => {
         // Manually set incomplete settings to simulate old stored data
         result.current.updateConversationSettings('old-conv', {
-          targetLanguage: 'German',
           chatMatePersonality: 'Old personality',
+          targetLanguage: 'German',
         });
       });
 
@@ -155,20 +158,20 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
 
     it('should preserve all user customizations when they exist', () => {
       const customSettings: ConversationSettings = {
-        model: 'custom-model',
         apiKey: 'custom-key',
-        targetLanguage: 'Japanese',
-        streaming: false,
-        enableReasoning: true, // Will be overridden
-        reasoningExpanded: false, // Will be overridden
-        theme: 'dark' as const,
-        chatMatePersonality: 'Custom chat personality',
-        editorMatePersonality: 'Custom editor personality',
         chatMateBackground: 'Custom background',
-        editorMateExpertise: 'Custom expertise',
-        feedbackStyle: 'direct' as const,
+        chatMatePersonality: 'Custom chat personality',
         culturalContext: false,
+        editorMateExpertise: 'Custom expertise',
+        editorMatePersonality: 'Custom editor personality',
+        enableReasoning: true, // Will be overridden
+        feedbackStyle: 'direct' as const,
+        model: 'custom-model',
         progressiveComplexity: false,
+        reasoningExpanded: false, // Will be overridden
+        streaming: false,
+        targetLanguage: 'Japanese',
+        theme: 'dark' as const,
       };
 
       const { result } = renderHook(() => useUnifiedStorage(), {
@@ -254,8 +257,8 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
       // Update global settings first
       act(() => {
         result.current.updateGlobalSettings({
-          targetLanguage: 'Italian',
           feedbackStyle: 'gentle',
+          targetLanguage: 'Italian',
         });
       });
 
@@ -280,8 +283,8 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
       // Update only specific properties
       act(() => {
         result.current.updateConversationSettings('test-conv', {
-          targetLanguage: 'Portuguese',
           feedbackStyle: 'direct',
+          targetLanguage: 'Portuguese',
         });
       });
 

@@ -1,3 +1,5 @@
+import type { Theme } from '@/schemas/settings';
+
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -6,16 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Theme } from '@/schemas/settings';
 
 interface UISettingsTabProps {
+  onSettingChange: (key: string, value: boolean | number | string) => void;
   settings: {
     theme: Theme;
   };
-  onSettingChange: (key: string, value: string | boolean | number) => void;
 }
 
-const UISettingsTab = ({ settings, onSettingChange }: UISettingsTabProps) => {
+const UISettingsTab = ({ onSettingChange, settings }: UISettingsTabProps) => {
   const handleThemeChange = (value: Theme) => {
     onSettingChange('theme', value);
     // Remove the immediate setTheme call to prevent conflicts
@@ -28,7 +29,7 @@ const UISettingsTab = ({ settings, onSettingChange }: UISettingsTabProps) => {
         <div className="space-y-4">
           <div>
             <Label htmlFor="theme">Theme</Label>
-            <Select value={settings.theme} onValueChange={handleThemeChange}>
+            <Select onValueChange={handleThemeChange} value={settings.theme}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

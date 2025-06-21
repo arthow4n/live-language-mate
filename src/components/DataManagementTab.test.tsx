@@ -1,8 +1,10 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import DataManagementTab from './DataManagementTab';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+
+import DataManagementTab from './DataManagementTab';
 
 interface TestWrapperProps {
   children: React.ReactNode;
@@ -431,8 +433,8 @@ describe('DataManagementTab Integration Tests', () => {
     const legacyData = {
       conversations: [{ id: 'test', title: 'Legacy Chat' }],
       settings: {
-        model: 'legacy-model',
         apiKey: 'legacy-key',
+        model: 'legacy-model',
         theme: 'dark',
       },
     };

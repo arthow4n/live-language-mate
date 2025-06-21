@@ -1,49 +1,52 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from '@/components/ui/resizable';
+import { useEffect, useState } from 'react';
+
+import type {
+  ConversationSettingsUpdate,
+  GlobalSettingsUpdate,
+} from '@/schemas/settings';
+
+import { useTheme } from '@/components/ThemeProvider';
+import { Button } from '@/components/ui/button';
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import ChatSidebar from './ChatSidebar';
-import EnhancedChatInterface from './EnhancedChatInterface';
-import AskInterface from './AskInterface';
-import UnifiedSettingsDialog from './UnifiedSettingsDialog';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTheme } from '@/components/ThemeProvider';
-import type {
-  GlobalSettingsUpdate,
-  ConversationSettingsUpdate,
-} from '@/schemas/settings';
+
+import AskInterface from './AskInterface';
+import ChatSidebar from './ChatSidebar';
+import EnhancedChatInterface from './EnhancedChatInterface';
+import UnifiedSettingsDialog from './UnifiedSettingsDialog';
 
 const LanguageMateApp = () => {
   const [currentConversationId, setCurrentConversationId] = useState<
-    string | null
+    null | string
   >(null);
   const [globalSettingsOpen, setGlobalSettingsOpen] = useState(false);
   const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [selectionSource, setSelectionSource] = useState<
-    'main-chat' | 'ask-interface'
+    'ask-interface' | 'main-chat'
   >('main-chat');
   const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
 
   const {
-    globalSettings,
-    updateGlobalSettings,
-    getConversationSettings,
-    updateConversationSettings,
     createConversationSettings,
     getConversation,
+    getConversationSettings,
+    globalSettings,
+    updateConversationSettings,
+    updateGlobalSettings,
   } = useUnifiedStorage();
   const { setTheme } = useTheme();
   const isMobile = useIsMobile();
@@ -58,7 +61,7 @@ const LanguageMateApp = () => {
     ? getConversation(currentConversationId)
     : null;
 
-  const handleConversationSelect = (conversationId: string | null) => {
+  const handleConversationSelect = (conversationId: null | string) => {
     setCurrentConversationId(conversationId);
   };
 
@@ -106,7 +109,7 @@ const LanguageMateApp = () => {
 
   const handleTextSelect = (
     text: string,
-    source: 'main-chat' | 'ask-interface' = 'main-chat'
+    source: 'ask-interface' | 'main-chat' = 'main-chat'
   ) => {
     setSelectedText(text);
     setSelectionSource(source);
@@ -153,14 +156,14 @@ const LanguageMateApp = () => {
         {/* Chat Sidebar */}
         <ChatSidebar
           currentConversationId={currentConversationId}
-          onConversationSelect={handleConversationSelect}
-          onNewConversation={handleNewConversation}
           onChatSettingsOpen={() => {
             setChatSettingsOpen(true);
           }}
+          onConversationSelect={handleConversationSelect}
           onMainSettingsOpen={() => {
             setGlobalSettingsOpen(true);
           }}
+          onNewConversation={handleNewConversation}
         />
 
         {/* Main Content */}
@@ -175,12 +178,12 @@ const LanguageMateApp = () => {
             {/* Editor Mate Toggle Button - visible on mobile */}
             {isMobile && (
               <Button
-                variant="outline"
-                size="sm"
+                className="flex items-center gap-2"
                 onClick={() => {
                   setAskInterfaceOpen(true);
                 }}
-                className="flex items-center gap-2"
+                size="sm"
+                variant="outline"
               >
                 <GraduationCap className="w-4 h-4" />
                 Editor Mate
@@ -194,41 +197,41 @@ const LanguageMateApp = () => {
             {!isMobile && (
               <div className="flex-1 h-full">
                 <ResizablePanelGroup
+                  className="h-full"
                   direction="horizontal"
                   onLayout={handlePanelSizeChange}
-                  className="h-full"
                 >
                   <ResizablePanel
+                    className="h-full"
                     defaultSize={getDefaultPanelSizes()[0]}
                     minSize={30}
-                    className="h-full"
                   >
                     <EnhancedChatInterface
                       conversationId={currentConversationId}
-                      targetLanguage={globalSettings.targetLanguage}
-                      onConversationUpdate={handleConversationUpdate}
                       onConversationCreated={handleConversationCreated}
+                      onConversationUpdate={handleConversationUpdate}
                       onTextSelect={(text) => {
                         handleTextSelect(text, 'main-chat');
                       }}
+                      targetLanguage={globalSettings.targetLanguage}
                     />
                   </ResizablePanel>
 
                   <ResizableHandle withHandle />
 
                   <ResizablePanel
+                    className="h-full bg-card border-l"
                     defaultSize={getDefaultPanelSizes()[1]}
                     minSize={20}
-                    className="h-full bg-card border-l"
                   >
                     <AskInterface
-                      selectedText={selectedText}
-                      targetLanguage={globalSettings.targetLanguage}
                       editorMatePrompt={
                         getCurrentChatSettings().editorMatePersonality
                       }
                       onTextSelect={handleAskInterfaceTextSelect}
+                      selectedText={selectedText}
                       selectionSource={selectionSource}
+                      targetLanguage={globalSettings.targetLanguage}
                     />
                   </ResizablePanel>
                 </ResizablePanelGroup>
@@ -240,18 +243,18 @@ const LanguageMateApp = () => {
               <div className="flex-1 min-w-0 h-full relative">
                 <EnhancedChatInterface
                   conversationId={currentConversationId}
-                  targetLanguage={globalSettings.targetLanguage}
-                  onConversationUpdate={handleConversationUpdate}
                   onConversationCreated={handleConversationCreated}
+                  onConversationUpdate={handleConversationUpdate}
                   onTextSelect={(text) => {
                     handleTextSelect(text, 'main-chat');
                   }}
+                  targetLanguage={globalSettings.targetLanguage}
                 />
 
                 {/* Editor Mate Drawer for Mobile */}
                 <Drawer
-                  open={askInterfaceOpen}
                   onOpenChange={setAskInterfaceOpen}
+                  open={askInterfaceOpen}
                 >
                   <DrawerContent className="h-[80vh]">
                     <DrawerHeader>
@@ -259,17 +262,17 @@ const LanguageMateApp = () => {
                     </DrawerHeader>
                     <div className="flex-1 overflow-hidden">
                       <AskInterface
-                        selectedText={selectedText}
-                        targetLanguage={globalSettings.targetLanguage}
                         editorMatePrompt={
                           getCurrentChatSettings().editorMatePersonality
                         }
+                        hideHeader={true}
                         onClose={() => {
                           setAskInterfaceOpen(false);
                         }}
                         onTextSelect={handleAskInterfaceTextSelect}
+                        selectedText={selectedText}
                         selectionSource={selectionSource}
-                        hideHeader={true}
+                        targetLanguage={globalSettings.targetLanguage}
                       />
                     </div>
                   </DrawerContent>
@@ -281,21 +284,21 @@ const LanguageMateApp = () => {
 
         {/* Global Settings Dialog */}
         <UnifiedSettingsDialog
-          open={globalSettingsOpen}
-          onOpenChange={setGlobalSettingsOpen}
-          mode="global"
           initialSettings={getCombinedGlobalSettings()}
+          mode="global"
+          onOpenChange={setGlobalSettingsOpen}
           onSave={handleGlobalSettingsSave}
+          open={globalSettingsOpen}
         />
 
         {/* Chat Settings Dialog */}
         <UnifiedSettingsDialog
-          open={chatSettingsOpen}
-          onOpenChange={setChatSettingsOpen}
-          mode="chat"
-          initialSettings={getCombinedChatSettings()}
-          onSave={handleChatSettingsSave}
           conversationTitle={currentConversation?.title ?? 'New Chat'}
+          initialSettings={getCombinedChatSettings()}
+          mode="chat"
+          onOpenChange={setChatSettingsOpen}
+          onSave={handleChatSettingsSave}
+          open={chatSettingsOpen}
         />
       </div>
     </SidebarProvider>

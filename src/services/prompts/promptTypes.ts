@@ -1,38 +1,38 @@
-export interface PromptTemplate {
-  id: string;
-  name: string;
-  template: string;
-  variables: string[];
-  description?: string;
-}
-
-export interface PromptVariables {
-  targetLanguage: string;
-  chatMatePersonality?: string;
-  chatMateBackground?: string;
-  editorMatePersonality?: string;
-  editorMateExpertise?: string;
-  feedbackStyle: 'encouraging' | 'gentle' | 'direct' | 'detailed';
-  culturalContext: boolean;
-  progressiveComplexity: boolean;
-  currentComplexityLevel?: string;
-}
-
 export interface BuiltPrompt {
   systemPrompt: string;
   templateId: string;
-  variables: PromptVariables;
   timestamp: Date;
+  variables: PromptVariables;
 }
 
 export type MessageType =
   | 'chat-mate-response'
+  | 'editor-mate-chatmate-comment'
   | 'editor-mate-response'
-  | 'editor-mate-user-comment'
-  | 'editor-mate-chatmate-comment';
+  | 'editor-mate-user-comment';
 
 export interface PromptBuildRequest {
+  customTemplate?: string;
   messageType: MessageType;
   variables: PromptVariables;
-  customTemplate?: string;
+}
+
+export interface PromptTemplate {
+  description?: string;
+  id: string;
+  name: string;
+  template: string;
+  variables: string[];
+}
+
+export interface PromptVariables {
+  chatMateBackground?: string;
+  chatMatePersonality?: string;
+  culturalContext: boolean;
+  currentComplexityLevel?: string;
+  editorMateExpertise?: string;
+  editorMatePersonality?: string;
+  feedbackStyle: 'detailed' | 'direct' | 'encouraging' | 'gentle';
+  progressiveComplexity: boolean;
+  targetLanguage: string;
 }

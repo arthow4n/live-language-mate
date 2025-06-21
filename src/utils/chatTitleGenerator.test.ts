@@ -1,10 +1,13 @@
-import { describe, test, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
+import { describe, expect, test } from 'vitest';
+
+import type { AiChatRequest } from '@/schemas/api';
+
+import { aiChatRequestSchema } from '@/schemas/api';
+
+import { createMockAiResponse } from '../__tests__/factories';
 import { server } from '../__tests__/setup';
 import { generateChatTitle } from './chatTitleGenerator';
-import { createMockAiResponse } from '../__tests__/factories';
-import { aiChatRequestSchema } from '@/schemas/api';
-import type { AiChatRequest } from '@/schemas/api';
 
 // Use the global server from setup instead of creating a new one
 
@@ -30,9 +33,9 @@ describe('Chat Title Generator Integration Tests', () => {
       })
     );
 
-    const history: { message_type: string; content: string }[] = [
-      { message_type: 'user', content: 'How do I say hello in Swedish?' },
-      { message_type: 'assistant', content: 'You can say "Hej" or "Hallo"' },
+    const history: { content: string; message_type: string }[] = [
+      { content: 'How do I say hello in Swedish?', message_type: 'user' },
+      { content: 'You can say "Hej" or "Hallo"', message_type: 'assistant' },
     ];
 
     const title = await generateChatTitle(

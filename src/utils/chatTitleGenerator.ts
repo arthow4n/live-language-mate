@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/apiClient';
 
 export const generateChatTitle = async (
-  conversationHistory: { message_type: string; content: string }[],
+  conversationHistory: { content: string; message_type: string }[],
   targetLanguage: string,
   model: string
 ): Promise<string> => {
@@ -18,36 +18,36 @@ export const generateChatTitle = async (
     );
 
     const currentDateTime = new Date().toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
       hour12: true,
+      minute: '2-digit',
+      month: 'long',
+      second: '2-digit',
+      weekday: 'long',
+      year: 'numeric',
     });
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const response = await apiClient.aiChat({
+      chatMateBackground: 'N/A',
+      chatMatePrompt: 'N/A',
+      conversationHistory: [],
+      culturalContext: false,
+      currentDateTime,
+      editorMateExpertise: 'N/A',
+      editorMatePrompt: 'N/A',
+      enableReasoning: false,
+      feedbackStyle: 'encouraging',
       message: `Based on this conversation in ${targetLanguage}, generate a very short (2-4 words) chat title that summarizes the topic. Only return the title, nothing else: ${contextMessages}`,
       messageType: 'title-generation',
-      conversationHistory: [],
-      systemPrompt:
-        'You are a helpful assistant that generates short, concise chat titles.',
-      chatMatePrompt: 'N/A',
-      editorMatePrompt: 'N/A',
-      targetLanguage,
       model,
-      chatMateBackground: 'N/A',
-      editorMateExpertise: 'N/A',
-      feedbackStyle: 'encouraging',
-      culturalContext: false,
       progressiveComplexity: false,
       streaming: false,
-      currentDateTime,
+      systemPrompt:
+        'You are a helpful assistant that generates short, concise chat titles.',
+      targetLanguage,
       userTimezone,
-      enableReasoning: false,
     });
 
     if (!response.ok) {

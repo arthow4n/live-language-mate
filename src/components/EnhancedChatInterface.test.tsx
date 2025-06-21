@@ -1,13 +1,16 @@
-import { describe, test, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import EnhancedChatInterface from './EnhancedChatInterface';
-import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
-import { createMockAiResponse } from '../__tests__/factories';
-import { aiChatRequestSchema } from '@/schemas/api';
+import { describe, expect, test } from 'vitest';
+
 import type { AiChatRequest } from '@/schemas/api';
+
+import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+import { aiChatRequestSchema } from '@/schemas/api';
+
+import { createMockAiResponse } from '../__tests__/factories';
 import { server } from '../__tests__/setup';
+import EnhancedChatInterface from './EnhancedChatInterface';
 
 interface TestWrapperProps {
   children: React.ReactNode;
@@ -44,16 +47,16 @@ describe('EnhancedChatInterface Integration Tests', () => {
       <TestWrapper>
         <EnhancedChatInterface
           conversationId="test-id"
-          targetLanguage="Swedish"
-          onConversationUpdate={() => {
+          onConversationCreated={() => {
             /* empty test callback */
           }}
-          onConversationCreated={() => {
+          onConversationUpdate={() => {
             /* empty test callback */
           }}
           onTextSelect={() => {
             /* empty test callback */
           }}
+          targetLanguage="Swedish"
         />
       </TestWrapper>
     );

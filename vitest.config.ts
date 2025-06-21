@@ -1,20 +1,19 @@
-import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
 import react from '@vitejs/plugin-react-swc';
+import { resolve } from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
   test: {
-    globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/__tests__/setup.ts'],
     typecheck: {
       enabled: true,
-    },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
     },
   },
 });

@@ -1,23 +1,31 @@
-import { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
   Brain,
-  MessageCircle,
-  GraduationCap,
-  User,
-  MoreVertical,
-  Edit3,
-  Trash2,
-  RotateCcw,
-  Copy,
   Clock,
+  Copy,
   Cpu,
+  Edit3,
   GitBranch,
+  GraduationCap,
+  MessageCircle,
+  MoreVertical,
+  RotateCcw,
   Scissors,
+  Trash2,
+  User,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+
+import type { Message } from '@/schemas/messages';
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,32 +33,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import type { Message } from '@/schemas/messages';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 
 interface EnhancedChatMessageProps {
   message: Message;
-  onTextSelect: (text: string) => void;
-  onRegenerateMessage?: (messageId: string) => void;
-  onEditMessage?: (messageId: string, newContent: string) => void;
-  onDeleteMessage?: (messageId: string) => void;
   onDeleteAllBelow?: (messageId: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  onEditMessage?: (messageId: string, newContent: string) => void;
   onForkFrom?: (messageId: string) => void;
+  onRegenerateMessage?: (messageId: string) => void;
+  onTextSelect: (text: string) => void;
 }
 
 const EnhancedChatMessage = ({
   message,
-  onTextSelect,
-  onRegenerateMessage,
-  onEditMessage,
-  onDeleteMessage,
   onDeleteAllBelow,
+  onDeleteMessage,
+  onEditMessage,
   onForkFrom,
+  onRegenerateMessage,
+  onTextSelect,
 }: EnhancedChatMessageProps) => {
   const [, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -60,14 +62,14 @@ const EnhancedChatMessage = ({
   useEffect(() => {
     if (message.type !== 'user') {
       console.log('EnhancedChatMessage received message:', {
+        contentLength: message.content.length,
+        globalReasoningEnabled: globalSettings.enableReasoning,
+        hasContent: !!message.content,
+        hasReasoning: !!message.reasoning,
+        isStreaming: message.isStreaming,
         messageId: message.id,
         messageType: message.type,
-        hasContent: !!message.content,
-        contentLength: message.content.length,
-        hasReasoning: !!message.reasoning,
         reasoningLength: message.reasoning?.length ?? 0,
-        isStreaming: message.isStreaming,
-        globalReasoningEnabled: globalSettings.enableReasoning,
       });
     }
   }, [message, globalSettings.enableReasoning]);
@@ -83,35 +85,35 @@ const EnhancedChatMessage = ({
 
   const getMessageStyles = () => {
     switch (message.type) {
-      case 'user':
-        return {
-          container: 'mr-auto max-w-[80%]',
-          bubble:
-            'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
-          avatar: 'bg-user text-white',
-          icon: User,
-        };
       case 'chat-mate':
         return {
-          container: 'mr-auto max-w-[80%]',
+          avatar: 'bg-chat-mate text-white',
           bubble:
             'bg-chat-mate-light border border-chat-mate/20 dark:bg-chat-mate/10 dark:border-chat-mate/30',
-          avatar: 'bg-chat-mate text-white',
+          container: 'mr-auto max-w-[80%]',
           icon: MessageCircle,
         };
       case 'editor-mate':
         return {
-          container: 'mr-auto max-w-[80%]',
+          avatar: 'bg-editor-mate text-white',
           bubble:
             'bg-editor-mate-light border border-editor-mate/20 dark:bg-editor-mate/10 dark:border-editor-mate/30',
-          avatar: 'bg-editor-mate text-white',
+          container: 'mr-auto max-w-[80%]',
           icon: GraduationCap,
+        };
+      case 'user':
+        return {
+          avatar: 'bg-user text-white',
+          bubble:
+            'bg-user-light border border-user/20 dark:bg-user/10 dark:border-user/30',
+          container: 'mr-auto max-w-[80%]',
+          icon: User,
         };
       default:
         return {
-          container: 'mr-auto max-w-[80%]',
-          bubble: 'bg-muted',
           avatar: 'bg-muted-foreground text-background',
+          bubble: 'bg-muted',
+          container: 'mr-auto max-w-[80%]',
           icon: MessageCircle,
         };
     }
@@ -137,12 +139,12 @@ const EnhancedChatMessage = ({
 
   const getDisplayName = () => {
     switch (message.type) {
-      case 'user':
-        return 'User';
       case 'chat-mate':
         return 'Chat Mate';
       case 'editor-mate':
         return 'Editor Mate';
+      case 'user':
+        return 'User';
       default:
         return 'Unknown';
     }
@@ -172,7 +174,7 @@ const EnhancedChatMessage = ({
 
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className="text-xs">
+          <Badge className="text-xs" variant="secondary">
             {getDisplayName()}
           </Badge>
           <span className="text-xs text-muted-foreground">
@@ -206,8 +208,8 @@ const EnhancedChatMessage = ({
         >
           {message.reasoning && (
             <Collapsible
-              defaultOpen={globalSettings.reasoningExpanded}
               className="mb-3 border-b pb-2"
+              defaultOpen={globalSettings.reasoningExpanded}
             >
               <CollapsibleTrigger asChild>
                 <button className="flex items-center gap-2 text-xs text-muted-foreground font-semibold w-full hover:text-foreground transition-colors">
@@ -226,18 +228,18 @@ const EnhancedChatMessage = ({
           {isEditing ? (
             <div className="space-y-2">
               <textarea
-                value={editContent}
+                autoFocus
+                className="w-full p-2 border rounded-md resize-none min-h-[100px] bg-background"
                 onChange={(e) => {
                   setEditContent(e.target.value);
                 }}
-                className="w-full p-2 border rounded-md resize-none min-h-[100px] bg-background"
-                autoFocus
+                value={editContent}
               />
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleEdit}>
+                <Button onClick={handleEdit} size="sm">
                   Save
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                <Button onClick={handleCancelEdit} size="sm" variant="outline">
                   Cancel
                 </Button>
               </div>
@@ -249,30 +251,30 @@ const EnhancedChatMessage = ({
             >
               <ReactMarkdown
                 components={{
-                  p: ({ children }) => (
-                    <p className="mb-2 last:mb-0">{children}</p>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="list-disc list-inside mb-2 space-y-1">
+                  code: ({ children }) => (
+                    <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
                       {children}
-                    </ul>
+                    </code>
+                  ),
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  li: ({ children }) => (
+                    <li className="leading-relaxed">{children}</li>
                   ),
                   ol: ({ children }) => (
                     <ol className="list-decimal list-inside mb-2 space-y-1">
                       {children}
                     </ol>
                   ),
-                  li: ({ children }) => (
-                    <li className="leading-relaxed">{children}</li>
+                  p: ({ children }) => (
+                    <p className="mb-2 last:mb-0">{children}</p>
                   ),
                   strong: ({ children }) => (
                     <strong className="font-semibold">{children}</strong>
                   ),
-                  em: ({ children }) => <em className="italic">{children}</em>,
-                  code: ({ children }) => (
-                    <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside mb-2 space-y-1">
                       {children}
-                    </code>
+                    </ul>
                   ),
                 }}
               >
@@ -288,7 +290,7 @@ const EnhancedChatMessage = ({
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-6 h-6">
+                  <Button className="w-6 h-6" size="icon" variant="ghost">
                     <MoreVertical className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -324,10 +326,10 @@ const EnhancedChatMessage = ({
                   <DropdownMenuSeparator />
                   {onDeleteMessage && (
                     <DropdownMenuItem
+                      className="text-destructive"
                       onClick={() => {
                         onDeleteMessage(message.id);
                       }}
-                      className="text-destructive"
                     >
                       <Trash2 className="w-3 h-3 mr-2" />
                       Delete message
@@ -335,10 +337,10 @@ const EnhancedChatMessage = ({
                   )}
                   {onDeleteAllBelow && (
                     <DropdownMenuItem
+                      className="text-destructive"
                       onClick={() => {
                         onDeleteAllBelow(message.id);
                       }}
-                      className="text-destructive"
                     >
                       <Scissors className="w-3 h-3 mr-2" />
                       Delete all below
