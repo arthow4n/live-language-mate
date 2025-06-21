@@ -156,6 +156,7 @@ The API server can be deployed to any platform supporting Deno:
 - Avoid default values, optional Zod property, `null` or `undefined` in the type, if you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it.
 - In test file when writing assertions, use expect toBeTruthy instead of using if statement to do null check.
 - Use Zod to validate and cast type whenever possible and feasible.
+- In frontend Vitest test files, import explicitly the test helpers e.g. `import { describe, it, expect, beforeEach } from 'vitest';`.
 
 ## Claude Code operations
 
