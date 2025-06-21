@@ -164,17 +164,21 @@ The API server can be deployed to any platform supporting Deno:
 
 ## Claude Code operations
 
-- Prioritise to use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
+- You are meant to work on your own unattended once the user has approved your initial work plan.
+- When planning, the plan is always for yourself to be able to follow the plan and work on the task immediately after the plan is approved by the user.
+- When planning, automatically break down the task into smaller tasks and utilise the TodoRead & TodoWrite tools.
+- When planning, plan ahead to see if you need to update any tests.
+- When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutelyv relevant and needed chagnes.
+- The environment is covered with git, leverage git commands during your work.
+- Unless otherwise specified by the user, when doing tasks and when you are done with tasks, be proactive to make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
 - After you finish all the edits in the task, make sure to `npm run check:all` then fix the lint type errors, and `npm run test` then fix all the test errors.
 - If you make a git commit, prefix you commit message with `(Claude Code) ` and add a line at the end of commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
-- When doing tasks and when you are done with tasks, be proactive to make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
+- Prioritise to use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
-- Instead of using your own Search tool, prefer using ast-grep (`sg --lang tsx` (or set `--lang` appropriately )) first, then fall back to your own search tool or `rg`/`grep`.
 - If there's a tool instead of command, use the tool, for example, use your own Read tool instead of running commands to read file.
 - If you must run a command, prefer read-only command, for example use `git ls-files` instead of running `find` command.
+- If you need to remove files, use `git rm` instead of `rm`.
 - You should not update any config files unless that's the only way or the best way to fix things, if you must update a config file, pause and ask the user for feedback.
-- When planning changes, plan ahead to see if you need to update tests at the same time.
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
 - If you would eslint disable anything, think again and see if there's a better approach to fix it, if you still need to eslint disable, make sure you add -- comment after it to explain why you chose to disable.
-- If you need to remove files, use `git rm` instead of `rm`.
 - Don't `grep` the lint result or test result, if you need to run a focused check, just use the focused commands.
