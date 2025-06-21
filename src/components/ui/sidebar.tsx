@@ -150,6 +150,7 @@ const SidebarProvider = React.forwardRef<
             ref={ref}
             style={
               {
+                // @ts-expect-error -- CSS variable
                 '--sidebar-width': SIDEBAR_WIDTH,
                 '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
                 ...style,
@@ -210,11 +211,10 @@ const Sidebar = React.forwardRef<
             data-mobile="true"
             data-sidebar="sidebar"
             side={side}
-            style={
-              {
-                '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
-              } satisfies React.CSSProperties & Record<string, number | string>
-            }
+            style={{
+              // @ts-expect-error -- CSS variable
+              '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
+            }}
           >
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>

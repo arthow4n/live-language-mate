@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
+import { logError } from '@/lib/utils';
+
 /**
  *
  */
