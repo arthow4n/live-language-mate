@@ -1,12 +1,12 @@
 /// <reference types="vitest/globals" />
 import { renderHook, act } from '@testing-library/react';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import {
   UnifiedStorageProvider,
   useUnifiedStorage,
   getDefaultGlobalSettings,
 } from '../UnifiedStorageContext';
-import { type ConversationSettings } from '@/schemas/settings';
+import type { ConversationSettings } from '@/schemas/settings';
 
 // Mock localStorage
 const mockLocalStorage = (() => {

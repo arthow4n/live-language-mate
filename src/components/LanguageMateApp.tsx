@@ -20,9 +20,9 @@ import UnifiedSettingsDialog from './UnifiedSettingsDialog';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/components/ThemeProvider';
-import {
-  type GlobalSettingsUpdate,
-  type ConversationSettingsUpdate,
+import type {
+  GlobalSettingsUpdate,
+  ConversationSettingsUpdate,
 } from '@/schemas/settings';
 
 const LanguageMateApp = () => {

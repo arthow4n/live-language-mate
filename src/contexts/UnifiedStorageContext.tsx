@@ -1,10 +1,10 @@
+import type { ReactNode } from 'react';
 import {
   createContext,
   useContext,
   useState,
   useEffect,
   useCallback,
-  ReactNode,
 } from 'react';
 import {
   globalSettingsSchema,
@@ -15,7 +15,7 @@ import {
   type ConversationSettingsUpdate,
 } from '@/schemas/settings';
 import { localAppDataSchema, LocalStorageKeys } from '@/schemas/storage';
-import { type LocalConversation, type LocalMessage } from '@/schemas/messages';
+import type { LocalConversation, LocalMessage } from '@/schemas/messages';
 
 // Re-export types for components
 export type {

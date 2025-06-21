@@ -15,9 +15,10 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
-import { Message } from '@/schemas/messages';
+import type { Message } from '@/schemas/messages';
 import { apiClient } from '@/services/apiClient';
-import { buildPrompt, PromptVariables } from '@/services/prompts';
+import type { PromptVariables } from '@/services/prompts';
+import { buildPrompt } from '@/services/prompts';
 
 interface AskInterfaceProps {
   selectedText: string;

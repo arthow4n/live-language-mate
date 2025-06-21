@@ -1,4 +1,4 @@
-import { PromptTemplate } from '../promptTypes';
+import type { PromptTemplate } from '../promptTypes';
 
 export const chatMateTemplates: Record<string, PromptTemplate> = {
   'chat-mate-response': {

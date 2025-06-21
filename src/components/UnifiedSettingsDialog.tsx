@@ -22,11 +22,11 @@ import {
 import ModelSelector from './ModelSelector';
 import DataManagementTab from './DataManagementTab';
 import UISettingsTab from './UISettingsTab';
-import {
-  type GlobalSettings,
-  type ConversationSettings,
-  type GlobalSettingsUpdate,
-  type ConversationSettingsUpdate,
+import type {
+  GlobalSettings,
+  ConversationSettings,
+  GlobalSettingsUpdate,
+  ConversationSettingsUpdate,
 } from '@/schemas/settings';
 
 interface UnifiedSettingsDialogProps {

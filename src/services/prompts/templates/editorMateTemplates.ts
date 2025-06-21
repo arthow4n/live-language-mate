@@ -1,4 +1,4 @@
-import { PromptTemplate } from '../promptTypes';
+import type { PromptTemplate } from '../promptTypes';
 
 export const editorMateTemplates: Record<string, PromptTemplate> = {
   'editor-mate-response': {

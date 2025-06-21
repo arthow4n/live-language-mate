@@ -8,9 +8,9 @@ import {
   useUnifiedStorage,
 } from '@/contexts/UnifiedStorageContext';
 import { Download, Upload, Trash2 } from 'lucide-react';
-import {
-  type ConversationSettingsUpdate,
-  type GlobalSettings,
+import type {
+  ConversationSettingsUpdate,
+  GlobalSettings,
 } from '@/schemas/settings';
 import {
   AlertDialog,

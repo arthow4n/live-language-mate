@@ -50,14 +50,14 @@ export default tseslint.config(
       //     objectLiteralTypeAssertions: 'allow',
       //   },
       // ],
-      // '@typescript-eslint/no-import-type-side-effects': 'error',
       // '@typescript-eslint/switch-exhaustiveness-check': 'error',
-      // '@typescript-eslint/consistent-type-imports': [
-      //   'error',
-      //   {
-      //     fixStyle: 'separate-type-imports',
-      //   },
-      // ],
+      '@typescript-eslint/no-import-type-side-effects': 'error',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          fixStyle: 'separate-type-imports',
+        },
+      ],
     },
   }
   // perfectionist.configs['recommended-natural'],
