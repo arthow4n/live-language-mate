@@ -87,7 +87,9 @@ const UnifiedSettingsDialog = ({
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {isGlobalMode ? 'Settings' : `Chat Settings - ${conversationTitle}`}
+            {isGlobalMode
+              ? 'Settings'
+              : `Chat Settings - ${conversationTitle ?? 'Unknown'}`}
           </DialogTitle>
           <DialogDescription>
             {isGlobalMode
@@ -100,7 +102,9 @@ const UnifiedSettingsDialog = ({
           <Tabs defaultValue="general" className="h-full flex flex-col">
             <TabsList
               className="grid w-full grid-cols-2 lg:grid-cols-4"
-              style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+              style={{
+                gridTemplateColumns: `repeat(${String(tabs.length)}, 1fr)`,
+              }}
             >
               {tabs.map((tab) => (
                 <TabsTrigger
@@ -406,7 +410,7 @@ const UnifiedSettingsDialog = ({
                 <TabsContent value="ui" className="mt-0">
                   <UISettingsTab
                     settings={{
-                      theme: (settings as GlobalSettings).theme || 'system',
+                      theme: (settings as GlobalSettings).theme,
                     }}
                     onSettingChange={handleSettingChange}
                   />
