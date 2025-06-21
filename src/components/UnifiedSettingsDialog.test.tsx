@@ -539,7 +539,9 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
       expect(screen.getByLabelText(/openrouter api key/i)).toBeInTheDocument();
     });
 
-    const apiKeyInput = screen.getByLabelText(/openrouter api key/i);
+    const apiKeyInput = screen.getByLabelText(
+      /openrouter api key/i
+    ) as HTMLInputElement;
     expect(apiKeyInput.value).toBe('original-key');
 
     // Close and reopen dialog
@@ -572,7 +574,9 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     });
 
     // Settings should be reset to initial values
-    const resetApiKeyInput = screen.getByLabelText(/openrouter api key/i);
+    const resetApiKeyInput = screen.getByLabelText(
+      /openrouter api key/i
+    ) as HTMLInputElement;
     expect(resetApiKeyInput.value).toBe('original-key');
   });
 

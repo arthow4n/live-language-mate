@@ -391,7 +391,9 @@ describe('DataManagementTab Integration Tests', () => {
       </TestWrapper>
     );
 
-    const fileInput = screen.getByLabelText(/select backup file/i);
+    const fileInput = screen.getByLabelText(
+      /select backup file/i
+    ) as HTMLInputElement;
     expect(fileInput.accept).toBe('.json');
     expect(fileInput.type).toBe('file');
   });
