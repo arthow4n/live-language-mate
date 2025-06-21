@@ -3,6 +3,9 @@
 # Make sure you have setup nvm in https://typicode.github.io/husky/how-to.html#startup-files
 
 git diff --cached --name-only --diff-filter=ACMR -z | \
+xargs -0 npm run lint:fix --no-warn-ignored
+
+git diff --cached --name-only --diff-filter=ACMR -z | \
 xargs -0 npx prettier --write --ignore-unknown
 
 git update-index --again
