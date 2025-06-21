@@ -1,5 +1,4 @@
 import { apiClient } from '@/services/apiClient';
-import { localStorageService } from '@/services/localStorageService';
 
 export const generateChatTitle = async (
   conversationHistory: { message_type: string; content: string }[],
@@ -79,27 +78,5 @@ export const generateChatTitle = async (
   } catch (error) {
     console.error('❌ Error generating title:', error);
     return 'Chat';
-  }
-};
-
-export const updateConversationTitle = (
-  conversationId: string,
-  newTitle: string
-): boolean => {
-  try {
-    console.log(
-      '💾 Updating conversation title:',
-      conversationId,
-      'to:',
-      newTitle
-    );
-
-    localStorageService.updateConversationTitle(conversationId, newTitle);
-
-    console.log('✅ Conversation title updated successfully');
-    return true;
-  } catch (error) {
-    console.error('❌ Error updating conversation title:', error);
-    return false;
   }
 };

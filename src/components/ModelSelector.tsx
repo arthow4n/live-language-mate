@@ -57,31 +57,22 @@ const ModelSelector = ({
       setLoading(true);
       try {
         console.log('Fetching models from backend...');
-        const { data, error } = await apiClient.getModels();
+        const data = await apiClient.getModels();
 
-        if (error) {
-          console.error('Error fetching models:', error);
-          throw new Error(error);
-        }
-
-        if (data?.models) {
-          // Filter out models that don't have required properties
-          const validModels = data.models.filter(
-            (model: unknown): model is OpenRouterModel =>
-              typeof model === 'object' &&
-              model !== null &&
-              'id' in model &&
-              'name' in model &&
-              typeof (model as { id?: unknown }).id === 'string' &&
-              typeof (model as { name?: unknown }).name === 'string'
-          );
-          setModels(validModels);
-          console.log(
-            `Loaded ${data.models.length.toString()} models${data.fallback ? ' (using fallback)' : ''}`
-          );
-        } else {
-          throw new Error('No models data received');
-        }
+        // Filter out models that don't have required properties
+        const validModels = data.models.filter(
+          (model: unknown): model is OpenRouterModel =>
+            typeof model === 'object' &&
+            model !== null &&
+            'id' in model &&
+            'name' in model &&
+            typeof (model as { id?: unknown }).id === 'string' &&
+            typeof (model as { name?: unknown }).name === 'string'
+        );
+        setModels(validModels);
+        console.log(
+          `Loaded ${data.models.length.toString()} models${data.fallback ? ' (using fallback)' : ''}`
+        );
       } catch (error) {
         console.error('Failed to load models:', error);
         // Set fallback models on error

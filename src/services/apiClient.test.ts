@@ -47,12 +47,12 @@ describe('API Client Integration Tests', () => {
     expect(result).toEqual(mockResponse);
   });
 
-  test('aiChat rejects invalid requests before sending', async () => {
+  test('aiChat rejects invalid requests with server validation', async () => {
     const invalidRequest = { message: 'test' } satisfies Partial<AiChatRequest>;
 
     await expect(
       apiClient.aiChat(invalidRequest as AiChatRequest)
-    ).rejects.toThrow(/Required/);
+    ).rejects.toThrow(/Missing required fields/);
   });
 
   test('aiChat handles API errors properly', async () => {
