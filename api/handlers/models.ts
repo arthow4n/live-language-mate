@@ -33,8 +33,6 @@ export async function modelsHandler(): Promise<Response> {
       throw new Error('OpenRouter API key not configured');
     }
 
-    console.log('Fetching models from OpenRouter API');
-
     const response = await fetch('https://openrouter.ai/api/v1/models', {
       headers: {
         Authorization: `Bearer ${openrouterApiKey}`,
@@ -43,6 +41,7 @@ export async function modelsHandler(): Promise<Response> {
     });
 
     if (!response.ok) {
+      // deno-lint-ignore no-console -- error log
       console.error(
         'OpenRouter API error:',
         response.status,
@@ -65,10 +64,6 @@ export async function modelsHandler(): Promise<Response> {
       )
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    console.log(
-      `Successfully fetched ${filteredModels.length} models from OpenRouter`
-    );
-
     return new Response(
       JSON.stringify({
         models: filteredModels,
@@ -78,6 +73,7 @@ export async function modelsHandler(): Promise<Response> {
       }
     );
   } catch (error) {
+    // deno-lint-ignore no-console -- error log
     console.error('Error fetching OpenRouter models:', error);
 
     // Return fallback models if API fails

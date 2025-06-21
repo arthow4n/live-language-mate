@@ -56,6 +56,7 @@ interface OpenRouterPayload {
 Deno.test('AI Chat Handler - validates real frontend requests', async () => {
   // Mock OpenRouter API
   const originalFetch = globalThis.fetch;
+  // deno-lint-ignore require-await -- mocking fetch
   globalThis.fetch = async (
     url: string | URL | Request,
     init?: RequestInit
@@ -127,6 +128,7 @@ Deno.test(
 
     // Mock fetch to capture the payload sent to OpenRouter
     const originalFetch = globalThis.fetch;
+    // deno-lint-ignore require-await -- mocking fetch
     globalThis.fetch = async (
       url: string | URL | Request,
       init?: RequestInit

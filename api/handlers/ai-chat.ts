@@ -29,23 +29,6 @@ export async function aiChatHandler(req: Request): Promise<Response> {
 
     const model = (originalModel as string).replace(/:thinking$/, '');
 
-    console.log('🔍 AI Chat request received:', {
-      messageType,
-      targetLanguage,
-      model,
-      originalModel,
-      apiKey: apiKey?.trim() ? 'Provided by user' : 'Using environment API key',
-      historyLength: conversationHistory.length,
-      hasMessage: !!message,
-      hasSystemPrompt: !!systemPrompt,
-      hasChatMatePrompt: !!chatMatePrompt,
-      hasEditorMatePrompt: !!editorMatePrompt,
-      streaming,
-      enableReasoning,
-      currentDateTime,
-      userTimezone,
-    });
-
     const openRouterApiKey = apiKey?.trim()
       ? apiKey.trim()
       : (Deno.env.get('OPENAI_API_KEY') ?? '');
@@ -55,11 +38,6 @@ export async function aiChatHandler(req: Request): Promise<Response> {
         'No API key provided. Please set your OpenRouter API key in the settings.'
       );
     }
-
-    console.log(
-      '🔑 API key source:',
-      apiKey?.trim() ? 'User provided' : 'Environment variable'
-    );
 
     const dateTimeContext =
       currentDateTime && userTimezone
@@ -71,10 +49,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
     // Use pre-built system prompt if provided, otherwise build dynamically (legacy support)
     if (systemPrompt) {
       finalSystemPrompt = systemPrompt;
-      console.log('🎯 Using pre-built system prompt from frontend');
     } else {
-      console.log('🔧 Building system prompt dynamically (legacy mode)');
-
       const editorMateChatMateCommentScenarioContext = `In the conversation history, there are three people:
 - the [user], who is talking with [chat-mate].
 - [chat-mate], which is the person talking with the user.
@@ -198,15 +173,6 @@ Language notes:
     }
     messages.push({ role: 'user', content: message });
 
-    console.log('🚀 Sending request to OpenRouter:', {
-      model,
-      messageType,
-      systemPromptLength: systemPrompt?.length,
-      messagesCount: messages.length,
-      streaming,
-      enableReasoning,
-    });
-
     const payload: Record<string, unknown> = {
       model,
       messages,
@@ -216,7 +182,6 @@ Language notes:
     };
 
     if (enableReasoning) {
-      console.log('🧠 Reasoning enabled. Modifying payload for OpenRouter.');
       payload.reasoning = {
         max_tokens: 2000,
       };
@@ -239,6 +204,7 @@ Language notes:
 
     if (!response.ok) {
       const errorText = await response.text();
+      // deno-lint-ignore no-console -- error log
       console.error('❌ OpenRouter API error:', response.status, errorText);
       throw new Error(
         `OpenRouter API error: ${response.status} - ${errorText}`
@@ -246,8 +212,6 @@ Language notes:
     }
 
     if (streaming) {
-      console.log('📡 Setting up streaming response');
-
       const transformStream = new TransformStream({
         transform(chunk, controller) {
           const decoder = new TextDecoder();
@@ -282,6 +246,7 @@ Language notes:
                   );
                 }
               } catch (e) {
+                // deno-lint-ignore no-console -- error log
                 console.error('Error parsing stream chunk:', e, 'line:', line);
               }
             } else if (line.trim() === 'data: [DONE]') {
@@ -312,13 +277,6 @@ Language notes:
 
       const reasoning = message.reasoning || undefined;
 
-      console.log('✅ OpenRouter response received successfully:', {
-        model,
-        messageType,
-        responseLength: aiResponse ? aiResponse.length : 0,
-        usage: data.usage,
-      });
-
       // Validate response before sending - strict validation
       const responseData = {
         response: aiResponse || '',
@@ -330,6 +288,7 @@ Language notes:
       });
     }
   } catch (error) {
+    // deno-lint-ignore no-console -- error log
     console.error('❌ Error in AI chat function:', error);
 
     // Determine status code based on error type

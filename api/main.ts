@@ -59,6 +59,7 @@ async function requestHandler(req: Request): Promise<Response> {
       headers,
     });
   } catch (error) {
+    // deno-lint-ignore no-console -- error log
     console.error('Request handler error:', error);
     return new Response(
       JSON.stringify({
@@ -74,9 +75,13 @@ async function requestHandler(req: Request): Promise<Response> {
 
 const port = parseInt(Deno.env.get('PORT') || '8000');
 
+// deno-lint-ignore no-console -- server start echo
 console.log(`🚀 Language Mate API server starting on port ${port}`);
+// deno-lint-ignore no-console -- server start echo
 console.log('Available endpoints:');
+// deno-lint-ignore no-console -- server start echo
 console.log('  POST /ai-chat - AI chat completions');
+// deno-lint-ignore no-console -- server start echo
 console.log('  GET /models - Available AI models');
 
 await serve(requestHandler, { port });

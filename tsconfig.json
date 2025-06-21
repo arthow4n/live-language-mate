@@ -7,15 +7,5 @@
     {
       "path": "./tsconfig.node.json"
     }
-  ],
-  // Fallback options mainly for Deno
-  "compilerOptions": {
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "strictNullChecks": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true
-  }
+  ]
 }
