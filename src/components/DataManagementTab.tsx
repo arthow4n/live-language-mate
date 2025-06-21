@@ -179,10 +179,16 @@ const DataManagementTab = () => {
                   : globalSettings.targetLanguage,
               theme: (() => {
                 const theme = validatedSettings.theme;
-                return typeof theme === 'string' &&
-                  ['dark', 'light', 'system'].includes(theme)
-                  ? theme
-                  : globalSettings.theme;
+                if (typeof theme === 'string') {
+                  if (
+                    theme === 'dark' ||
+                    theme === 'light' ||
+                    theme === 'system'
+                  ) {
+                    return theme;
+                  }
+                }
+                return globalSettings.theme;
               })(),
             };
             updateGlobalSettings(newGlobalSettings);

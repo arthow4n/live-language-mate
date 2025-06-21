@@ -291,10 +291,10 @@ const AskInterface = ({
         );
       } else {
         // Streaming response
-        if (!response.body) {
-          throw new Error('No response body for streaming');
+        if (!(response instanceof ReadableStream)) {
+          throw new Error('Response is not a ReadableStream');
         }
-        const reader = response.body.getReader();
+        const reader = response.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
         let isStreamingComplete = false;

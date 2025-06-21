@@ -1,6 +1,6 @@
-import type { PromptTemplate } from '../promptTypes';
+import type { MessageType, PromptTemplate } from '../promptTypes';
 
-export const chatMateTemplates: Record<string, PromptTemplate> = {
+export const chatMateTemplates = {
   'chat-mate-response': {
     description: 'Template for Chat Mate responses in natural conversation',
     id: 'chat-mate-response',
@@ -33,7 +33,7 @@ Remember: You're having a casual conversation, not giving a language lesson. Be 
       'progressiveComplexityInstructions',
     ],
   },
-};
+} satisfies Partial<Record<MessageType, PromptTemplate>>;
 
 export const chatMatePromptDefaults = {
   chatMatePrompt:

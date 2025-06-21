@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 
 import type { Message, MessageMetadata } from '@/schemas/messages';
-import type { MessageType, PromptVariables } from '@/services/prompts';
+import type { PromptVariables } from '@/services/prompts';
+import type { MessageType as PromptMessageType } from '@/services/prompts';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -399,6 +400,27 @@ const EnhancedChatInterface = ({
         throw new Error('Invalid message type');
       }
 
+      /**
+       * Type guard to ensure we have a valid prompt message type
+       * @param messageType - The message type to validate
+       */
+      function isPromptMessageType(
+        messageType: string
+      ): messageType is PromptMessageType {
+        return (
+          messageType === 'chat-mate-response' ||
+          messageType === 'editor-mate-chatmate-comment' ||
+          messageType === 'editor-mate-response' ||
+          messageType === 'editor-mate-user-comment'
+        );
+      }
+
+      if (!isPromptMessageType(parseResult.data)) {
+        throw new Error(
+          `Message type ${parseResult.data} should not be handled in chat interface`
+        );
+      }
+
       const response = await callAI(
         userMessage,
         parseResult.data,
@@ -655,7 +677,7 @@ const EnhancedChatInterface = ({
 
   const callAI = async (
     message: string,
-    messageType: MessageType,
+    messageType: PromptMessageType,
     history: {
       content: string;
       role: 'assistant' | 'system' | 'user';

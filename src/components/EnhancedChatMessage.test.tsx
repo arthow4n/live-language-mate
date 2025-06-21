@@ -254,11 +254,16 @@ describe('EnhancedChatMessage Integration Tests', () => {
     // Mock text selection
     const messageContent = screen.getByText('This is selectable text content.');
 
-    // Mock window.getSelection
+    // Mock window.getSelection with minimal required properties
     const mockSelection = {
       toString: () => 'selectable text',
     };
-    vi.spyOn(window, 'getSelection').mockReturnValue(mockSelection);
+
+    // Mock getSelection to return our minimal mock
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Test mock requires type assertion
+    vi.spyOn(window, 'getSelection').mockReturnValue(
+      mockSelection as Selection
+    );
 
     // Trigger text selection event
     await user.pointer([

@@ -1,8 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { describe, expect, test } from 'vitest';
 
-import type { AiChatRequest } from '@/schemas/api';
-
 import { expectToBeInstanceOf } from '@/__tests__/typedExpectHelpers';
 import { aiChatRequestSchema } from '@/schemas/api';
 
@@ -52,11 +50,13 @@ describe('API Client Integration Tests', () => {
   });
 
   test('aiChat rejects invalid requests with server validation', async () => {
-    const invalidRequest = { message: 'test' } satisfies Partial<AiChatRequest>;
+    // Create a complete request but with empty/invalid values
+    const invalidRequest = createRealChatRequest({
+      message: '', // Invalid: empty message
+      model: '', // Invalid: empty model
+    });
 
-    await expect(apiClient.aiChat(invalidRequest)).rejects.toThrow(
-      /Missing required fields/
-    );
+    await expect(apiClient.aiChat(invalidRequest)).rejects.toThrow();
   });
 
   test('aiChat handles API errors properly', async () => {

@@ -1,6 +1,5 @@
 import type {
   BuiltPrompt,
-  MessageType,
   PromptBuildRequest,
   PromptTemplate,
   PromptVariables,
@@ -30,7 +29,7 @@ export function buildPrompt(request: PromptBuildRequest): BuiltPrompt {
 /**
  *
  */
-export function getAvailableTemplates(): Record<MessageType, PromptTemplate> {
+export function getAvailableTemplates() {
   return promptTemplates;
 }
 

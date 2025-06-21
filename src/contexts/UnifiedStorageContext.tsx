@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { z } from 'zod';
 
 import type { LocalConversation, LocalMessage } from '@/schemas/messages';
 
@@ -119,21 +120,71 @@ export const UnifiedStorageProvider = ({
       try {
         const stored = localStorage.getItem(LocalStorageKeys.APP_DATA);
         if (stored) {
-          const parsed = JSON.parse(stored);
+          const parsed: unknown = JSON.parse(stored);
 
-          const parsedData = parsed;
+          // First, validate the basic structure before processing
+          const basicValidation = z
+            .object({
+              conversations: z.array(z.unknown()).optional(),
+              conversationSettings: z.record(z.unknown()).optional(),
+              globalSettings: z.unknown().optional(),
+            })
+            .safeParse(parsed);
+
+          if (!basicValidation.success) {
+            throw new Error('Invalid localStorage data structure');
+          }
+
+          const parsedData = basicValidation.data;
           const dataWithDates = {
             conversations:
-              parsedData.conversations?.map((conv) => ({
-                ...conv,
-                created_at: new Date(conv.created_at),
-                messages:
-                  conv.messages?.map((msg) => ({
-                    ...msg,
-                    timestamp: new Date(msg.timestamp),
-                  })) ?? [],
-                updated_at: new Date(conv.updated_at),
-              })) ?? [],
+              parsedData.conversations?.map((conv: unknown) => {
+                const convValidation = z
+                  .object({
+                    created_at: z.string(),
+                    messages: z
+                      .array(
+                        z
+                          .object({
+                            timestamp: z.string(),
+                          })
+                          .passthrough()
+                      )
+                      .optional(),
+                    updated_at: z.string(),
+                  })
+                  .passthrough()
+                  .safeParse(conv);
+
+                if (!convValidation.success) {
+                  throw new Error('Invalid conversation data');
+                }
+
+                const validatedConv = convValidation.data;
+                return {
+                  ...validatedConv,
+                  created_at: new Date(validatedConv.created_at),
+                  messages:
+                    validatedConv.messages?.map((msg: unknown) => {
+                      const msgValidation = z
+                        .object({
+                          timestamp: z.string(),
+                        })
+                        .passthrough()
+                        .safeParse(msg);
+
+                      if (!msgValidation.success) {
+                        throw new Error('Invalid message data');
+                      }
+
+                      return {
+                        ...msgValidation.data,
+                        timestamp: new Date(msgValidation.data.timestamp),
+                      };
+                    }) ?? [],
+                  updated_at: new Date(validatedConv.updated_at),
+                };
+              }) ?? [],
             conversationSettings: parsedData.conversationSettings ?? {},
             globalSettings:
               parsedData.globalSettings ?? getDefaultGlobalSettings(),

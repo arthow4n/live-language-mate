@@ -34,11 +34,14 @@ describe('AskInterface Integration Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body;
 
         // Use Zod to validate the entire request structure
         const validationResult = aiChatRequestSchema.safeParse(body);
         expect(validationResult.success).toBe(true);
+
+        if (validationResult.success) {
+          capturedRequest = validationResult.data;
+        }
 
         return HttpResponse.json(mockResponse);
       })
@@ -72,9 +75,9 @@ describe('AskInterface Integration Tests', () => {
     );
     expect(capturedRequest).toHaveProperty('message');
 
-    // Assert that capturedRequest is not null before accessing its properties
-    const request = capturedRequest;
-    expect(request).not.toBeNull();
-    expect(request?.message).toContain('What does this mean?');
+    // Validate the captured request using Zod schema to ensure proper typing
+    expect(capturedRequest).not.toBeNull();
+    const validatedRequest = aiChatRequestSchema.parse(capturedRequest);
+    expect(validatedRequest.message).toContain('What does this mean?');
   });
 });

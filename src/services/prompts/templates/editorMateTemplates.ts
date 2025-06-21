@@ -1,6 +1,6 @@
-import type { PromptTemplate } from '../promptTypes';
+import type { MessageType, PromptTemplate } from '../promptTypes';
 
-export const editorMateTemplates: Record<string, PromptTemplate> = {
+export const editorMateTemplates = {
   'editor-mate-chatmate-comment': {
     description:
       'Template for Editor Mate providing example responses and language notes',
@@ -97,7 +97,7 @@ Keep feedback concise but helpful, focusing on the most important improvements w
       'culturalContextInstructions',
     ],
   },
-};
+} satisfies Partial<Record<MessageType, PromptTemplate>>;
 
 export const editorMatePromptDefaults = {
   culturalContextInstructions: {

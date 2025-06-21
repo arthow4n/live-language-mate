@@ -34,12 +34,15 @@ describe('API Schema Integration Tests', () => {
       'feedbackStyle',
       'culturalContext',
       'progressiveComplexity',
-    ];
+    ] as const;
 
     requiredFields.forEach((field) => {
       const requestWithoutField = createRealChatRequest();
-      const { [field]: _, ...requestWithoutFieldDeleted } = requestWithoutField;
-      void _;
+
+      // Create a new object without the specified field
+      const requestWithoutFieldDeleted = Object.fromEntries(
+        Object.entries(requestWithoutField).filter(([key]) => key !== field)
+      );
 
       expect(() =>
         aiChatRequestSchema.parse(requestWithoutFieldDeleted)

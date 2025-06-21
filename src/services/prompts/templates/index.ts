@@ -6,10 +6,10 @@ import {
   editorMateTemplates,
 } from './editorMateTemplates';
 
-export const promptTemplates: Record<MessageType, PromptTemplate> = {
+export const promptTemplates = {
   ...chatMateTemplates,
   ...editorMateTemplates,
-};
+} satisfies Record<MessageType, PromptTemplate>;
 
 export const promptDefaults = {
   ...chatMatePromptDefaults,
