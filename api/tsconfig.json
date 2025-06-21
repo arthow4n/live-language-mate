@@ -5,6 +5,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "strictNullChecks": true,
+    "isolatedModules": true,
     "verbatimModuleSyntax": true
   }
 }

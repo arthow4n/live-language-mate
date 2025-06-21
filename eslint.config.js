@@ -4,6 +4,8 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
+// import testingLibrary from 'eslint-plugin-testing-library';
+// import perfectionist from 'eslint-plugin-perfectionist';
 
 /** @type {import("eslint").Linter.Config[]} */
 export default tseslint.config(
@@ -11,6 +13,8 @@ export default tseslint.config(
   js.configs.recommended,
   prettierConfig,
   comments.recommended,
+  // perfectionist.configs['recommended-natural'],
+  // testingLibrary.configs['flat/react'],
   reactHooks.configs['recommended-latest'],
   {
     extends: [
@@ -35,6 +39,24 @@ export default tseslint.config(
         'error',
         { ignore: [] },
       ],
+      // "@typescript-eslint/explicit-function-return-type": "error"
+      // '@typescript-eslint/ban-ts-comment': 'error',
+      // '@typescript-eslint/consistent-type-assertions': [
+      //   'error',
+      //   {
+      //     arrayLiteralTypeAssertions: 'allow',
+      //     assertionStyle: 'never',
+      //     objectLiteralTypeAssertions: 'allow',
+      //   },
+      // ],
+      // '@typescript-eslint/no-import-type-side-effects': 'error',
+      // '@typescript-eslint/switch-exhaustiveness-check': 'error',
+      // '@typescript-eslint/consistent-type-imports': [
+      //   'error',
+      //   {
+      //     fixStyle: 'separate-type-imports',
+      //   },
+      // ],
     },
   }
 );
