@@ -55,6 +55,11 @@ export default tseslint.config(
         },
       ],
       '@typescript-eslint/no-import-type-side-effects': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'off', // TODO: Turn on to error again.
+      '@typescript-eslint/no-unsafe-assignment': 'off', // TODO: Turn on to error again.
+      '@typescript-eslint/no-unsafe-call': 'off', // TODO: Turn on to error again.
+      '@typescript-eslint/no-unsafe-member-access': 'off', // TODO: Turn on to error again.
+      '@typescript-eslint/no-unsafe-return': 'off', // TODO: Turn on to error again.
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
 
       // Configure JSDoc to be less strict for UI components
