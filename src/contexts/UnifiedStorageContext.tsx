@@ -120,35 +120,6 @@ export const UnifiedStorageProvider = ({
         if (stored) {
           const parsed = JSON.parse(stored);
 
-          // Convert date strings back to Date objects
-          /**
-           *
-           */
-          interface ParsedStorageData {
-            conversations?: {
-              ai_mode: string;
-              chat_mate_prompt?: string;
-              created_at: string;
-              editor_mate_prompt?: string;
-              id: string;
-              language: string;
-              messages?: {
-                content: string;
-                id: string;
-                isStreaming?: boolean;
-                metadata?: object;
-                parentMessageId?: string;
-                reasoning?: string;
-                timestamp: string;
-                type: string;
-              }[];
-              title: string;
-              updated_at: string;
-            }[];
-            conversationSettings?: Record<string, object>;
-            globalSettings?: object;
-          }
-
           const parsedData = parsed;
           const dataWithDates = {
             conversations:
