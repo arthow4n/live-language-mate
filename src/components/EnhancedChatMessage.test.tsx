@@ -260,8 +260,8 @@ describe('EnhancedChatMessage Integration Tests', () => {
     };
 
     // Mock getSelection to return our minimal mock
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Test mock requires type assertion
     vi.spyOn(window, 'getSelection').mockReturnValue(
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Test mock requires type assertion
       mockSelection as Selection
     );
 

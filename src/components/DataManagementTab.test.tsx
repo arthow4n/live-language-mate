@@ -38,6 +38,16 @@ describe('DataManagementTab Integration Tests', () => {
         revokeObjectURL: vi.fn(),
       },
     });
+
+    // Mock HTMLAnchorElement.click() to prevent JSDOM navigation error
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- for test
+    const originalClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = vi.fn();
+
+    // Clean up after each test
+    return () => {
+      HTMLAnchorElement.prototype.click = originalClick;
+    };
   });
 
   test('displays export and import sections', async () => {

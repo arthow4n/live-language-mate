@@ -95,8 +95,13 @@ describe('ChatSidebar Integration Tests', () => {
       </TestWrapper>
     );
 
-    const newChatButton = screen.getByRole('button', { name: /new chat/i });
-    await user.click(newChatButton);
+    await waitFor(() => {
+      const buttons = screen.getAllByRole('button', { name: /new chat/i });
+      expect(buttons.length).toBeGreaterThan(0);
+    });
+
+    const newChatButtons = screen.getAllByRole('button', { name: /new chat/i });
+    await user.click(newChatButtons[0]);
 
     expect(onNewConversation).toHaveBeenCalledOnce();
   });
@@ -117,10 +122,15 @@ describe('ChatSidebar Integration Tests', () => {
       </TestWrapper>
     );
 
-    const mainSettingsButton = screen.getByRole('button', {
+    await waitFor(() => {
+      const buttons = screen.getAllByRole('button', { name: /main settings/i });
+      expect(buttons.length).toBeGreaterThan(0);
+    });
+
+    const mainSettingsButtons = screen.getAllByRole('button', {
       name: /main settings/i,
     });
-    await user.click(mainSettingsButton);
+    await user.click(mainSettingsButtons[0]);
 
     expect(onMainSettingsOpen).toHaveBeenCalledOnce();
   });

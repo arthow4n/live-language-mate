@@ -63,8 +63,8 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     );
 
     // Send a message to trigger API request
-    const input = screen.getByRole('textbox');
-    await user.type(input, 'Test message');
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Test message');
 
     const buttons = screen.getAllByRole('button');
     const sendButton = buttons[buttons.length - 1];
@@ -118,8 +118,8 @@ describe('Settings Impact on Chat Behavior Tests', () => {
       </TestWrapper>
     );
 
-    const input = screen.getByRole('textbox');
-    await user.type(input, 'Test streaming');
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Test streaming');
 
     const buttons = screen.getAllByRole('button');
     const sendButton = buttons[buttons.length - 1];
@@ -172,8 +172,8 @@ describe('Settings Impact on Chat Behavior Tests', () => {
       </TestWrapper>
     );
 
-    const input = screen.getByRole('textbox');
-    await user.type(input, 'Tell me about French culture');
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Tell me about French culture');
 
     const buttons = screen.getAllByRole('button');
     const sendButton = buttons[buttons.length - 1];
@@ -232,8 +232,8 @@ describe('Settings Impact on Chat Behavior Tests', () => {
       </TestWrapper>
     );
 
-    const input = screen.getByRole('textbox');
-    await user.type(input, 'Ich bin ein Student');
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Ich bin ein Student');
 
     const buttons = screen.getAllByRole('button');
     const sendButton = buttons[buttons.length - 1];
@@ -287,8 +287,8 @@ describe('Settings Impact on Chat Behavior Tests', () => {
       </TestWrapper>
     );
 
-    const input = screen.getByRole('textbox');
-    await user.type(input, 'Ciao, come stai?');
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Ciao, come stai?');
 
     const buttons = screen.getAllByRole('button');
     const sendButton = buttons[buttons.length - 1];

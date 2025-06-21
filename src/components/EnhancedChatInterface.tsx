@@ -766,7 +766,7 @@ const EnhancedChatInterface = ({
       const rawData = await response.json();
       const data = z
         .object({
-          reasoning: z.string(),
+          reasoning: z.string().optional(),
           response: z.string(),
         })
         .parse(rawData);
