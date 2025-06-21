@@ -135,7 +135,7 @@ const AskInterface = ({
       variables: promptVariables,
     });
 
-    const startTime = Date.now();
+    const startTime: number = Date.now();
 
     const currentDateTime = new Date().toLocaleString('en-US', {
       weekday: 'long',
@@ -154,13 +154,17 @@ const AskInterface = ({
       messageType: 'editor-mate-response',
       conversationHistory,
       systemPrompt: builtPrompt.systemPrompt,
-      chatMatePrompt: promptVariables.chatMatePersonality,
-      editorMatePrompt: promptVariables.editorMatePersonality,
+      chatMatePrompt:
+        promptVariables.chatMatePersonality ?? 'A friendly native speaker',
+      editorMatePrompt:
+        promptVariables.editorMatePersonality ?? editorMatePrompt,
       targetLanguage,
-      model: settings.model,
-      apiKey: settings.apiKey,
-      chatMateBackground: promptVariables.chatMateBackground,
-      editorMateExpertise: promptVariables.editorMateExpertise,
+      model: settings.model ?? 'google/gemini-2.5-flash',
+      apiKey: settings.apiKey ?? '',
+      chatMateBackground:
+        promptVariables.chatMateBackground ?? 'A friendly local',
+      editorMateExpertise:
+        promptVariables.editorMateExpertise ?? '10+ years teaching experience',
       feedbackStyle: promptVariables.feedbackStyle,
       culturalContext: promptVariables.culturalContext,
       progressiveComplexity: promptVariables.progressiveComplexity,
@@ -234,7 +238,7 @@ const AskInterface = ({
       if (typeof response === 'string') {
         // Non-streaming response
         const endTime = Date.now();
-        const generationTime = endTime - startTime;
+        const generationTime = endTime - (startTime ?? Date.now());
 
         setConversation((prev) =>
           prev.map((msg) =>
@@ -275,7 +279,7 @@ const AskInterface = ({
                 if (data === '[DONE]') {
                   isStreamingComplete = true;
                   const endTime = Date.now();
-                  const generationTime = endTime - startTime;
+                  const generationTime = endTime - (startTime ?? Date.now());
 
                   setConversation((prev) =>
                     prev.map((msg) =>

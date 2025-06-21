@@ -711,13 +711,19 @@ const EnhancedChatInterface = ({
         messageType,
         conversationHistory: history,
         systemPrompt: builtPrompt.systemPrompt,
-        chatMatePrompt: promptVariables.chatMatePersonality,
-        editorMatePrompt: promptVariables.editorMatePersonality,
+        chatMatePrompt:
+          promptVariables.chatMatePersonality ??
+          'You are a friendly native speaker',
+        editorMatePrompt:
+          promptVariables.editorMatePersonality ?? 'You are a patient teacher',
         targetLanguage,
         model: effectiveModel,
         apiKey: effectiveApiKey,
-        chatMateBackground: promptVariables.chatMateBackground,
-        editorMateExpertise: promptVariables.editorMateExpertise,
+        chatMateBackground:
+          promptVariables.chatMateBackground ?? 'A friendly local',
+        editorMateExpertise:
+          promptVariables.editorMateExpertise ??
+          '10+ years teaching experience',
         feedbackStyle: promptVariables.feedbackStyle,
         culturalContext: promptVariables.culturalContext,
         progressiveComplexity: promptVariables.progressiveComplexity,

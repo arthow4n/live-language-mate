@@ -142,8 +142,11 @@ const DataManagementTab = () => {
                   ? (oldSettings.streaming as boolean)
                   : globalSettings.streaming,
               theme:
-                (oldSettings.theme as string | undefined) ??
-                globalSettings.theme,
+                (oldSettings.theme as
+                  | 'light'
+                  | 'dark'
+                  | 'system'
+                  | undefined) ?? globalSettings.theme,
             };
             updateGlobalSettings(newGlobalSettings);
           }

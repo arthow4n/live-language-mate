@@ -4,7 +4,7 @@ import type { AiChatNonStreamResponse } from '@/schemas/api';
 // Default responses for different API endpoints
 const defaultAiChatResponse: AiChatNonStreamResponse = {
   response: 'Default mock AI response',
-  reasoning: null,
+  reasoning: undefined,
 };
 
 const defaultModelsResponse = {

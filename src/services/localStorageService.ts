@@ -236,12 +236,15 @@ class LocalStorageService {
 
   importData(jsonData: string): boolean {
     try {
-      const data = JSON.parse(jsonData) as unknown;
+      const data = JSON.parse(jsonData) as {
+        conversations?: unknown;
+        settings?: unknown;
+      };
       // Validate the structure
       if (!data.conversations || !data.settings) {
         throw new Error('Invalid data structure');
       }
-      this.saveData(data);
+      this.saveData(data as LocalAppData);
       return true;
     } catch (error) {
       console.error('Error importing data:', error);

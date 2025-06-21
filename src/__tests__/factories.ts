@@ -64,7 +64,7 @@ export const createMockAiResponse = (
 ): AiChatNonStreamResponse =>
   ({
     response: 'Mock AI response',
-    reasoning: null,
+    reasoning: undefined,
     ...overrides,
   }) satisfies AiChatNonStreamResponse;
 
