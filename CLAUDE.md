@@ -147,17 +147,17 @@ The API server can be deployed to any platform supporting Deno:
 - Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
 - Prefer integration tests over unit tests. Don't mock modules, instead think of how the data flows and mock from the data's source.
 - Use TDD/BDD as much as possible.
-- Validate and cast unknown objects with Zod.
 - For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
 
 ## TypeScript coding style and conventions
 
 - Prefer named import/export over default import/export.
 - Early return, early throw.
-- Use Zod to validate and cast type.
+- Use Zod to validate and cast type, this includes but not limit to handling the following scenarios:
+  - result from `JSON.parse()`, fetch `response.json()`.
+  - `unknown`, `DefaultBodyType`
 - Never use `any`, `as` type assertion or `!` non-null assertion operator, you should instead use type narrowing, for example in test you can use `toBeTruthy`, `toBeInstanceOf`, and outside of test `instanceof` or do a proper object validation with Zod.
-- When parsing an unknown json, use Zod to validate the type to cast the json from any/unknown to typed object.
-- Only use `?.` when the logic is really optional, if the object before `?.` should not be null, do a proper null check beforehand and throw if the object null.
+- Only use `?.` when the logic is really optional, if the object before `?.` should not be null, do a proper null check beforehand and throw if the object is null.
 - If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
 - Avoid default values, optional Zod property, `null` or `undefined` in the type, if you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it.
 - In frontend Vitest test files, import explicitly the test helpers e.g. `import { describe, it, expect, beforeEach } from 'vitest';`.
