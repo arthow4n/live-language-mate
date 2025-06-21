@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useToast } from '@/hooks/use-toast';
+import { logError } from '@/lib/utils';
 
 /**
  *
@@ -94,7 +95,7 @@ const ChatSidebar = ({
         });
       }
     } catch (error) {
-      console.error('Error renaming conversation:', error);
+      logError('Error renaming conversation:', error);
       toast({
         description: 'Failed to rename conversation',
         title: 'Error',
@@ -114,7 +115,7 @@ const ChatSidebar = ({
         title: 'Success',
       });
     } catch (error) {
-      console.error('Error deleting conversation:', error);
+      logError('Error deleting conversation:', error);
       toast({
         description: 'Failed to delete conversation',
         title: 'Error',
@@ -144,7 +145,7 @@ const ChatSidebar = ({
         title: 'Success',
       });
     } catch (error) {
-      console.error('Error forking conversation:', error);
+      logError('Error forking conversation:', error);
       toast({
         description: 'Failed to fork conversation',
         title: 'Error',

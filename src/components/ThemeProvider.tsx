@@ -58,7 +58,7 @@ export function ThemeProvider({
         }
       }
     } catch (error) {
-      console.error('Error loading theme from global settings:', error);
+      logError('Error loading theme from global settings:', error);
     }
 
     // Fallback to old theme storage

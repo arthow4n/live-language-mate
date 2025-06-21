@@ -10,6 +10,7 @@ import {
 
 import type { LocalConversation, LocalMessage } from '@/schemas/messages';
 
+import { logError } from '@/lib/utils';
 import {
   type ConversationSettings,
   conversationSettingsSchema,
@@ -138,6 +139,7 @@ export const UnifiedStorageProvider = ({
               parsedData.globalSettings ?? getDefaultGlobalSettings(),
           };
 
+          // Todo: be backwards compatible when parsing.
           // Validate with Zod schema
           const validatedData = localAppDataSchema.parse(dataWithDates);
 
@@ -145,11 +147,12 @@ export const UnifiedStorageProvider = ({
           setGlobalSettings(validatedData.globalSettings);
           setConversationSettings(validatedData.conversationSettings);
         }
-      } catch (error) {
-        console.error(
-          'Error loading data from localStorage - using defaults:',
-          error
-        );
+      } catch {
+        // Todo: uncomment this when we are backwards compatible when parsing.
+        // logError(
+        //   'Error loading data from localStorage - using defaults:',
+        //   error
+        // );
         // Clear invalid data and use defaults
         localStorage.removeItem(LocalStorageKeys.APP_DATA);
       } finally {
@@ -175,7 +178,7 @@ export const UnifiedStorageProvider = ({
         JSON.stringify(validatedData)
       );
     } catch (error) {
-      console.error('Error saving data to localStorage:', error);
+      logError('Error saving data to localStorage:', error);
       throw error;
     }
   }, [conversations, globalSettings, conversationSettings]);
@@ -187,7 +190,7 @@ export const UnifiedStorageProvider = ({
         const validatedSettings = globalSettingsSchema.parse(updatedSettings);
         return validatedSettings;
       } catch (error) {
-        console.error('Failed to validate global settings:', error);
+        logError('Failed to validate global settings:', error);
         return prev;
       }
     });
@@ -228,7 +231,7 @@ export const UnifiedStorageProvider = ({
           [conversationId]: validatedSettings,
         };
       } catch (error) {
-        console.error('Failed to validate conversation settings:', error);
+        logError('Failed to validate conversation settings:', error);
         return prev;
       }
     });
@@ -440,7 +443,7 @@ export const UnifiedStorageProvider = ({
 
       return true;
     } catch (error) {
-      console.error('Error importing data:', error);
+      logError('Error importing data:', error);
       return false;
     }
   };

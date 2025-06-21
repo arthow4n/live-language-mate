@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { logError } from '@/lib/utils';
 import { aiChatStreamResponseSchema, messageTypeSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts';
@@ -148,7 +149,7 @@ const EnhancedChatInterface = ({
         }
       }
     } catch (error) {
-      console.error('❌ Error in title generation process:', error);
+      logError('❌ Error in title generation process:', error);
       // Remove from processed set on error so it can be retried
       setTitleGenerationProcessed((prev) => {
         const newSet = new Set(prev);
@@ -252,7 +253,7 @@ const EnhancedChatInterface = ({
         );
       }
     } catch (error) {
-      console.error('Error loading messages:', error);
+      logError('Error loading messages:', error);
       toast({
         description: 'Failed to load messages',
         title: 'Error',
@@ -275,7 +276,7 @@ const EnhancedChatInterface = ({
       });
       return savedMessage;
     } catch (error) {
-      console.error('Error saving message:', error);
+      logError('Error saving message:', error);
       return null;
     }
   };
@@ -290,7 +291,7 @@ const EnhancedChatInterface = ({
         title: 'Success',
       });
     } catch (error) {
-      console.error('Error deleting message:', error);
+      logError('Error deleting message:', error);
       toast({
         description: 'Failed to delete message',
         title: 'Error',
@@ -321,7 +322,7 @@ const EnhancedChatInterface = ({
         title: 'Success',
       });
     } catch (error) {
-      console.error('Error deleting messages:', error);
+      logError('Error deleting messages:', error);
       toast({
         description: 'Failed to delete messages',
         title: 'Error',
@@ -344,7 +345,7 @@ const EnhancedChatInterface = ({
         title: 'Success',
       });
     } catch (error) {
-      console.error('Error editing message:', error);
+      logError('Error editing message:', error);
       toast({
         description: 'Failed to edit message',
         title: 'Error',
@@ -436,7 +437,7 @@ const EnhancedChatInterface = ({
           title: 'Cancelled',
         });
       } else {
-        console.error('Error regenerating message:', error);
+        logError('Error regenerating message:', error);
         toast({
           description: 'Failed to regenerate message',
           title: 'Error',
@@ -547,7 +548,7 @@ const EnhancedChatInterface = ({
                 };
               }
             } catch (e) {
-              console.error('Error parsing streaming data:', e, 'Line:', line);
+              logError('Error parsing streaming data:', e, 'Line:', line);
             }
           }
         }
@@ -627,7 +628,7 @@ const EnhancedChatInterface = ({
 
       onConversationUpdate();
     } catch (error) {
-      console.error('Error forking conversation:', error);
+      logError('Error forking conversation:', error);
       toast({
         description: 'Failed to fork conversation',
         title: 'Error',
@@ -770,7 +771,7 @@ const EnhancedChatInterface = ({
 
       return newConversation.id;
     } catch (error) {
-      console.error('❌ Error creating conversation:', error);
+      logError('❌ Error creating conversation:', error);
       throw error;
     }
   };
@@ -994,7 +995,7 @@ const EnhancedChatInterface = ({
           prev.filter((msg) => !msg.isStreaming && !msg.id.startsWith('temp-'))
         );
       } else {
-        console.error('❌ Error sending message:', error);
+        logError('❌ Error sending message:', error);
         toast({
           description:
             error instanceof Error ? error.message : 'Failed to send message',

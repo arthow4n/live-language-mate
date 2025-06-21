@@ -1,3 +1,4 @@
+import { logError } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
 
 export const generateChatTitle = async (
@@ -46,7 +47,7 @@ export const generateChatTitle = async (
     });
 
     if (!response.ok) {
-      console.error(
+      logError(
         '❌ Title generation response not ok:',
         response.status,
         response.statusText
@@ -73,10 +74,10 @@ export const generateChatTitle = async (
       }
     }
 
-    console.error('❌ Invalid response format for title generation');
+    logError('❌ Invalid response format for title generation');
     return 'Chat';
   } catch (error) {
-    console.error('❌ Error generating title:', error);
+    logError('❌ Error generating title:', error);
     return 'Chat';
   }
 };

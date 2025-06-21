@@ -1,8 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll } from 'vitest';
+import { z } from 'zod';
+import { errorMap } from 'zod-validation-error';
 
 import { apiHandlers } from './mocks/handlers';
+
+z.setErrorMap(errorMap);
 
 // Setup MSW server with our API handlers
 const server = setupServer(...apiHandlers);

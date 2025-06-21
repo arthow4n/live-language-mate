@@ -162,6 +162,7 @@ The API server can be deployed to any platform supporting Deno:
 - Avoid default values, optional Zod property, `null` or `undefined` in the type, if you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it.
 - In frontend Vitest test files, import explicitly the test helpers e.g. `import { describe, it, expect, beforeEach } from 'vitest';`.
 - In frontend Vitest test files, instead of using `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)`, prefer using the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`.
+- In frontend, instead of `console.error`, use `logError`.
 
 ## Claude Code operations
 

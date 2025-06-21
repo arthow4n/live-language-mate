@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+import { cn, logError } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
 
 /**
@@ -78,7 +78,7 @@ const ModelSelector = ({
         );
         setModels(validModels);
       } catch (error) {
-        console.error('Failed to load models:', error);
+        logError('Failed to load models:', error);
         // Set fallback models on error
         setModels([
           { id: 'anthropic/claude-3-5-sonnet', name: 'Claude 3.5 Sonnet' },
