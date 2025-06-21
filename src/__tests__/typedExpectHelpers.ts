@@ -2,14 +2,14 @@ import { expect } from 'vitest';
 
 /**
  * Type narrowing version of `.toBeInstanceOf()`.
- * Prefer this over `.toBeTruthy()` or `.toBeInstanceOf()`.
+ * Prefer this over `.toBeTruthy()`, `.toBeInstanceOf()`. or `instanceof` operator.
  * @param value
  * @param instanceType
  */
-export function expectToBeInstanceOf<T>(
-  value: unknown,
-  instanceType: T
-): asserts value is T {
+export function expectToBeInstanceOf<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic function
+  T extends abstract new (...args: any) => any,
+>(value: unknown, instanceType: T): asserts value is InstanceType<T> {
   expect(value).toBeInstanceOf(instanceType);
 }
 
