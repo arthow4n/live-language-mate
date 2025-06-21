@@ -181,9 +181,13 @@ The API server can be deployed to any platform supporting Deno:
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
 - If you would eslint disable anything, think again and see if there's a better approach to fix it, if you still need to eslint disable, make sure you add -- comment after it to explain why you chose to disable.
 - Don't `grep` the lint result or test result or count errors, if you need to run a focused check, just use the focused commands.
+- If you need to `rg` or `grep`, add more context lines.
 
 ### Instead of command X, use Y
 
 - `rg`, `grep` -> use Search tool
 - `find` -> `git ls-files`
 - `rm` -> `git rm`
+- `head` -> read the file with tool instead
+- `npx tsc` -> `npm run typecheck`
+- Don't chain or pipe commands.
