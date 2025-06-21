@@ -63,7 +63,7 @@ const AskInterface = ({
 
   // Update editable selected text when selectedText prop changes
   useEffect(() => {
-    if (selectedText && selectedText.trim()) {
+    if (selectedText?.trim()) {
       setEditableSelectedText(selectedText);
 
       if (selectionSource === 'main-chat') {
@@ -124,11 +124,10 @@ const AskInterface = ({
       chatMateBackground:
         'A friendly local who enjoys helping people learn the language and culture.',
       editorMatePersonality: editorMatePrompt,
-      editorMateExpertise:
-        settings.editorMateExpertise || '10+ years teaching experience',
-      feedbackStyle: settings.feedbackStyle || 'encouraging',
-      culturalContext: settings.culturalContext ?? true,
-      progressiveComplexity: settings.progressiveComplexity ?? true,
+      editorMateExpertise: settings.editorMateExpertise,
+      feedbackStyle: settings.feedbackStyle,
+      culturalContext: settings.culturalContext,
+      progressiveComplexity: settings.progressiveComplexity,
     };
 
     const builtPrompt = buildPrompt({
@@ -165,22 +164,25 @@ const AskInterface = ({
       feedbackStyle: promptVariables.feedbackStyle,
       culturalContext: promptVariables.culturalContext,
       progressiveComplexity: promptVariables.progressiveComplexity,
-      streaming: settings.streaming ?? true,
+      streaming: settings.streaming,
       currentDateTime,
       userTimezone,
-      enableReasoning: settings.enableReasoning ?? false,
+      enableReasoning: settings.enableReasoning,
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to get Editor Mate response');
+      const errorData = (await response.json()) as { error?: string };
+      throw new Error(errorData.error ?? 'Failed to get Editor Mate response');
     }
 
     if (settings.streaming && response.body) {
       return { response: response.body, startTime, model: settings.model };
     } else {
-      const data = await response.json();
-      if (!data?.response) {
+      const data = (await response.json()) as {
+        response?: string;
+        reasoning?: string;
+      };
+      if (!data.response) {
         throw new Error('No response from Editor Mate');
       }
       const endTime = Date.now();
@@ -221,8 +223,13 @@ const AskInterface = ({
     setConversation((prev) => [...prev, initialEditorMessage]);
 
     try {
-      const { response, startTime, model } =
-        await callEditorMateStreaming(currentQuestion);
+      const result = await callEditorMateStreaming(currentQuestion);
+      const { response, startTime, model } = result as {
+        response: string | ReadableStream;
+        startTime?: number;
+        model: string;
+        generationTime?: number;
+      };
 
       if (typeof response === 'string') {
         // Non-streaming response
@@ -248,7 +255,7 @@ const AskInterface = ({
         );
       } else {
         // Streaming response
-        const reader = response.getReader();
+        const reader = (response as ReadableStream<Uint8Array>).getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
         let isStreamingComplete = false;
@@ -289,7 +296,10 @@ const AskInterface = ({
                 }
 
                 try {
-                  const parsed = JSON.parse(data);
+                  const parsed = JSON.parse(data) as {
+                    content?: string;
+                    type?: string;
+                  };
                   if (parsed.content && !isStreamingComplete) {
                     accumulatedContent += parsed.content;
                     setConversation((prev) =>
@@ -323,7 +333,8 @@ const AskInterface = ({
       );
       toast({
         title: 'Error',
-        description: error.message || 'Failed to get response from Editor Mate',
+        description:
+          (error as Error).message ?? 'Failed to get response from Editor Mate',
         variant: 'destructive',
       });
     } finally {
@@ -338,10 +349,10 @@ const AskInterface = ({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendQuestion();
+      void handleSendQuestion();
     }
   };
 
@@ -465,7 +476,7 @@ const AskInterface = ({
             <EnhancedChatMessage
               key={msg.id}
               message={msg}
-              onTextSelect={onTextSelect || (() => {})}
+              onTextSelect={onTextSelect ?? (() => {})}
             />
           ))}
 
@@ -481,7 +492,7 @@ const AskInterface = ({
             onChange={(e) => {
               setQuestion(e.target.value);
             }}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder={`Ask Editor Mate about ${targetLanguage}...`}
             className="flex-1 text-sm min-h-[40px] max-h-[120px]"
             disabled={isLoading}
@@ -489,7 +500,7 @@ const AskInterface = ({
           />
           <Button
             size="icon"
-            onClick={handleSendQuestion}
+            onClick={() => void handleSendQuestion()}
             disabled={!question.trim() || isLoading}
             className="h-10 w-10 flex-shrink-0"
           >
