@@ -275,8 +275,12 @@ export const UnifiedStorageProvider = ({
   ): ConversationSettings => {
     const stored = conversationSettings[conversationId];
     const defaultSettings = getDefaultConversationSettings();
+
+    // Property-level merging: use stored values where available, fallback to defaults for missing properties
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const settings = stored ?? defaultSettings;
+    const settings = stored
+      ? { ...defaultSettings, ...stored }
+      : defaultSettings;
 
     // Always use global reasoning settings
     return {
