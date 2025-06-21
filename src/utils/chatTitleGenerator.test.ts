@@ -44,10 +44,9 @@ describe('Chat Title Generator Integration Tests', () => {
     expect(title).toBe('Swedish Greetings');
 
     // Additional specific checks beyond Zod validation
-    if (capturedRequest) {
-      expect(capturedRequest.messageType).toBe('title-generation');
-      expect(capturedRequest.chatMatePrompt).toBe('N/A');
-      expect(capturedRequest.editorMatePrompt).toBe('N/A');
-    }
+    expect(capturedRequest).toBeTruthy();
+    expect(capturedRequest.messageType).toBe('title-generation');
+    expect(capturedRequest.chatMatePrompt).toBe('N/A');
+    expect(capturedRequest.editorMatePrompt).toBe('N/A');
   });
 });
