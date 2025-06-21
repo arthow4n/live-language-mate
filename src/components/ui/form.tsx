@@ -67,9 +67,9 @@ interface FormItemContextValue {
   id: string;
 }
 
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
-);
+const FormItemContext = React.createContext<FormItemContextValue>({
+  id: '',
+});
 
 const FormItem = React.forwardRef<
   HTMLDivElement,

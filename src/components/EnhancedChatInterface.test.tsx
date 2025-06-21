@@ -36,7 +36,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body as AiChatRequest;
+        capturedRequest = body;
 
         // Use Zod to validate the entire request structure
         const validationResult = aiChatRequestSchema.safeParse(body);

@@ -35,7 +35,7 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body as AiChatRequest;
+        capturedRequest = body;
         return HttpResponse.json(mockResponse);
       })
     );
@@ -88,7 +88,7 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body as AiChatRequest;
+        capturedRequest = body;
         return HttpResponse.json(mockResponse);
       })
     );
@@ -139,7 +139,7 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body as AiChatRequest;
+        capturedRequest = body;
         return HttpResponse.json(mockResponse);
       })
     );
@@ -190,7 +190,7 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        const requestData = body as AiChatRequest;
+        const requestData = body;
 
         // Capture editor-mate requests specifically
         if (requestData.messageType.includes('editor-mate')) {
@@ -248,7 +248,7 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body as AiChatRequest;
+        capturedRequest = body;
         return HttpResponse.json(mockResponse);
       })
     );

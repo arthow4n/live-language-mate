@@ -30,7 +30,7 @@ export const openRouterHandlers = [
       const body = await request.json();
 
       // You can inspect the request body for different test scenarios
-      const payload = body as Record<string, unknown>;
+      const payload = body && typeof body === 'object' ? body : {};
 
       // Default non-streaming response
       if (!payload.stream) {
@@ -84,7 +84,7 @@ export const internalApiHandlers = [
       'chatMatePrompt',
       'editorMatePrompt',
       'chatMateBackground',
-    ].every((field) => field in (body as Record<string, unknown>));
+    ].every((field) => body && typeof body === 'object' && field in body);
 
     if (!hasRequiredFields) {
       return HttpResponse.json(

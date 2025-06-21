@@ -96,9 +96,12 @@ const LanguageMateApp = () => {
     const saved = localStorage.getItem('languageMate_panelSizes');
     if (saved) {
       try {
-        const sizes = JSON.parse(saved) as unknown[];
-        return Array.isArray(sizes) && sizes.length === 2
-          ? (sizes as [number, number])
+        const sizes = JSON.parse(saved);
+        return Array.isArray(sizes) &&
+          sizes.length === 2 &&
+          typeof sizes[0] === 'number' &&
+          typeof sizes[1] === 'number'
+          ? ([sizes[0], sizes[1]] as [number, number])
           : [70, 30];
       } catch {
         return [70, 30];

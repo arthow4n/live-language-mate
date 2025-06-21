@@ -35,7 +35,7 @@ describe('Text Selection Workflow Integration Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        const requestData = body as AiChatRequest;
+        const requestData = body;
 
         // Capture editor-mate-response requests
         if (requestData.messageType === 'editor-mate-response') {

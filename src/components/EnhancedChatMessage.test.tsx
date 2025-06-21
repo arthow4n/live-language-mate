@@ -59,10 +59,12 @@ describe('EnhancedChatMessage Integration Tests', () => {
     const onCopy = vi.fn();
 
     // Mock clipboard API
-    Object.assign(navigator, {
-      clipboard: {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
         writeText: onCopy,
       },
+      writable: true,
     });
 
     const message = createMockMessage({
@@ -256,9 +258,7 @@ describe('EnhancedChatMessage Integration Tests', () => {
     const mockSelection = {
       toString: () => 'selectable text',
     };
-    vi.spyOn(window, 'getSelection').mockReturnValue(
-      mockSelection as Selection
-    );
+    vi.spyOn(window, 'getSelection').mockReturnValue(mockSelection);
 
     // Trigger text selection event
     await user.pointer([

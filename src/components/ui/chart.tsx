@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- External chart lib, just leave it as it. */
+
 import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
 
@@ -385,3 +387,4 @@ export {
   ChartTooltip,
   ChartTooltipContent,
 };
+/* eslint-enable @typescript-eslint/consistent-type-assertions -- External chart lib, just leave it as it. */

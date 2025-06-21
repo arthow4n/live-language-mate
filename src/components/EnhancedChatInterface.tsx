@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { aiChatStreamResponseSchema, messageTypeSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts';
 import { generateChatTitle } from '@/utils/chatTitleGenerator';
@@ -418,9 +419,14 @@ const EnhancedChatInterface = ({
           : 'editor-mate-chatmate-comment';
       }
 
+      const parseResult = messageTypeSchema.safeParse(messageType);
+      if (!parseResult.success) {
+        throw new Error('Invalid message type');
+      }
+
       const response = await callAI(
         userMessage,
-        messageType as MessageType,
+        parseResult.data,
         conversationHistory,
         messageId,
         controller.signal
@@ -503,10 +509,12 @@ const EnhancedChatInterface = ({
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.slice(6)) as {
-                content?: string;
-                type?: string;
-              };
+              const rawData = JSON.parse(line.slice(6));
+              const parseResult = aiChatStreamResponseSchema.safeParse(rawData);
+              if (!parseResult.success) {
+                continue;
+              }
+              const data = parseResult.data;
 
               if (data.type === 'content' && data.content) {
                 fullContent += data.content;

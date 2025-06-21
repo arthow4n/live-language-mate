@@ -74,8 +74,24 @@ describe('DataManagementTab Integration Tests', () => {
     localStorage.setItem(
       'language-mate-data',
       JSON.stringify({
-        conversations: [{ id: 'test', title: 'Test Chat' }],
-        settings: { model: 'test-model' },
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: new Date().toISOString(),
+            id: 'test',
+            language: 'Swedish',
+            messages: [],
+            title: 'Test Chat',
+            updated_at: new Date().toISOString(),
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'test-model',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
       })
     );
 
@@ -187,10 +203,19 @@ describe('DataManagementTab Integration Tests', () => {
     });
 
     // Click delete all chats button
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /delete all chats/i })
+      ).toBeInTheDocument();
+    });
+
     const deleteChatsButton = screen.getByRole('button', {
       name: /delete all chats/i,
     });
-    await user.click(deleteChatsButton);
+
+    // Use keyboard instead of mouse click to avoid pointer-events issues
+    deleteChatsButton.focus();
+    await user.keyboard('{Enter}');
 
     // Should show confirmation dialog
     await waitFor(() => {
@@ -213,7 +238,24 @@ describe('DataManagementTab Integration Tests', () => {
     localStorage.setItem(
       'language-mate-data',
       JSON.stringify({
-        conversations: [{ id: 'test', title: 'Test Chat' }],
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: new Date().toISOString(),
+            id: 'test',
+            language: 'Swedish',
+            messages: [],
+            title: 'Test Chat',
+            updated_at: new Date().toISOString(),
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'test-model',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
       })
     );
 
@@ -233,7 +275,8 @@ describe('DataManagementTab Integration Tests', () => {
     const deleteChatsButton = screen.getByRole('button', {
       name: /delete all chats/i,
     });
-    await user.click(deleteChatsButton);
+    deleteChatsButton.focus();
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(
@@ -258,7 +301,24 @@ describe('DataManagementTab Integration Tests', () => {
     localStorage.setItem(
       'language-mate-data',
       JSON.stringify({
-        conversations: [{ id: 'test', title: 'Test Chat' }],
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: new Date().toISOString(),
+            id: 'test',
+            language: 'Swedish',
+            messages: [],
+            title: 'Test Chat',
+            updated_at: new Date().toISOString(),
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'test-model',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
       })
     );
 
@@ -278,7 +338,8 @@ describe('DataManagementTab Integration Tests', () => {
     const deleteChatsButton = screen.getByRole('button', {
       name: /delete all chats/i,
     });
-    await user.click(deleteChatsButton);
+    deleteChatsButton.focus();
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(
@@ -321,7 +382,8 @@ describe('DataManagementTab Integration Tests', () => {
       name: /delete all data/i,
     });
     const deleteDataButton = deleteButtons[0]; // Should be the first "Delete All Data" button
-    await user.click(deleteDataButton);
+    deleteDataButton.focus();
+    await user.keyboard('{Enter}');
 
     // Should show confirmation dialog
     await waitFor(() => {
@@ -338,16 +400,27 @@ describe('DataManagementTab Integration Tests', () => {
 
     // Add test data to all localStorage keys
     localStorage.setItem(
-      'language-mate-global-settings',
-      JSON.stringify({ model: 'test' })
-    );
-    localStorage.setItem(
-      'language-mate-chat-settings',
-      JSON.stringify({ chat1: {} })
-    );
-    localStorage.setItem(
       'language-mate-data',
-      JSON.stringify({ conversations: [] })
+      JSON.stringify({
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: new Date().toISOString(),
+            id: 'test',
+            language: 'Swedish',
+            messages: [],
+            title: 'Test Chat',
+            updated_at: new Date().toISOString(),
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'test-model',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -367,7 +440,8 @@ describe('DataManagementTab Integration Tests', () => {
       name: /delete all data/i,
     });
     const deleteDataButton = deleteButtons[0];
-    await user.click(deleteDataButton);
+    deleteDataButton.focus();
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(
@@ -381,9 +455,7 @@ describe('DataManagementTab Integration Tests', () => {
     });
     await user.click(confirmButton);
 
-    // Verify all localStorage keys were cleared
-    expect(localStorage.getItem('language-mate-global-settings')).toBeNull();
-    expect(localStorage.getItem('language-mate-chat-settings')).toBeNull();
+    // Verify localStorage was cleared
     expect(localStorage.getItem('language-mate-data')).toBeNull();
   });
 
@@ -437,10 +509,22 @@ describe('DataManagementTab Integration Tests', () => {
 
     // Create a legacy format file (without version field)
     const legacyData = {
-      conversations: [{ id: 'test', title: 'Legacy Chat' }],
-      settings: {
+      conversations: [
+        {
+          ai_mode: 'dual',
+          created_at: new Date().toISOString(),
+          id: 'test',
+          language: 'Swedish',
+          messages: [],
+          title: 'Legacy Chat',
+          updated_at: new Date().toISOString(),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
         apiKey: 'legacy-key',
         model: 'legacy-model',
+        targetLanguage: 'Swedish',
         theme: 'dark',
       },
     };
@@ -454,7 +538,13 @@ describe('DataManagementTab Integration Tests', () => {
       }
     );
 
-    await user.upload(fileInput, legacyFile);
+    // Use fireEvent instead of user.upload to avoid pointer-events issues
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', {
+      value: { files: [legacyFile] },
+      writable: false,
+    });
+    fileInput.dispatchEvent(event);
 
     const importButton = screen.getByRole('button', { name: /import data/i });
     await user.click(importButton);

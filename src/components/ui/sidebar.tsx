@@ -153,7 +153,7 @@ const SidebarProvider = React.forwardRef<
                 '--sidebar-width': SIDEBAR_WIDTH,
                 '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
                 ...style,
-              } as React.CSSProperties
+              } satisfies React.CSSProperties & Record<string, number | string>
             }
             {...props}
           >
@@ -213,7 +213,7 @@ const Sidebar = React.forwardRef<
             style={
               {
                 '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
+              } satisfies React.CSSProperties & Record<string, number | string>
             }
           >
             <div className="flex h-full w-full flex-col">{children}</div>
@@ -685,7 +685,8 @@ const SidebarMenuSkeleton = React.forwardRef<
         style={
           {
             '--skeleton-width': width,
-          } as React.CSSProperties
+          } satisfies React.CSSProperties &
+            Record<string, number | string | undefined>
         }
       />
     </div>

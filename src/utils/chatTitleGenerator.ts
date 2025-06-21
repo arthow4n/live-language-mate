@@ -63,8 +63,14 @@ export const generateChatTitle = async (
     const contentType = response.headers.get('content-type');
 
     if (contentType?.includes('application/json')) {
-      const data = (await response.json()) as { response?: string };
-      if (data.response) {
+      const data = await response.json();
+      if (
+        data &&
+        typeof data === 'object' &&
+        'response' in data &&
+        typeof data.response === 'string' &&
+        data.response
+      ) {
         const title = String(data.response).trim().replace(/['"]/g, '');
         const finalTitle =
           title.length > 30 ? title.substring(0, 30) + '...' : title;

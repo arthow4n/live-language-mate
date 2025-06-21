@@ -136,8 +136,17 @@ describe('ChatSidebar Integration Tests', () => {
     ];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -172,8 +181,17 @@ describe('ChatSidebar Integration Tests', () => {
     ];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -208,8 +226,17 @@ describe('ChatSidebar Integration Tests', () => {
     ];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -262,8 +289,17 @@ describe('ChatSidebar Integration Tests', () => {
     const conversations = [createMockConversation('conv-1', 'Original Title')];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -335,8 +371,17 @@ describe('ChatSidebar Integration Tests', () => {
     const conversations = [createMockConversation('conv-1', 'Original Title')];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -392,8 +437,17 @@ describe('ChatSidebar Integration Tests', () => {
     const conversations = [createMockConversation('conv-1', 'Original Title')];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -456,8 +510,17 @@ describe('ChatSidebar Integration Tests', () => {
     ];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -520,8 +583,17 @@ describe('ChatSidebar Integration Tests', () => {
     ];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(
@@ -581,8 +653,17 @@ describe('ChatSidebar Integration Tests', () => {
     ];
 
     localStorage.setItem(
-      'live-language-mate-conversations',
-      JSON.stringify(conversations)
+      'language-mate-data',
+      JSON.stringify({
+        conversations,
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          model: 'google/gemini-2.5-flash',
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
     );
 
     render(

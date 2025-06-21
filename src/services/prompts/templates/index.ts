@@ -9,7 +9,7 @@ import {
 export const promptTemplates: Record<MessageType, PromptTemplate> = {
   ...chatMateTemplates,
   ...editorMateTemplates,
-} as Record<MessageType, PromptTemplate>;
+};
 
 export const promptDefaults = {
   ...chatMatePromptDefaults,

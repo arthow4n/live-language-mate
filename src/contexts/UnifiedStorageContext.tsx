@@ -118,7 +118,7 @@ export const UnifiedStorageProvider = ({
       try {
         const stored = localStorage.getItem(LocalStorageKeys.APP_DATA);
         if (stored) {
-          const parsed = JSON.parse(stored) as unknown;
+          const parsed = JSON.parse(stored);
 
           // Convert date strings back to Date objects
           /**
@@ -149,7 +149,7 @@ export const UnifiedStorageProvider = ({
             globalSettings?: object;
           }
 
-          const parsedData = parsed as ParsedStorageData;
+          const parsedData = parsed;
           const dataWithDates = {
             conversations:
               parsedData.conversations?.map((conv) => ({
@@ -476,7 +476,7 @@ export const UnifiedStorageProvider = ({
 
   const importData = (jsonData: string): boolean => {
     try {
-      const data = JSON.parse(jsonData) as unknown;
+      const data = JSON.parse(jsonData);
       const validatedData = localAppDataSchema.parse(data);
 
       setConversations(validatedData.conversations);

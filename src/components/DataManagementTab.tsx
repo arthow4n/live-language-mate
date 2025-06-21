@@ -41,13 +41,22 @@ const DataManagementTab = () => {
       const exportData = {
         chatSettings: conversationSettings,
         // Include conversations from localStorage for backwards compatibility
-        conversations:
-          (
-            JSON.parse(
+        conversations: (() => {
+          try {
+            const data = JSON.parse(
               localStorage.getItem('language-mate-data') ??
                 '{"conversations": []}'
-            ) as { conversations?: unknown[] }
-          ).conversations ?? [],
+            );
+            return data &&
+              typeof data === 'object' &&
+              'conversations' in data &&
+              Array.isArray(data.conversations)
+              ? data.conversations
+              : [];
+          } catch {
+            return [];
+          }
+        })(),
         exportDate: new Date().toISOString(),
         globalSettings,
         version: '1.0.0',
@@ -130,28 +139,38 @@ const DataManagementTab = () => {
           );
 
           // Try to migrate settings to new structure
-          const oldSettings = importedData.settings as Record<string, unknown>;
-          if (Object.keys(oldSettings).length > 0) {
+          const oldSettings = importedData.settings;
+          if (
+            oldSettings &&
+            typeof oldSettings === 'object' &&
+            Object.keys(oldSettings).length > 0
+          ) {
             const newGlobalSettings: Partial<GlobalSettings> = {
               apiKey:
-                (oldSettings.apiKey as string | undefined) ??
-                globalSettings.apiKey,
+                'apiKey' in oldSettings &&
+                typeof oldSettings.apiKey === 'string'
+                  ? oldSettings.apiKey
+                  : globalSettings.apiKey,
               model:
-                (oldSettings.model as string | undefined) ??
-                globalSettings.model,
+                'model' in oldSettings && typeof oldSettings.model === 'string'
+                  ? oldSettings.model
+                  : globalSettings.model,
               streaming:
-                oldSettings.streaming !== undefined
-                  ? (oldSettings.streaming as boolean)
+                'streaming' in oldSettings &&
+                typeof oldSettings.streaming === 'boolean'
+                  ? oldSettings.streaming
                   : globalSettings.streaming,
               targetLanguage:
-                (oldSettings.targetLanguage as string | undefined) ??
-                globalSettings.targetLanguage,
+                'targetLanguage' in oldSettings &&
+                typeof oldSettings.targetLanguage === 'string'
+                  ? oldSettings.targetLanguage
+                  : globalSettings.targetLanguage,
               theme:
-                (oldSettings.theme as
-                  | 'dark'
-                  | 'light'
-                  | 'system'
-                  | undefined) ?? globalSettings.theme,
+                'theme' in oldSettings &&
+                typeof oldSettings.theme === 'string' &&
+                ['dark', 'light', 'system'].includes(oldSettings.theme)
+                  ? (oldSettings.theme as 'dark' | 'light' | 'system')
+                  : globalSettings.theme,
             };
             updateGlobalSettings(newGlobalSettings);
           }
@@ -164,10 +183,8 @@ const DataManagementTab = () => {
       });
       setImportFile(null);
       // Reset the file input
-      const fileInput = document.getElementById(
-        'import-file'
-      ) as HTMLInputElement | null;
-      if (fileInput) {
+      const fileInput = document.getElementById('import-file');
+      if (fileInput instanceof HTMLInputElement) {
         fileInput.value = '';
       }
     } catch {

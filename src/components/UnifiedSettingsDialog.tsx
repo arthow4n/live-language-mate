@@ -262,9 +262,8 @@ const UnifiedSettingsDialog = ({
                           }}
                           placeholder="e.g., young professional, loves local culture"
                           value={
-                            !isGlobalMode
-                              ? (settings as ConversationSettings)
-                                  .chatMateBackground
+                            !isGlobalMode && 'chatMateBackground' in settings
+                              ? settings.chatMateBackground
                               : ''
                           }
                         />
@@ -284,9 +283,8 @@ const UnifiedSettingsDialog = ({
                           }}
                           placeholder="e.g., 10+ years teaching experience"
                           value={
-                            !isGlobalMode
-                              ? (settings as ConversationSettings)
-                                  .editorMateExpertise
+                            !isGlobalMode && 'editorMateExpertise' in settings
+                              ? settings.editorMateExpertise
                               : ''
                           }
                         />
@@ -301,8 +299,8 @@ const UnifiedSettingsDialog = ({
                             handleSettingChange('feedbackStyle', value);
                           }}
                           value={
-                            !isGlobalMode
-                              ? (settings as ConversationSettings).feedbackStyle
+                            !isGlobalMode && 'feedbackStyle' in settings
+                              ? settings.feedbackStyle
                               : undefined
                           }
                         >
@@ -324,9 +322,8 @@ const UnifiedSettingsDialog = ({
                         <div className="flex items-center space-x-2">
                           <Switch
                             checked={
-                              !isGlobalMode
-                                ? (settings as ConversationSettings)
-                                    .culturalContext
+                              !isGlobalMode && 'culturalContext' in settings
+                                ? settings.culturalContext
                                 : false
                             }
                             id="cultural-context"
@@ -342,9 +339,9 @@ const UnifiedSettingsDialog = ({
                         <div className="flex items-center space-x-2">
                           <Switch
                             checked={
-                              !isGlobalMode
-                                ? (settings as ConversationSettings)
-                                    .progressiveComplexity
+                              !isGlobalMode &&
+                              'progressiveComplexity' in settings
+                                ? settings.progressiveComplexity
                                 : false
                             }
                             id="progressive-complexity"
@@ -383,9 +380,8 @@ const UnifiedSettingsDialog = ({
                         }}
                         placeholder="Describe how Chat Mate should behave..."
                         value={
-                          !isGlobalMode
-                            ? (settings as ConversationSettings)
-                                .chatMatePersonality
+                          !isGlobalMode && 'chatMatePersonality' in settings
+                            ? settings.chatMatePersonality
                             : ''
                         }
                       />
@@ -406,9 +402,8 @@ const UnifiedSettingsDialog = ({
                         }}
                         placeholder="Describe how Editor Mate should provide feedback..."
                         value={
-                          !isGlobalMode
-                            ? (settings as ConversationSettings)
-                                .editorMatePersonality
+                          !isGlobalMode && 'editorMatePersonality' in settings
+                            ? settings.editorMatePersonality
                             : ''
                         }
                       />
@@ -422,7 +417,10 @@ const UnifiedSettingsDialog = ({
                   <UISettingsTab
                     onSettingChange={handleSettingChange}
                     settings={{
-                      theme: (settings as GlobalSettings).theme,
+                      theme:
+                        isGlobalMode && 'theme' in settings
+                          ? settings.theme
+                          : 'system',
                     }}
                   />
                 </TabsContent>

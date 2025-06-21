@@ -73,8 +73,9 @@ const ModelSelector = ({
             model !== null &&
             'id' in model &&
             'name' in model &&
-            typeof (model as { id?: unknown }).id === 'string' &&
-            typeof (model as { name?: unknown }).name === 'string'
+            'id' in model &&
+            typeof model.id === 'string' &&
+            typeof model.name === 'string'
         );
         setModels(validModels);
         console.log(

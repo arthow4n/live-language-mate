@@ -12,7 +12,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
-      theme={theme as ToasterProps['theme']}
+      theme={
+        theme === 'dark' || theme === 'light' || theme === 'system'
+          ? theme
+          : 'system'
+      }
       toastOptions={{
         classNames: {
           actionButton:

@@ -18,6 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useToast } from '@/hooks/use-toast';
+import { aiChatNonStreamResponseSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts';
 
@@ -182,8 +183,15 @@ const AskInterface = ({
     });
 
     if (!response.ok) {
-      const errorData = (await response.json()) as { error?: string };
-      throw new Error(errorData.error ?? 'Failed to get Editor Mate response');
+      const errorData = await response.json();
+      const errorMessage =
+        errorData &&
+        typeof errorData === 'object' &&
+        'error' in errorData &&
+        typeof errorData.error === 'string'
+          ? errorData.error
+          : 'Failed to get Editor Mate response';
+      throw new Error(errorMessage);
     }
 
     if (globalSettings.streaming && response.body) {
@@ -193,10 +201,12 @@ const AskInterface = ({
         startTime,
       };
     } else {
-      const data = (await response.json()) as {
-        reasoning?: string;
-        response?: string;
-      };
+      const rawData = await response.json();
+      const parseResult = aiChatNonStreamResponseSchema.safeParse(rawData);
+      if (!parseResult.success) {
+        throw new Error('Invalid response format from Editor Mate');
+      }
+      const data = parseResult.data;
       if (!data.response) {
         throw new Error('No response from Editor Mate');
       }
@@ -243,12 +253,17 @@ const AskInterface = ({
 
     try {
       const result = await callEditorMateStreaming(currentQuestion);
-      const { model, response, startTime } = result as {
-        generationTime?: number;
-        model: string;
-        response: ReadableStream | string;
-        startTime?: number;
-      };
+      // Type guard to check the result structure
+      if (
+        !result ||
+        typeof result !== 'object' ||
+        !('model' in result) ||
+        !('response' in result)
+      ) {
+        throw new Error('Invalid response structure');
+      }
+      const { model, response } = result;
+      const startTime = 'startTime' in result ? result.startTime : undefined;
 
       if (typeof response === 'string') {
         // Non-streaming response
@@ -274,7 +289,10 @@ const AskInterface = ({
         );
       } else {
         // Streaming response
-        const reader = (response as ReadableStream<Uint8Array>).getReader();
+        if (!response.body) {
+          throw new Error('No response body for streaming');
+        }
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
         let isStreamingComplete = false;
@@ -316,10 +334,13 @@ const AskInterface = ({
                 }
 
                 try {
-                  const parsed = JSON.parse(data) as {
-                    content?: string;
-                    type?: string;
-                  };
+                  const rawParsed = JSON.parse(data);
+                  const parseResult =
+                    aiChatStreamResponseSchema.safeParse(rawParsed);
+                  if (!parseResult.success) {
+                    continue;
+                  }
+                  const parsed = parseResult.data;
                   if (parsed.content) {
                     accumulatedContent += parsed.content;
                     setConversation((prev) =>
@@ -353,7 +374,9 @@ const AskInterface = ({
       );
       toast({
         description:
-          (error as Error).message || 'Failed to get response from Editor Mate',
+          error instanceof Error
+            ? error.message
+            : 'Failed to get response from Editor Mate',
         title: 'Error',
         variant: 'destructive',
       });

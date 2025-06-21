@@ -44,10 +44,18 @@ export function ThemeProvider({
         'language-mate-global-settings'
       );
       if (globalSettings) {
-        const parsed = JSON.parse(globalSettings) as { theme?: string };
-        if (parsed.theme) {
-          console.log('🎨 Loading theme from global settings:', parsed.theme);
-          return parsed.theme as Theme;
+        const parsed = JSON.parse(globalSettings);
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          'theme' in parsed &&
+          typeof parsed.theme === 'string'
+        ) {
+          const theme = parsed.theme;
+          if (theme === 'dark' || theme === 'light' || theme === 'system') {
+            console.log('🎨 Loading theme from global settings:', theme);
+            return theme;
+          }
         }
       }
     } catch (error) {
@@ -56,7 +64,13 @@ export function ThemeProvider({
 
     // Fallback to old theme storage
     const stored = localStorage.getItem(storageKey);
-    return stored ? (stored as Theme) : defaultTheme;
+    if (
+      stored &&
+      (stored === 'dark' || stored === 'light' || stored === 'system')
+    ) {
+      return stored;
+    }
+    return defaultTheme;
   });
 
   useEffect(() => {

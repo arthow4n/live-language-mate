@@ -37,10 +37,7 @@ describe('API Schema Integration Tests', () => {
     ];
 
     requiredFields.forEach((field) => {
-      const requestWithoutField = createRealChatRequest() as Record<
-        string,
-        unknown
-      >;
+      const requestWithoutField = createRealChatRequest();
       const { [field]: _, ...requestWithoutFieldDeleted } = requestWithoutField;
       void _;
 
