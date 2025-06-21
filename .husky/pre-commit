@@ -1,10 +1,8 @@
-#!/usr/bin/bash
+#!/bin/sh
 
 # Make sure you have setup nvm in https://typicode.github.io/husky/how-to.html#startup-files
 
-changed_files="$(git diff --cached --name-only --diff-filter=ACMR)"
+git diff --cached --name-only --diff-filter=ACMR -z | \
+xargs -0 npx prettier --write --ignore-unknown
 
-if [[ -n "$changed_files" ]]; then
-    npx prettier "$changed_files" --write --ignore-unknown
-    git update-index --again
-fi
+git update-index --again
