@@ -20,16 +20,28 @@ beforeAll(() => {
       matches: false,
       media: query,
       onchange: null,
-      addListener: () => {},
-      removeListener: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      dispatchEvent: () => {},
+      addListener: () => {
+        /* Mock implementation */
+      },
+      removeListener: () => {
+        /* Mock implementation */
+      },
+      addEventListener: () => {
+        /* Mock implementation */
+      },
+      removeEventListener: () => {
+        /* Mock implementation */
+      },
+      dispatchEvent: () => {
+        /* Mock implementation */
+      },
     }),
   });
 
   // Mock scrollIntoView for components that use auto-scrolling
-  Element.prototype.scrollIntoView = () => {};
+  Element.prototype.scrollIntoView = () => {
+    /* Mock implementation */
+  };
 });
 
 afterEach(() => {

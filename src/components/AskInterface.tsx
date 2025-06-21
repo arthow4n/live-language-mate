@@ -63,7 +63,7 @@ const AskInterface = ({
 
   // Update editable selected text when selectedText prop changes
   useEffect(() => {
-    if (selectedText?.trim()) {
+    if (selectedText.trim()) {
       setEditableSelectedText(selectedText);
 
       if (selectionSource === 'main-chat') {
@@ -334,7 +334,7 @@ const AskInterface = ({
       toast({
         title: 'Error',
         description:
-          (error as Error).message ?? 'Failed to get response from Editor Mate',
+          (error as Error).message || 'Failed to get response from Editor Mate',
         variant: 'destructive',
       });
     } finally {
@@ -476,7 +476,12 @@ const AskInterface = ({
             <EnhancedChatMessage
               key={msg.id}
               message={msg}
-              onTextSelect={onTextSelect ?? (() => {})}
+              onTextSelect={
+                onTextSelect ??
+                (() => {
+                  /* No-op fallback */
+                })
+              }
             />
           ))}
 

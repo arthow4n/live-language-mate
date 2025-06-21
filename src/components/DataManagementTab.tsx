@@ -44,7 +44,7 @@ const DataManagementTab = () => {
             JSON.parse(
               localStorage.getItem('language-mate-data') ??
                 '{"conversations": []}'
-            ) as { conversations?: any[] }
+            ) as { conversations?: unknown[] }
           ).conversations ?? [],
       };
 
