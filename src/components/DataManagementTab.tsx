@@ -8,7 +8,10 @@ import {
   useSettings,
 } from '@/contexts/SettingsContext';
 import { Download, Upload, Trash2 } from 'lucide-react';
-import { type ChatSettingsUpdate, type GlobalSettings } from '@/types/settings';
+import {
+  type ChatSettingsUpdate,
+  type GlobalSettings,
+} from '@/schemas/settings';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -24,7 +24,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import {
   type GlobalSettingsUpdate,
   type ChatSettingsUpdate,
-} from '@/types/settings';
+} from '@/schemas/settings';
 
 const LanguageMateApp = () => {
   const [currentConversationId, setCurrentConversationId] = useState<

@@ -8,7 +8,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { generateChatTitle } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
-import { Message, MessageMetadata } from '@/types/Message';
+import { Message, MessageMetadata } from '@/schemas/messages';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt, MessageType, PromptVariables } from '@/services/prompts';
 

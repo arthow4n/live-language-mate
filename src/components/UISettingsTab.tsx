@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { type Theme } from '@/types/settings';
+import { type Theme } from '@/schemas/settings';
 
 interface UISettingsTabProps {
   settings: {

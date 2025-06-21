@@ -15,7 +15,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useLocalStorage } from '@/contexts/LocalStorageContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
-import { Message } from '@/types/Message';
+import { Message } from '@/schemas/messages';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt, PromptVariables } from '@/services/prompts';
 

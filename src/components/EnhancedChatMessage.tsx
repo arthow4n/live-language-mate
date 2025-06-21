@@ -30,7 +30,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Message } from '@/types/Message';
+import { Message } from '@/schemas/messages';
 import { useSettings } from '@/contexts/SettingsContext';
 
 interface EnhancedChatMessageProps {
