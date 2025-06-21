@@ -163,3 +163,4 @@ The API server can be deployed to any platform supporting Deno:
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
 - You can use eslint commands directly with `npx eslint`, this is useful for linting only a few files.
 - If you would eslint disable anything, think again and see if there's a better approach to fix it, if you still need to eslint disable, make sure you add -- comment after it to explain why you chose to disable.
+- If you need to remove files, use `git rm` instead of `rm`.
