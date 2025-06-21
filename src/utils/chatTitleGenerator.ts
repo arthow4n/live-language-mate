@@ -62,12 +62,11 @@ export const generateChatTitle = async (
 
     // Handle both streaming and non-streaming responses
     const contentType = response.headers.get('content-type');
-    let data;
 
     if (contentType?.includes('application/json')) {
-      data = await response.json();
+      const data = (await response.json()) as { response?: string };
       if (data.response) {
-        const title = data.response.trim().replace(/['"]/g, '');
+        const title = String(data.response).trim().replace(/['"]/g, '');
         const finalTitle =
           title.length > 30 ? title.substring(0, 30) + '...' : title;
         console.log('✅ Generated title:', finalTitle);
@@ -83,10 +82,10 @@ export const generateChatTitle = async (
   }
 };
 
-export const updateConversationTitle = async (
+export const updateConversationTitle = (
   conversationId: string,
   newTitle: string
-): Promise<boolean> => {
+): boolean => {
   try {
     console.log(
       '💾 Updating conversation title:',

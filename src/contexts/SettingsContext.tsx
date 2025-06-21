@@ -73,7 +73,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         );
         if (savedGlobalSettings) {
           try {
-            const parsed = JSON.parse(savedGlobalSettings);
+            const parsed = JSON.parse(savedGlobalSettings) as unknown;
             const validatedGlobalSettings =
               storedGlobalSettingsSchema.parse(parsed);
             console.log('📱 Loaded global settings from localStorage:', {
@@ -101,7 +101,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         );
         if (savedChatSettings) {
           try {
-            const parsed = JSON.parse(savedChatSettings);
+            const parsed = JSON.parse(savedChatSettings) as unknown;
             const validatedChatSettings =
               storedChatSettingsSchema.parse(parsed);
             console.log(
@@ -154,7 +154,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   ) => {
     setChatSettings((prev) => {
       const currentChatSettings =
-        prev[conversationId] || getDefaultChatSettings();
+        prev[conversationId] ?? getDefaultChatSettings();
       const updatedChatSettings = { ...currentChatSettings, ...newSettings };
 
       try {
@@ -210,7 +210,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   const getChatSettings = (conversationId: string): ChatSettings => {
     const baseSettings =
-      chatSettings[conversationId] || getDefaultChatSettings();
+      chatSettings[conversationId] ?? getDefaultChatSettings();
     // For reasoning, always take the value from global settings, as it's a global toggle.
     // This ensures that toggling it in settings applies to all chats immediately.
     return {
