@@ -13,7 +13,7 @@ import {
   Trash2,
   User,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 import type { Message } from '@/schemas/messages';
@@ -61,21 +61,6 @@ const EnhancedChatMessage = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const { globalSettings } = useUnifiedStorage();
-
-  useEffect(() => {
-    if (message.type !== 'user') {
-      console.log('EnhancedChatMessage received message:', {
-        contentLength: message.content.length,
-        globalReasoningEnabled: globalSettings.enableReasoning,
-        hasContent: !!message.content,
-        hasReasoning: !!message.reasoning,
-        isStreaming: message.isStreaming,
-        messageId: message.id,
-        messageType: message.type,
-        reasoningLength: message.reasoning?.length ?? 0,
-      });
-    }
-  }, [message, globalSettings.enableReasoning]);
 
   const handleTextSelection = () => {
     const selection = window.getSelection();

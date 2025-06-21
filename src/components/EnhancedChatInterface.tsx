@@ -118,8 +118,6 @@ const EnhancedChatInterface = ({
     if (!convId || titleGenerationProcessed.has(convId)) return;
 
     try {
-      console.log('🏷️ Starting title generation for conversation:', convId);
-
       // Mark this conversation as being processed to prevent duplicates
       setTitleGenerationProcessed((prev) => new Set(prev).add(convId));
 
@@ -143,7 +141,6 @@ const EnhancedChatInterface = ({
             title: newTitle,
             updated_at: new Date(),
           });
-          console.log('✅ Title generated and updated successfully:', newTitle);
           // Force sidebar refresh after title update
           setTimeout(() => {
             onConversationUpdate();
@@ -164,14 +161,12 @@ const EnhancedChatInterface = ({
   // Mark component as ready and ensure focus
   useEffect(() => {
     if (!componentReady) {
-      console.log('🎯 Component ready, focusing textarea');
       setComponentReady(true);
 
       // Use a small delay to ensure the textarea is fully rendered
       setTimeout(() => {
         if (textareaRef.current && !conversationId) {
           textareaRef.current.focus();
-          console.log('🎯 Textarea focused after component ready');
         }
       }, 100);
     }
@@ -195,10 +190,8 @@ const EnhancedChatInterface = ({
   // Load messages when conversation changes
   useEffect(() => {
     if (conversationId && !isCreatingNewConversation) {
-      console.log('🔄 Loading messages for conversation:', conversationId);
       loadMessages();
     } else if (!conversationId) {
-      console.log('🆕 New conversation - clearing messages');
       setMessages([]);
       setTitleGenerationProcessed(new Set());
     }
@@ -238,10 +231,6 @@ const EnhancedChatInterface = ({
     if (!conversationId) return;
 
     try {
-      console.log(
-        '📥 Loading messages from local storage for conversation:',
-        conversationId
-      );
       const conversationMessages = getMessages(conversationId);
 
       const formattedMessages = conversationMessages.map((msg) => ({
@@ -255,7 +244,6 @@ const EnhancedChatInterface = ({
         type: msg.type,
       }));
 
-      console.log('📥 Loaded messages:', formattedMessages.length);
       setMessages(formattedMessages);
 
       if (shouldGenerateTitle(formattedMessages, conversationId)) {
@@ -278,15 +266,6 @@ const EnhancedChatInterface = ({
     actualConversationId: string
   ) => {
     try {
-      console.log(
-        '💾 Saving message to local storage:',
-        message.type,
-        message.content.substring(0, 50) + '...',
-        'Reasoning:',
-        !!message.reasoning,
-        'Metadata:',
-        message.metadata
-      );
       const savedMessage = addMessage(actualConversationId, {
         content: message.content,
         metadata: message.metadata,
@@ -294,12 +273,6 @@ const EnhancedChatInterface = ({
         reasoning: message.reasoning,
         type: message.type,
       });
-      console.log(
-        '✅ Message saved successfully with ID:',
-        savedMessage.id,
-        'Metadata:',
-        savedMessage.metadata
-      );
       return savedMessage;
     } catch (error) {
       console.error('Error saving message:', error);
@@ -458,7 +431,6 @@ const EnhancedChatInterface = ({
       });
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('🛑 Regeneration cancelled by user.');
         toast({
           description: 'Message regeneration was cancelled.',
           title: 'Cancelled',
@@ -545,8 +517,6 @@ const EnhancedChatInterface = ({
                   )
                 );
               } else if (data.type === 'done') {
-                console.log('✅ Streaming completed for message:', messageId);
-
                 const endTime = Date.now();
                 const generationTime = endTime - startTime;
                 const metadata = {
@@ -595,8 +565,6 @@ const EnhancedChatInterface = ({
       startTime,
     };
 
-    console.log('💾 Finalizing streaming message with metadata:', metadata);
-
     // Update local state with final content and metadata
     setMessages((prev) =>
       prev.map((msg) =>
@@ -614,7 +582,6 @@ const EnhancedChatInterface = ({
 
     // Ensure the metadata is persisted to storage after streaming completes
     setTimeout(() => {
-      console.log('💾 Persisting metadata for message:', messageId);
       updateMessage(messageId, {
         content: fullContent,
         isStreaming: false,
@@ -699,8 +666,6 @@ const EnhancedChatInterface = ({
     metadata: MessageMetadata;
     reasoning: string | undefined;
   }> => {
-    console.log('🚀 Calling AI with model:', effectiveModel);
-
     // Build system prompt using the new prompt system
     const promptVariables = buildPromptVariables();
     const builtPrompt = buildPrompt({
@@ -796,8 +761,6 @@ const EnhancedChatInterface = ({
 
   const createNewConversation = () => {
     try {
-      console.log('🆕 Creating new conversation...');
-
       const newConversation = createConversation({
         chat_mate_prompt: chatMatePrompt,
         editor_mate_prompt: currentEditorMatePrompt,
@@ -805,7 +768,6 @@ const EnhancedChatInterface = ({
         title: `${targetLanguage} Chat`, // Better initial title that will be replaced
       });
 
-      console.log('✅ New conversation created with ID:', newConversation.id);
       return newConversation.id;
     } catch (error) {
       console.error('❌ Error creating conversation:', error);
@@ -815,8 +777,6 @@ const EnhancedChatInterface = ({
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
-
-    console.log('📤 Sending message with model:', effectiveModel);
 
     const controller = new AbortController();
     setAbortController(controller);
@@ -876,8 +836,6 @@ const EnhancedChatInterface = ({
         // Always send as user to prevent the assistant from misunderstanding its role.
         role: 'user' as const,
       }));
-
-      console.log('🔄 Processing AI responses for message:', currentInput);
 
       const editorUserTempId = `temp-${(Date.now() + 1).toString()}`;
       const chatMateTempId = `temp-${(Date.now() + 2).toString()}`;
@@ -1028,7 +986,6 @@ const EnhancedChatInterface = ({
       onConversationUpdate();
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('🛑 Generation cancelled by user.');
         toast({
           description: 'Message generation was cancelled.',
           title: 'Cancelled',
@@ -1066,7 +1023,6 @@ const EnhancedChatInterface = ({
   const handleCancel = () => {
     if (abortController) {
       abortController.abort();
-      console.log('👋 Cancel requested');
     }
   };
 

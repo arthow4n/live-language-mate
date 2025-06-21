@@ -371,7 +371,6 @@ const AskInterface = ({
         }
       }
     } catch (error) {
-      console.error('Error getting Editor Mate response:', error);
       setConversation((prev) =>
         prev.filter((msg) => msg.id !== editorMessageId)
       );

@@ -63,7 +63,6 @@ const ModelSelector = ({
     const loadModels = async () => {
       setLoading(true);
       try {
-        console.log('Fetching models from backend...');
         const data = await apiClient.getModels();
 
         // Filter out models that don't have required properties
@@ -78,9 +77,6 @@ const ModelSelector = ({
             typeof model.name === 'string'
         );
         setModels(validModels);
-        console.log(
-          `Loaded ${data.models.length.toString()} models${data.fallback ? ' (using fallback)' : ''}`
-        );
       } catch (error) {
         console.error('Failed to load models:', error);
         // Set fallback models on error

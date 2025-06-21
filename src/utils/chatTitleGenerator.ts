@@ -12,11 +12,6 @@ export const generateChatTitle = async (
       .map((msg) => msg.content)
       .join(' ');
 
-    console.log(
-      '🏷️ Generating title from messages:',
-      contextMessages.substring(0, 100) + '...'
-    );
-
     const currentDateTime = new Date().toLocaleString('en-US', {
       day: 'numeric',
       hour: '2-digit',
@@ -74,7 +69,6 @@ export const generateChatTitle = async (
         const title = String(data.response).trim().replace(/['"]/g, '');
         const finalTitle =
           title.length > 30 ? title.substring(0, 30) + '...' : title;
-        console.log('✅ Generated title:', finalTitle);
         return finalTitle;
       }
     }

@@ -84,6 +84,8 @@ export default tseslint.config(
       'jsdoc/require-param-description': 'off',
       'jsdoc/require-returns': 'off', // TypeScript provides return type info
       'jsdoc/require-returns-description': 'off',
+
+      'no-console': ['error', { allow: ['error'] }],
     },
   },
   perfectionist.configs['recommended-natural']

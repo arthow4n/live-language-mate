@@ -144,17 +144,6 @@ export const UnifiedStorageProvider = ({
           setConversations(validatedData.conversations);
           setGlobalSettings(validatedData.globalSettings);
           setConversationSettings(validatedData.conversationSettings);
-
-          console.log('✅ Loaded unified data from localStorage:', {
-            conversations: validatedData.conversations.length,
-            conversationSettings: Object.keys(
-              validatedData.conversationSettings
-            ).length,
-            globalSettings: {
-              model: validatedData.globalSettings.model,
-              targetLanguage: validatedData.globalSettings.targetLanguage,
-            },
-          });
         }
       } catch (error) {
         console.error(
@@ -196,7 +185,6 @@ export const UnifiedStorageProvider = ({
       const updatedSettings = { ...prev, ...newSettings };
       try {
         const validatedSettings = globalSettingsSchema.parse(updatedSettings);
-        console.log('✨ Updated global settings:', validatedSettings);
         return validatedSettings;
       } catch (error) {
         console.error('Failed to validate global settings:', error);
@@ -235,10 +223,6 @@ export const UnifiedStorageProvider = ({
       try {
         const validatedSettings =
           conversationSettingsSchema.parse(updatedSettings);
-        console.log(
-          `✨ Updated conversation settings for ${conversationId}:`,
-          validatedSettings
-        );
         return {
           ...prev,
           [conversationId]: validatedSettings,

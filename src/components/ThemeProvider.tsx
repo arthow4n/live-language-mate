@@ -53,7 +53,6 @@ export function ThemeProvider({
         ) {
           const theme = parsed.theme;
           if (theme === 'dark' || theme === 'light' || theme === 'system') {
-            console.log('🎨 Loading theme from global settings:', theme);
             return theme;
           }
         }
@@ -84,18 +83,14 @@ export function ThemeProvider({
         ? 'dark'
         : 'light';
 
-      console.log('🎨 Applying system theme:', systemTheme);
       root.classList.add(systemTheme);
       return;
     }
-
-    console.log('🎨 Applying theme:', theme);
     root.classList.add(theme);
   }, [theme]);
 
   const value = {
     setTheme: (theme: Theme) => {
-      console.log('🎨 Setting theme to:', theme);
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
