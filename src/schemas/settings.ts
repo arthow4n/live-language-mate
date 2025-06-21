@@ -11,7 +11,32 @@ export const feedbackStyleSchema = z.enum([
   'detailed',
 ]);
 
-// Global Settings Schema - STRICT, no defaults
+// Unified Settings Schema - contains all settings for a conversation
+export const conversationSettingsSchema = z
+  .object({
+    // Core API settings
+    model: z.string().min(1),
+    apiKey: z.string(),
+    targetLanguage: z.string().min(1),
+    streaming: z.boolean(),
+    enableReasoning: z.boolean(),
+    reasoningExpanded: z.boolean(),
+
+    // UI settings (only stored globally)
+    theme: themeSchema,
+
+    // AI Personalities (per conversation)
+    chatMatePersonality: z.string().min(1),
+    editorMatePersonality: z.string().min(1),
+    chatMateBackground: z.string().min(1),
+    editorMateExpertise: z.string().min(1),
+    feedbackStyle: feedbackStyleSchema,
+    culturalContext: z.boolean(),
+    progressiveComplexity: z.boolean(),
+  })
+  .strict();
+
+// Global Settings Schema - UI and default settings
 export const globalSettingsSchema = z
   .object({
     model: z.string().min(1),
@@ -21,25 +46,8 @@ export const globalSettingsSchema = z
     theme: themeSchema,
     enableReasoning: z.boolean(),
     reasoningExpanded: z.boolean(),
-  })
-  .strict();
-
-// Chat Settings Schema - STRICT, no defaults
-export const chatSettingsSchema = z
-  .object({
-    // AI Personalities
     chatMatePersonality: z.string().min(1),
     editorMatePersonality: z.string().min(1),
-
-    // General settings that can be overridden per chat
-    model: z.string().min(1),
-    apiKey: z.string(),
-    targetLanguage: z.string().min(1),
-    streaming: z.boolean(),
-    enableReasoning: z.boolean(),
-    reasoningExpanded: z.boolean(),
-
-    // Advanced settings
     chatMateBackground: z.string().min(1),
     editorMateExpertise: z.string().min(1),
     feedbackStyle: feedbackStyleSchema,
@@ -52,29 +60,39 @@ export const chatSettingsSchema = z
 export const settingsContextStateSchema = z
   .object({
     globalSettings: globalSettingsSchema,
-    chatSettings: z.record(z.string(), chatSettingsSchema), // conversationId -> ChatSettings
+    conversationSettings: z.record(z.string(), conversationSettingsSchema), // conversationId -> ConversationSettings
     isLoaded: z.boolean(),
   })
   .strict();
 
 // Partial update schemas for type safety
 export const globalSettingsUpdateSchema = globalSettingsSchema.partial();
-export const chatSettingsUpdateSchema = chatSettingsSchema.partial();
+export const conversationSettingsUpdateSchema =
+  conversationSettingsSchema.partial();
 
 // Settings validation for localStorage
 export const storedGlobalSettingsSchema = globalSettingsSchema;
-export const storedChatSettingsSchema = z.record(
+export const storedConversationSettingsSchema = z.record(
   z.string(),
-  chatSettingsSchema
+  conversationSettingsSchema
 );
 
 // Export type helpers
 export type Theme = z.infer<typeof themeSchema>;
 export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>;
-export type ChatSettings = z.infer<typeof chatSettingsSchema>;
+export type ConversationSettings = z.infer<typeof conversationSettingsSchema>;
 export type SettingsContextState = z.infer<typeof settingsContextStateSchema>;
 export type GlobalSettingsUpdate = z.infer<typeof globalSettingsUpdateSchema>;
-export type ChatSettingsUpdate = z.infer<typeof chatSettingsUpdateSchema>;
+export type ConversationSettingsUpdate = z.infer<
+  typeof conversationSettingsUpdateSchema
+>;
 export type StoredGlobalSettings = z.infer<typeof storedGlobalSettingsSchema>;
-export type StoredChatSettings = z.infer<typeof storedChatSettingsSchema>;
+export type StoredConversationSettings = z.infer<
+  typeof storedConversationSettingsSchema
+>;
+
+// Legacy aliases for backward compatibility during migration
+export type ChatSettings = ConversationSettings;
+export type ChatSettingsUpdate = ConversationSettingsUpdate;
+export type StoredChatSettings = StoredConversationSettings;

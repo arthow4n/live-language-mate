@@ -14,7 +14,7 @@ import {
 
 interface LocalStorageContextType {
   conversations: LocalConversation[];
-  settings: LocalAppData['settings'];
+  settings: LocalAppData['globalSettings'];
   isLoaded: boolean;
   refreshConversations: () => void;
   getConversation: (id: string) => LocalConversation | null;
@@ -30,7 +30,9 @@ interface LocalStorageContextType {
   updateMessage: (messageId: string, updates: Partial<LocalMessage>) => void;
   deleteMessage: (messageId: string) => void;
   updateConversationTitle: (id: string, title: string) => void;
-  updateSettings: (newSettings: Partial<LocalAppData['settings']>) => void;
+  updateSettings: (
+    newSettings: Partial<LocalAppData['globalSettings']>
+  ) => void;
   deleteAllChats: () => void;
   exportData: () => string;
   importData: (jsonData: string) => boolean;
@@ -42,15 +44,15 @@ const LocalStorageContext = createContext<LocalStorageContextType | undefined>(
 
 export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
   const [conversations, setConversations] = useState<LocalConversation[]>([]);
-  const [settings, setSettings] = useState<LocalAppData['settings']>(
-    localStorageService.getSettings()
+  const [settings, setSettings] = useState<LocalAppData['globalSettings']>(
+    localStorageService.getGlobalSettings()
   );
   const [isLoaded, setIsLoaded] = useState(false);
 
   const refreshConversations = () => {
     const data = localStorageService.getData();
     setConversations(data.conversations);
-    setSettings(data.settings);
+    setSettings(data.globalSettings);
   };
 
   useEffect(() => {
@@ -136,8 +138,10 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     refreshConversations();
   };
 
-  const updateSettings = (newSettings: Partial<LocalAppData['settings']>) => {
-    localStorageService.updateSettings(newSettings);
+  const updateSettings = (
+    newSettings: Partial<LocalAppData['globalSettings']>
+  ) => {
+    localStorageService.updateGlobalSettings(newSettings);
     refreshConversations();
   };
 

@@ -1,4 +1,4 @@
-import { getDefaultGlobalSettings } from '@/contexts/SettingsContext';
+import { getDefaultGlobalSettings } from '@/contexts/UnifiedStorageContext';
 import {
   localAppDataSchema,
   LocalStorageKeys,
@@ -13,27 +13,11 @@ class LocalStorageService {
   private readonly STORAGE_KEY = LocalStorageKeys.APP_DATA;
 
   private getDefaultData(): LocalAppData {
-    const { model, apiKey, targetLanguage, streaming } =
-      getDefaultGlobalSettings();
+    const globalSettings = getDefaultGlobalSettings();
     return {
       conversations: [],
-      settings: {
-        model,
-        apiKey,
-        targetLanguage,
-        streaming,
-        chatMatePersonality:
-          'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
-        editorMatePersonality:
-          'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
-        chatMateBackground: 'young professional, loves local culture',
-        editorMateExpertise: '10+ years teaching experience',
-        feedbackStyle: 'encouraging',
-        culturalContext: true,
-        progressiveComplexity: true,
-        enableReasoning: true,
-        reasoningExpanded: false,
-      },
+      globalSettings,
+      conversationSettings: {},
     };
   }
 
@@ -216,13 +200,31 @@ class LocalStorageService {
     }
   }
 
-  getSettings() {
-    return this.getData().settings;
+  getGlobalSettings() {
+    return this.getData().globalSettings;
   }
 
-  updateSettings(newSettings: Partial<LocalAppData['settings']>): void {
+  updateGlobalSettings(
+    newSettings: Partial<LocalAppData['globalSettings']>
+  ): void {
     const data = this.getData();
-    data.settings = { ...data.settings, ...newSettings };
+    data.globalSettings = { ...data.globalSettings, ...newSettings };
+    this.saveData(data);
+  }
+
+  getConversationSettings() {
+    return this.getData().conversationSettings;
+  }
+
+  updateConversationSettings(
+    conversationId: string,
+    newSettings: Partial<LocalAppData['conversationSettings'][string]>
+  ): void {
+    const data = this.getData();
+    data.conversationSettings[conversationId] = {
+      ...data.conversationSettings[conversationId],
+      ...newSettings,
+    };
     this.saveData(data);
   }
 
@@ -238,10 +240,11 @@ class LocalStorageService {
     try {
       const data = JSON.parse(jsonData) as {
         conversations?: unknown;
-        settings?: unknown;
+        globalSettings?: unknown;
+        conversationSettings?: unknown;
       };
       // Validate the structure
-      if (!data.conversations || !data.settings) {
+      if (!data.conversations || !data.globalSettings) {
         throw new Error('Invalid data structure');
       }
       this.saveData(data as LocalAppData);

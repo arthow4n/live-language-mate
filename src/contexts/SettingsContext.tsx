@@ -6,15 +6,14 @@ import {
   ReactNode,
 } from 'react';
 import {
-  chatSettingsSchema,
-  storedGlobalSettingsSchema,
-  storedChatSettingsSchema,
+  conversationSettingsSchema,
+  globalSettingsSchema,
+  storedConversationSettingsSchema,
   type GlobalSettings,
   type ChatSettings,
   type GlobalSettingsUpdate,
   type ChatSettingsUpdate,
 } from '@/schemas/settings';
-import { LocalStorageKeys } from '@/schemas/storage';
 
 // Re-export types for components
 export type {
@@ -51,6 +50,15 @@ export const getDefaultGlobalSettings = (): GlobalSettings => {
     theme: 'system',
     enableReasoning: true,
     reasoningExpanded: true,
+    chatMatePersonality:
+      'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+    editorMatePersonality:
+      'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+    chatMateBackground: 'young professional, loves local culture',
+    editorMateExpertise: '10+ years teaching experience',
+    feedbackStyle: 'encouraging',
+    culturalContext: true,
+    progressiveComplexity: true,
   };
 };
 
@@ -69,13 +77,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       try {
         // Load global settings with Zod validation
         const savedGlobalSettings = localStorage.getItem(
-          LocalStorageKeys.GLOBAL_SETTINGS
+          'language-mate-global-settings' // LocalStorageKeys.GLOBAL_SETTINGS (deprecated)
         );
         if (savedGlobalSettings) {
           try {
             const parsed = JSON.parse(savedGlobalSettings) as unknown;
-            const validatedGlobalSettings =
-              storedGlobalSettingsSchema.parse(parsed);
+            const validatedGlobalSettings = globalSettingsSchema.parse(parsed);
             console.log('📱 Loaded global settings from localStorage:', {
               model: validatedGlobalSettings.model,
               apiKey: validatedGlobalSettings.apiKey ? 'Set' : 'Not set',
@@ -91,19 +98,19 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
               'Invalid global settings in localStorage - clearing:',
               validationError
             );
-            localStorage.removeItem(LocalStorageKeys.GLOBAL_SETTINGS);
+            localStorage.removeItem('language-mate-global-settings'); // LocalStorageKeys.GLOBAL_SETTINGS (deprecated)
           }
         }
 
         // Load chat settings with Zod validation
         const savedChatSettings = localStorage.getItem(
-          LocalStorageKeys.CHAT_SETTINGS
+          'language-mate-chat-settings' // LocalStorageKeys.CHAT_SETTINGS (deprecated)
         );
         if (savedChatSettings) {
           try {
             const parsed = JSON.parse(savedChatSettings) as unknown;
             const validatedChatSettings =
-              storedChatSettingsSchema.parse(parsed);
+              storedConversationSettingsSchema.parse(parsed);
             console.log(
               '💬 Loaded chat settings from localStorage:',
               Object.keys(validatedChatSettings).length,
@@ -115,7 +122,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
               'Invalid chat settings in localStorage - clearing:',
               validationError
             );
-            localStorage.removeItem(LocalStorageKeys.CHAT_SETTINGS);
+            localStorage.removeItem('language-mate-chat-settings'); // LocalStorageKeys.CHAT_SETTINGS (deprecated)
           }
         }
       } catch (error) {
@@ -133,10 +140,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       const updatedSettings = { ...prev, ...newSettings };
       try {
         // Validate before saving - strict validation
-        const validatedSettings =
-          storedGlobalSettingsSchema.parse(updatedSettings);
+        const validatedSettings = globalSettingsSchema.parse(updatedSettings);
         localStorage.setItem(
-          LocalStorageKeys.GLOBAL_SETTINGS,
+          'language-mate-global-settings', // LocalStorageKeys.GLOBAL_SETTINGS (deprecated)
           JSON.stringify(validatedSettings)
         );
         console.log('✨ Updated global settings:', validatedSettings);
@@ -160,7 +166,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       try {
         // Validate individual chat settings
         const validatedChatSettings =
-          chatSettingsSchema.parse(updatedChatSettings);
+          conversationSettingsSchema.parse(updatedChatSettings);
         const updatedAllSettings = {
           ...prev,
           [conversationId]: validatedChatSettings,
@@ -168,9 +174,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
         // Validate entire chat settings object before saving
         const validatedAllSettings =
-          storedChatSettingsSchema.parse(updatedAllSettings);
+          storedConversationSettingsSchema.parse(updatedAllSettings);
         localStorage.setItem(
-          LocalStorageKeys.CHAT_SETTINGS,
+          'language-mate-chat-settings', // LocalStorageKeys.CHAT_SETTINGS (deprecated)
           JSON.stringify(validatedAllSettings)
         );
         console.log(
@@ -193,6 +199,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     streaming: globalSettings.streaming,
     enableReasoning: globalSettings.enableReasoning,
     reasoningExpanded: globalSettings.reasoningExpanded,
+    theme: globalSettings.theme,
 
     // AI personalities
     chatMatePersonality:

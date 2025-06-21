@@ -4,10 +4,14 @@ export type {
   Theme,
   FeedbackStyle,
   GlobalSettings,
-  ChatSettings,
+  ConversationSettings,
   SettingsContextState,
   GlobalSettingsUpdate,
-  ChatSettingsUpdate,
+  ConversationSettingsUpdate,
   StoredGlobalSettings,
+  StoredConversationSettings,
+  // Legacy aliases for backward compatibility
+  ChatSettings,
+  ChatSettingsUpdate,
   StoredChatSettings,
 } from '@/schemas/settings';
