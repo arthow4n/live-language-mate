@@ -160,8 +160,8 @@ The API server can be deployed to any platform supporting Deno:
 - Only use `?.` when the logic is really optional, if the object before `?.` should not be null, do a proper null check beforehand and throw if the object null.
 - If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
 - Avoid default values, optional Zod property, `null` or `undefined` in the type, if you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it.
-- In test file when writing assertions, use expect toBeTruthy instead of using if statement to do null check.
 - In frontend Vitest test files, import explicitly the test helpers e.g. `import { describe, it, expect, beforeEach } from 'vitest';`.
+- In frontend Vitest test files, instead of using `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, or `toBeInstanceOf`, prefer using the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`.
 
 ## Claude Code operations
 
