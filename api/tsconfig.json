@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": true,
+    "verbatimModuleSyntax": true
   }
 }

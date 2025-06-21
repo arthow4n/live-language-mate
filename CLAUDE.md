@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Building and Development
 
-- `npm run check` - Run linter and type check all files in both frontend and backend.
+- `npm run check` - Automatically apply auto-fixable lint and type fixes, then run linter and type check all files in both frontend and backend.
 - `npm run test:frontend` - Run all frontend tests (Vitest), this will also type check the frontend files.
   - If you need to run test for individual files, just run `npx eslint` directly.
 - `npm run test:backend` - Run all backend tests (Deno), this will also type check the backend files.
@@ -171,5 +171,6 @@ The API server can be deployed to any platform supporting Deno:
 - When planning changes, plan ahead to see if you need to update tests at the same time.
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
 - You can use eslint commands directly with `npx eslint`, this is useful for linting only a few files.
+- If you would run eslint, prefer adding `--fix`.
 - If you would eslint disable anything, think again and see if there's a better approach to fix it, if you still need to eslint disable, make sure you add -- comment after it to explain why you chose to disable.
 - If you need to remove files, use `git rm` instead of `rm`.
