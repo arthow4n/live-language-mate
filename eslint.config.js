@@ -16,6 +16,8 @@ export default tseslint.config(
       tseslint.configs.stylisticTypeChecked,
     ],
     files: ['**/*.{ts,tsx}'],
+    // Leave Deno for Deno lint
+    ignores: ['api/**/*.ts'],
     plugins: {
       'react-hooks': reactHooks,
     },
@@ -30,19 +32,6 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-    },
-  },
-  {
-    // For Deno files, turn off rules which need type information, I don't know how to config this properly yet.
-    files: ['api/**/*.ts'],
-    extends: [tseslint.configs.strict, tseslint.configs.stylistic],
-    languageOptions: {
-      // globals: {
-      //   ...globals.browser,
-      // },
-      parserOptions: {
-        tsconfigRootDir: path.join(import.meta.dirname, 'api'),
-      },
     },
   }
 );
