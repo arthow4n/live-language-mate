@@ -41,7 +41,7 @@ export default tseslint.config(
       ],
 
       // "@typescript-eslint/explicit-function-return-type": "error"
-      // '@typescript-eslint/ban-ts-comment': 'error',
+      '@typescript-eslint/ban-ts-comment': 'error',
       '@typescript-eslint/consistent-type-assertions': [
         'error',
         {
