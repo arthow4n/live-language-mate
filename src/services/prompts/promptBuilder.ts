@@ -29,7 +29,7 @@ export function buildPrompt(request: PromptBuildRequest): BuiltPrompt {
 /**
  *
  */
-export function getAvailableTemplates() {
+export function getAvailableTemplates(): typeof promptTemplates {
   return promptTemplates;
 }
 

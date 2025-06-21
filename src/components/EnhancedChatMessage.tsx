@@ -56,13 +56,13 @@ const EnhancedChatMessage = ({
   onForkFrom,
   onRegenerateMessage,
   onTextSelect,
-}: EnhancedChatMessageProps) => {
+}: EnhancedChatMessageProps): React.JSX.Element => {
   const [, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const { globalSettings } = useUnifiedStorage();
 
-  const handleTextSelection = () => {
+  const handleTextSelection = (): void => {
     const selection = window.getSelection();
     const text = selection?.toString().trim();
     if (text) {
@@ -71,7 +71,12 @@ const EnhancedChatMessage = ({
     }
   };
 
-  const getMessageStyles = () => {
+  const getMessageStyles = (): {
+    avatar: string;
+    bubble: string;
+    container: string;
+    icon: React.ComponentType<{ className?: string }>;
+  } => {
     switch (message.type) {
       case 'chat-mate':
         return {
@@ -110,22 +115,22 @@ const EnhancedChatMessage = ({
   const styles = getMessageStyles();
   const IconComponent = styles.icon;
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date: Date): string => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const formatGenerationTime = (timeMs: number) => {
+  const formatGenerationTime = (timeMs: number): string => {
     if (timeMs < 1000) {
       return `${timeMs.toString()}ms`;
     }
     return `${(timeMs / 1000).toFixed(1)}s`;
   };
 
-  const copyToClipboard = () => {
+  const copyToClipboard = (): void => {
     void navigator.clipboard.writeText(message.content);
   };
 
-  const getDisplayName = () => {
+  const getDisplayName = (): string => {
     switch (message.type) {
       case 'chat-mate':
         return 'Chat Mate';
@@ -138,7 +143,7 @@ const EnhancedChatMessage = ({
     }
   };
 
-  const handleEdit = () => {
+  const handleEdit = (): void => {
     if (isEditing && onEditMessage) {
       onEditMessage(message.id, editContent);
       setIsEditing(false);
@@ -147,7 +152,7 @@ const EnhancedChatMessage = ({
     }
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (): void => {
     setIsEditing(false);
     setEditContent(message.content);
   };

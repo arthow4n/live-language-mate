@@ -12,7 +12,7 @@ import {
 } from '../UnifiedStorageContext';
 
 // Mock localStorage
-const mockLocalStorage = (() => {
+const mockLocalStorage = ((): Storage => {
   let store: Record<string, string> = {};
   return {
     clear: () => {
@@ -38,8 +38,8 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Helper to create wrapper
-const createWrapper = () => {
-  return ({ children }: { children: ReactNode }) => (
+const createWrapper = (): React.ComponentType<{ children: ReactNode }> => {
+  return ({ children }: { children: ReactNode }): React.JSX.Element => (
     <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
   );
 };

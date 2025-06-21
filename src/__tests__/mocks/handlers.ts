@@ -50,7 +50,7 @@ export const openRouterHandlers = [
       // Streaming response (if needed for future tests)
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
-        start(controller) {
+        start(controller): void {
           controller.enqueue(
             encoder.encode(
               'data: {"choices":[{"delta":{"content":"Streaming response"}}]}\n\n'

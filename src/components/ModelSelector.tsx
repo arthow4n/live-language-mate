@@ -54,13 +54,13 @@ const ModelSelector = ({
   onValueChange,
   placeholder = 'Select model...',
   value,
-}: ModelSelectorProps) => {
+}: ModelSelectorProps): React.JSX.Element => {
   const [open, setOpen] = useState(false);
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadModels = async () => {
+    const loadModels = async (): Promise<void> => {
       setLoading(true);
       try {
         const data = await apiClient.getModels();

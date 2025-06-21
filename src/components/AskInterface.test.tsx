@@ -19,7 +19,7 @@ interface TestWrapperProps {
   children: React.ReactNode;
 }
 
-const TestWrapper = ({ children }: TestWrapperProps) => (
+const TestWrapper = ({ children }: TestWrapperProps): React.JSX.Element => (
   <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
 );
 

@@ -2,7 +2,9 @@ import { GraduationCap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import type {
+  ConversationSettings,
   ConversationSettingsUpdate,
+  GlobalSettings,
   GlobalSettingsUpdate,
 } from '@/schemas/settings';
 
@@ -28,7 +30,7 @@ import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import UnifiedSettingsDialog from './UnifiedSettingsDialog';
 
-const LanguageMateApp = () => {
+const LanguageMateApp = (): React.JSX.Element => {
   const [currentConversationId, setCurrentConversationId] = useState<
     null | string
   >(null);
@@ -61,38 +63,42 @@ const LanguageMateApp = () => {
     ? getConversation(currentConversationId)
     : null;
 
-  const handleConversationSelect = (conversationId: null | string) => {
+  const handleConversationSelect = (conversationId: null | string): void => {
     setCurrentConversationId(conversationId);
   };
 
-  const handleNewConversation = () => {
+  const handleNewConversation = (): void => {
     setCurrentConversationId(null);
   };
 
-  const handleConversationUpdate = () => {
+  const handleConversationUpdate = (): void => {
     // Sidebar will auto-refresh from localStorage context
   };
 
-  const handleConversationCreated = (conversationId: string) => {
+  const handleConversationCreated = (conversationId: string): void => {
     setCurrentConversationId(conversationId);
     createConversationSettings(conversationId);
   };
 
-  const handleGlobalSettingsSave = (newSettings: GlobalSettingsUpdate) => {
+  const handleGlobalSettingsSave = (
+    newSettings: GlobalSettingsUpdate
+  ): void => {
     updateGlobalSettings(newSettings);
   };
 
-  const handleChatSettingsSave = (chatSettings: ConversationSettingsUpdate) => {
+  const handleChatSettingsSave = (
+    chatSettings: ConversationSettingsUpdate
+  ): void => {
     if (currentConversationId) {
       updateConversationSettings(currentConversationId, chatSettings);
     }
   };
 
-  const handlePanelSizeChange = (sizes: number[]) => {
+  const handlePanelSizeChange = (sizes: number[]): void => {
     localStorage.setItem('languageMate_panelSizes', JSON.stringify(sizes));
   };
 
-  const getDefaultPanelSizes = () => {
+  const getDefaultPanelSizes = (): number[] => {
     const saved = localStorage.getItem('languageMate_panelSizes');
     if (saved) {
       try {
@@ -113,7 +119,7 @@ const LanguageMateApp = () => {
   const handleTextSelect = (
     text: string,
     source: 'ask-interface' | 'main-chat' = 'main-chat'
-  ) => {
+  ): void => {
     setSelectedText(text);
     setSelectionSource(source);
     if (isMobile && text.trim()) {
@@ -121,18 +127,18 @@ const LanguageMateApp = () => {
     }
   };
 
-  const handleAskInterfaceTextSelect = (text: string) => {
+  const handleAskInterfaceTextSelect = (text: string): void => {
     handleTextSelect(text, 'ask-interface');
   };
 
-  const getCurrentChatSettings = () => {
+  const getCurrentChatSettings = (): ConversationSettings => {
     if (currentConversationId) {
       return getConversationSettings(currentConversationId);
     }
     return getConversationSettings('default');
   };
 
-  const getCombinedGlobalSettings = () => {
+  const getCombinedGlobalSettings = (): GlobalSettings => {
     const chatDefaults = getConversationSettings('default');
     return {
       ...globalSettings,
@@ -140,7 +146,7 @@ const LanguageMateApp = () => {
     };
   };
 
-  const getCombinedChatSettings = () => {
+  const getCombinedChatSettings = (): ConversationSettings => {
     if (currentConversationId) {
       const chatSpecificSettings = getConversationSettings(
         currentConversationId

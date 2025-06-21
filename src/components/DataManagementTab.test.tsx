@@ -14,13 +14,13 @@ interface TestWrapperProps {
   children: React.ReactNode;
 }
 
-const TestWrapper = ({ children }: TestWrapperProps) => (
+const TestWrapper = ({ children }: TestWrapperProps): React.JSX.Element => (
   <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
 );
 
 // Mock toast hook
 vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({
+  useToast: (): { toast: ReturnType<typeof vi.fn> } => ({
     toast: vi.fn(),
   }),
 }));
@@ -45,7 +45,7 @@ describe('DataManagementTab Integration Tests', () => {
     HTMLAnchorElement.prototype.click = vi.fn();
 
     // Clean up after each test
-    return () => {
+    return (): void => {
       HTMLAnchorElement.prototype.click = originalClick;
     };
   });

@@ -21,22 +21,23 @@ beforeAll(() => {
   // Mock window.matchMedia for components that use responsive design
   Object.defineProperty(window, 'matchMedia', {
     value: (query: string) => ({
-      addEventListener: () => {
+      addEventListener: (): void => {
         /* Mock implementation */
       },
-      addListener: () => {
+      addListener: (): void => {
         /* Mock implementation */
       },
-      dispatchEvent: () => {
+      dispatchEvent: (): boolean => {
         /* Mock implementation */
+        return true;
       },
       matches: false,
       media: query,
       onchange: null,
-      removeEventListener: () => {
+      removeEventListener: (): void => {
         /* Mock implementation */
       },
-      removeListener: () => {
+      removeListener: (): void => {
         /* Mock implementation */
       },
     }),
@@ -44,7 +45,7 @@ beforeAll(() => {
   });
 
   // Mock scrollIntoView for components that use auto-scrolling
-  Element.prototype.scrollIntoView = () => {
+  Element.prototype.scrollIntoView = (): void => {
     /* Mock implementation */
   };
 });

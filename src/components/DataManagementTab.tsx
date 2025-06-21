@@ -24,7 +24,7 @@ import {
 } from '@/contexts/UnifiedStorageContext';
 import { useToast } from '@/hooks/use-toast';
 
-const DataManagementTab = () => {
+const DataManagementTab = (): React.JSX.Element => {
   const [importFile, setImportFile] = useState<File | null>(null);
   const {
     conversationSettings,
@@ -34,12 +34,12 @@ const DataManagementTab = () => {
   } = useUnifiedStorage();
   const { toast } = useToast();
 
-  const handleExportData = () => {
+  const handleExportData = (): void => {
     try {
       const exportData = {
         chatSettings: conversationSettings,
         // Include conversations from localStorage for backwards compatibility
-        conversations: (() => {
+        conversations: ((): unknown[] => {
           try {
             const data = JSON.parse(
               localStorage.getItem('language-mate-data') ??
@@ -85,7 +85,7 @@ const DataManagementTab = () => {
     }
   };
 
-  const handleImportData = async () => {
+  const handleImportData = async (): Promise<void> => {
     if (!importFile) {
       toast({
         description: 'Please select a file to import.',
@@ -177,7 +177,7 @@ const DataManagementTab = () => {
                 typeof validatedSettings.targetLanguage === 'string'
                   ? validatedSettings.targetLanguage
                   : globalSettings.targetLanguage,
-              theme: (() => {
+              theme: ((): 'dark' | 'light' | 'system' => {
                 const theme = validatedSettings.theme;
                 if (typeof theme === 'string') {
                   if (
@@ -216,7 +216,7 @@ const DataManagementTab = () => {
     }
   };
 
-  const handleDeleteAllChats = () => {
+  const handleDeleteAllChats = (): void => {
     localStorage.removeItem('language-mate-data');
 
     toast({
@@ -225,7 +225,7 @@ const DataManagementTab = () => {
     });
   };
 
-  const handleDeleteAllData = () => {
+  const handleDeleteAllData = (): void => {
     // Clear all settings
     localStorage.removeItem('language-mate-global-settings');
     localStorage.removeItem('language-mate-chat-settings');
@@ -241,7 +241,9 @@ const DataManagementTab = () => {
     });
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void => {
     const file = event.target.files?.[0] ?? null;
     setImportFile(file ?? null);
   };

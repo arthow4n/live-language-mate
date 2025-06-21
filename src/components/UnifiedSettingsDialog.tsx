@@ -51,7 +51,7 @@ const UnifiedSettingsDialog = ({
   onOpenChange,
   onSave,
   open,
-}: UnifiedSettingsDialogProps) => {
+}: UnifiedSettingsDialogProps): React.JSX.Element => {
   const [settings, setSettings] = useState<
     ConversationSettings | GlobalSettings
   >(initialSettings);
@@ -60,7 +60,7 @@ const UnifiedSettingsDialog = ({
     setSettings(initialSettings);
   }, [initialSettings, open]);
 
-  const handleSave = () => {
+  const handleSave = (): void => {
     onSave(settings);
     onOpenChange(false);
   };
@@ -68,7 +68,7 @@ const UnifiedSettingsDialog = ({
   const handleSettingChange = (
     key: string,
     value: boolean | number | string
-  ) => {
+  ): void => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 

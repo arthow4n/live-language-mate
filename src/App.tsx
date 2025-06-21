@@ -11,7 +11,7 @@ import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = (): React.JSX.Element => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <UnifiedStorageProvider>

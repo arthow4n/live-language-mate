@@ -1,6 +1,6 @@
 import LanguageMateApp from '@/components/LanguageMateApp';
 
-const Index = () => {
+const Index = (): React.JSX.Element => {
   return <LanguageMateApp />;
 };
 

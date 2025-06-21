@@ -2,7 +2,7 @@ import type { AiChatRequest, ModelsResponse } from '@/schemas/api';
 
 import { modelsResponseSchema } from '@/schemas/api';
 
-const API_BASE_URL = (() => {
+const API_BASE_URL = ((): string => {
   const url: unknown = import.meta.env.VITE_API_BASE_URL;
   return typeof url === 'string' ? url : 'http://localhost:8000';
 })();

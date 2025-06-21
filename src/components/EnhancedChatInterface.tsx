@@ -42,7 +42,7 @@ const EnhancedChatInterface = ({
   onConversationUpdate,
   onTextSelect,
   targetLanguage,
-}: EnhancedChatInterfaceProps) => {
+}: EnhancedChatInterfaceProps): React.JSX.Element => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -95,7 +95,7 @@ const EnhancedChatInterface = ({
   const shouldGenerateTitle = (
     messagesList: Message[],
     convId: null | string
-  ) => {
+  ): boolean => {
     if (!convId || titleGenerationProcessed.has(convId)) return false;
 
     // Count messages by type
@@ -116,7 +116,7 @@ const EnhancedChatInterface = ({
   const generateAndUpdateTitle = async (
     messagesList: Message[],
     convId: string
-  ) => {
+  ): Promise<void> => {
     if (!convId || titleGenerationProcessed.has(convId)) return;
 
     try {
@@ -174,7 +174,7 @@ const EnhancedChatInterface = ({
     }
   }, [componentReady, conversationId]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -208,7 +208,7 @@ const EnhancedChatInterface = ({
         void generateAndUpdateTitle(messages, conversationId);
       }, 500);
 
-      return () => {
+      return (): void => {
         clearTimeout(timeoutId);
       };
     }
@@ -229,7 +229,7 @@ const EnhancedChatInterface = ({
     }
   }, [conversationId]);
 
-  const loadMessages = () => {
+  const loadMessages = (): void => {
     if (!conversationId) return;
 
     try {
@@ -266,7 +266,7 @@ const EnhancedChatInterface = ({
   const saveMessage = (
     message: Omit<Message, 'id' | 'timestamp'>,
     actualConversationId: string
-  ) => {
+  ): Message | null => {
     try {
       const savedMessage = addMessage(actualConversationId, {
         content: message.content,
@@ -282,7 +282,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const deleteMessage = (messageId: string) => {
+  const deleteMessage = (messageId: string): void => {
     try {
       deleteMessageFromStorage(messageId);
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
@@ -301,7 +301,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const deleteAllBelow = (messageId: string) => {
+  const deleteAllBelow = (messageId: string): void => {
     try {
       // Find the index of the selected message
       const messageIndex = messages.findIndex((msg) => msg.id === messageId);
@@ -332,7 +332,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const editMessage = (messageId: string, newContent: string) => {
+  const editMessage = (messageId: string, newContent: string): void => {
     try {
       updateMessage(messageId, { content: newContent });
       setMessages((prev) =>
@@ -355,7 +355,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const regenerateMessage = async (messageId: string) => {
+  const regenerateMessage = async (messageId: string): Promise<void> => {
     const messageIndex = messages.findIndex((msg) => msg.id === messageId);
     if (messageIndex === -1) return;
 
@@ -616,7 +616,7 @@ const EnhancedChatInterface = ({
     return { content: fullContent, metadata, reasoning: reasoningContent };
   };
 
-  const forkFromMessage = (messageId: string) => {
+  const forkFromMessage = (messageId: string): void => {
     try {
       // Find the message index
       const messageIndex = messages.findIndex((msg) => msg.id === messageId);
@@ -782,7 +782,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const createNewConversation = () => {
+  const createNewConversation = (): string => {
     try {
       const newConversation = createConversation({
         chat_mate_prompt: chatMatePrompt,
@@ -798,7 +798,7 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (): Promise<void> => {
     if (!inputMessage.trim() || isLoading) return;
 
     const controller = new AbortController();
@@ -833,6 +833,17 @@ const EnhancedChatInterface = ({
     const currentInput = inputMessage.trim();
     setInputMessage('');
     setIsLoading(true);
+
+    if (!currentConversationId) {
+      logError('❌ Error: No conversation ID available');
+      toast({
+        description: 'Failed to get conversation ID',
+        title: 'Error',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const savedUserMessage = saveMessage(userMessage, currentConversationId);
@@ -1032,18 +1043,18 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       void handleSendMessage();
     }
   };
 
-  const handleTextSelect = (text: string) => {
+  const handleTextSelect = (text: string): void => {
     onTextSelect(text);
   };
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     if (abortController) {
       abortController.abort();
     }

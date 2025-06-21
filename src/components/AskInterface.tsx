@@ -48,7 +48,7 @@ const AskInterface = ({
   selectedText,
   selectionSource = 'main-chat',
   targetLanguage = 'Swedish',
-}: AskInterfaceProps) => {
+}: AskInterfaceProps): React.JSX.Element => {
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +57,7 @@ const AskInterface = ({
   const { toast } = useToast();
   const { globalSettings } = useUnifiedStorage();
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -93,30 +93,37 @@ const AskInterface = ({
     {
       icon: Globe,
       name: 'Google Quoted',
-      url: (text: string) =>
+      url: (text: string): string =>
         `https://www.google.com/search?q=${encodeURIComponent(`"${text}"`)}`,
     },
     {
       icon: Book,
       name: 'Wiktionary',
-      url: (text: string) =>
+      url: (text: string): string =>
         `https://en.wiktionary.org/wiki/${encodeURIComponent(text)}`,
     },
     {
       icon: BookOpen,
       name: 'SAOL',
-      url: (text: string) =>
+      url: (text: string): string =>
         `https://svenska.se/tre/?sok=${encodeURIComponent(text)}`,
     },
     {
       icon: Play,
       name: 'YouGlish',
-      url: (text: string) =>
+      url: (text: string): string =>
         `https://youglish.com/pronounce/${encodeURIComponent(text)}/${targetLanguage.toLowerCase()}`,
     },
   ];
 
-  const callEditorMateStreaming = async (question: string) => {
+  const callEditorMateStreaming = async (
+    question: string
+  ): Promise<{
+    generationTime?: number;
+    model: string;
+    response: ReadableStream<Uint8Array> | string;
+    startTime?: number;
+  }> => {
     const conversationHistory = conversation.map((msg) => ({
       content: `[${msg.type}]: ${msg.content}`,
       // Always send as user to prevent the assistant from misunderstanding its role.
@@ -223,7 +230,7 @@ const AskInterface = ({
     }
   };
 
-  const handleSendQuestion = async () => {
+  const handleSendQuestion = async (): Promise<void> => {
     if (!question.trim() || isLoading) return;
 
     const userMessage: Message = {
@@ -394,7 +401,7 @@ const AskInterface = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       void handleSendQuestion();
@@ -523,7 +530,7 @@ const AskInterface = ({
               message={msg}
               onTextSelect={
                 onTextSelect ??
-                (() => {
+                ((): void => {
                   /* No-op fallback */
                 })
               }

@@ -55,7 +55,7 @@ export const createRealChatRequest = (
     ...overrides,
   }) satisfies AiChatRequest;
 
-export const createInvalidChatRequest = () =>
+export const createInvalidChatRequest = (): Partial<AiChatRequest> =>
   ({
     message: 'Hello',
     // Missing all required fields to trigger Zod validation errors

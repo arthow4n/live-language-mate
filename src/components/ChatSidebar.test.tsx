@@ -16,7 +16,7 @@ interface TestWrapperProps {
   children: React.ReactNode;
 }
 
-const TestWrapper = ({ children }: TestWrapperProps) => (
+const TestWrapper = ({ children }: TestWrapperProps): React.JSX.Element => (
   <SidebarProvider>
     <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
   </SidebarProvider>
@@ -38,7 +38,7 @@ const createMockConversation = (
 
 // Mock toast hook
 vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({
+  useToast: (): { toast: ReturnType<typeof vi.fn> } => ({
     toast: vi.fn(),
   }),
 }));

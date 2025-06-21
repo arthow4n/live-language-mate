@@ -57,7 +57,7 @@ const ChatSidebar = ({
   onConversationSelect,
   onMainSettingsOpen,
   onNewConversation,
-}: ChatSidebarProps) => {
+}: ChatSidebarProps): React.JSX.Element => {
   const [editingConversation, setEditingConversation] = useState<null | string>(
     null
   );
@@ -77,7 +77,7 @@ const ChatSidebar = ({
     return dateB.getTime() - dateA.getTime();
   });
 
-  const handleRenameConversation = () => {
+  const handleRenameConversation = (): void => {
     if (!editingConversation || !editTitle.trim()) return;
 
     try {
@@ -104,7 +104,7 @@ const ChatSidebar = ({
     }
   };
 
-  const handleDeleteConversation = (conversationId: string) => {
+  const handleDeleteConversation = (conversationId: string): void => {
     try {
       deleteConversation(conversationId);
       if (currentConversationId === conversationId) {
@@ -124,7 +124,7 @@ const ChatSidebar = ({
     }
   };
 
-  const handleForkConversation = (conversationId: string) => {
+  const handleForkConversation = (conversationId: string): void => {
     try {
       const originalConversation = conversations.find(
         (c) => c.id === conversationId

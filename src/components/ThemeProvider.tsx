@@ -38,7 +38,7 @@ export function ThemeProvider({
   defaultTheme = 'system',
   storageKey = 'vite-ui-theme',
   ...props
-}: ThemeProviderProps) {
+}: ThemeProviderProps): React.JSX.Element {
   const [theme, setTheme] = useState<Theme>(() => {
     // First check the new global settings storage
     try {
@@ -92,7 +92,7 @@ export function ThemeProvider({
   }, [theme]);
 
   const value = {
-    setTheme: (theme: Theme) => {
+    setTheme: (theme: Theme): void => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
@@ -106,7 +106,7 @@ export function ThemeProvider({
   );
 }
 
-export const useTheme = () => {
+export const useTheme = (): ThemeProviderState => {
   const context = useContext(ThemeProviderContext);
 
   if (!context) {

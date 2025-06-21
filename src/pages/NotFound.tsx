@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const NotFound = () => {
+const NotFound = (): React.JSX.Element => {
   const location = useLocation();
 
   useEffect(() => {

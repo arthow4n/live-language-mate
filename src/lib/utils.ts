@@ -6,7 +6,7 @@ import { fromError, isZodErrorLike } from 'zod-validation-error';
  *
  * @param inputs
  */
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
@@ -14,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
  *
  * @param args
  */
-export function logError(...args: unknown[]) {
+export function logError(...args: unknown[]): void {
   console.error(
     ...args.map((x) => (isZodErrorLike(x) ? fromError(x).toString() : x))
   );

@@ -5,7 +5,7 @@ const MOBILE_BREAKPOINT = 768;
 /**
  *
  */
-export function useIsMobile() {
+export function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
     undefined
   );
@@ -14,12 +14,12 @@ export function useIsMobile() {
     const mql = window.matchMedia(
       `(max-width: ${(MOBILE_BREAKPOINT - 1).toString()}px)`
     );
-    const onChange = () => {
+    const onChange = (): void => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
     mql.addEventListener('change', onChange);
     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => {
+    return (): void => {
       mql.removeEventListener('change', onChange);
     };
   }, []);

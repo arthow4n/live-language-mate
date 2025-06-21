@@ -88,7 +88,9 @@ export const modelsResponseSchema = z
   .strict();
 
 // Generic API Response wrapper
-export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+export const apiResponseSchema = <T extends z.ZodTypeAny>(
+  dataSchema: T
+): z.ZodObject<{ data: z.ZodOptional<T>; error: z.ZodOptional<z.ZodString> }> =>
   z
     .object({
       data: dataSchema.optional(),

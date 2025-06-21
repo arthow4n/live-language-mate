@@ -19,8 +19,11 @@ interface UISettingsTabProps {
   };
 }
 
-const UISettingsTab = ({ onSettingChange, settings }: UISettingsTabProps) => {
-  const handleThemeChange = (value: Theme) => {
+const UISettingsTab = ({
+  onSettingChange,
+  settings,
+}: UISettingsTabProps): React.JSX.Element => {
+  const handleThemeChange = (value: Theme): void => {
     onSettingChange('theme', value);
     // Remove the immediate setTheme call to prevent conflicts
   };
