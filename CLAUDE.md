@@ -137,10 +137,22 @@ The API server can be deployed to any platform supporting Deno:
 - Docker containers
 - VPS with Deno runtime
 
+## TypeScript coding style and conventions
+
+- Prefer named import/export over default import/export.
+- Early return, early throw.
+- Do not use `any`, `as` type assertion or `!` non-null assertion operator unless it's really the only way to solve the problem. Usually you can instead do `instanceof` type narrowing, use/make a util function to conver the type, or do a proper validation with Zod.
+- Only use `?.` when the logic is really optional, if the object before `?.` should not be null, do a proper null check beforehand and throw if the object null.
+- If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
+- Avoid default values, optional Zod property, `null` or `undefined` in the type, if you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it.
+
 ## Claude Code operations
 
 - After you finish all the edits in the task, make sure to run `npm run prettier` and `npm run check` then fix the lint and type errors.
 - After each task completed, you should automatically and frequently make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
 - Instead of running individual lint and typecheck commands, you should use `npm run check` to perform type check and linting, `npm run check` performs lint and type check on all files.
-- When searching in the codebase, prefer using ast-grep (`sg --lang tsx` (or set `--lang` appropriately )) before falling back to `rg` or `grep`.
+- When searching in the codebase, instead of using your own search tool, prefer using ast-grep (`sg --lang tsx` (or set `--lang` appropriately )) first, then fall back to your own search tool or `rg`/`grep`.
+- You should not update any config files unless that's the only way or the best way to fix things, if you must update a config file, pause and ask the user for feedback.
+- When planning changes, plan ahead to see if you need to update tests at the same time.
+- You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.

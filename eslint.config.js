@@ -13,11 +13,15 @@ export default tseslint.config(
   prettierConfig,
   {
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+      },
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['api/*.{ts,tsx}', 'api/handlers/*.{ts,tsx}'],
+        },
         tsconfigRootDir: import.meta.dirname,
-      }
+      },
     },
   },
   {

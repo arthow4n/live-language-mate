@@ -34,10 +34,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
       targetLanguage,
       model,
       originalModel,
-      apiKey:
-        apiKey && apiKey.trim()
-          ? 'Provided by user'
-          : 'Using environment API key',
+      apiKey: apiKey?.trim() ? 'Provided by user' : 'Using environment API key',
       historyLength: conversationHistory.length,
       hasMessage: !!message,
       hasSystemPrompt: !!systemPrompt,
@@ -49,8 +46,9 @@ export async function aiChatHandler(req: Request): Promise<Response> {
       userTimezone,
     });
 
-    const openRouterApiKey =
-      apiKey && apiKey.trim() ? apiKey.trim() : Deno.env.get('OPENAI_API_KEY');
+    const openRouterApiKey = apiKey?.trim()
+      ? apiKey.trim()
+      : Deno.env.get('OPENAI_API_KEY');
 
     if (!openRouterApiKey) {
       throw new Error(
@@ -60,7 +58,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
 
     console.log(
       '🔑 API key source:',
-      apiKey && apiKey.trim() ? 'User provided' : 'Environment variable'
+      apiKey?.trim() ? 'User provided' : 'Environment variable'
     );
 
     const dateTimeContext =

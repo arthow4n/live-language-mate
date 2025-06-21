@@ -44,7 +44,7 @@ const createRealChatRequest = (
 // OpenRouter API payload interface (what gets sent to OpenRouter)
 interface OpenRouterPayload {
   model: string;
-  messages: Array<{ role: string; content: string }>;
+  messages: { role: string; content: string }[];
   stream: boolean;
   temperature: number;
   max_tokens: number;
