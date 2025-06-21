@@ -6,6 +6,7 @@ import { describe, expect, test } from 'vitest';
 import type { AiChatRequest } from '@/schemas/api';
 
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+import { aiChatRequestSchema } from '@/schemas/api';
 
 import { createMockAiResponse } from '../__tests__/factories';
 import { server } from '../__tests__/setup';
@@ -35,7 +36,10 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body;
+        const validationResult = aiChatRequestSchema.safeParse(body);
+        if (validationResult.success) {
+          capturedRequest = validationResult.data;
+        }
         return HttpResponse.json(mockResponse);
       })
     );
@@ -88,7 +92,10 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body;
+        const validationResult = aiChatRequestSchema.safeParse(body);
+        if (validationResult.success) {
+          capturedRequest = validationResult.data;
+        }
         return HttpResponse.json(mockResponse);
       })
     );
@@ -139,7 +146,10 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body;
+        const validationResult = aiChatRequestSchema.safeParse(body);
+        if (validationResult.success) {
+          capturedRequest = validationResult.data;
+        }
         return HttpResponse.json(mockResponse);
       })
     );
@@ -190,11 +200,14 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        const requestData = body;
+        const validationResult = aiChatRequestSchema.safeParse(body);
 
-        // Capture editor-mate requests specifically
-        if (requestData.messageType.includes('editor-mate')) {
-          capturedEditorRequest = requestData;
+        if (validationResult.success) {
+          const requestData = validationResult.data;
+          // Capture editor-mate requests specifically
+          if (requestData.messageType.includes('editor-mate')) {
+            capturedEditorRequest = requestData;
+          }
         }
 
         return HttpResponse.json(mockResponse);
@@ -248,7 +261,10 @@ describe('Settings Impact on Chat Behavior Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body;
+        const validationResult = aiChatRequestSchema.safeParse(body);
+        if (validationResult.success) {
+          capturedRequest = validationResult.data;
+        }
         return HttpResponse.json(mockResponse);
       })
     );

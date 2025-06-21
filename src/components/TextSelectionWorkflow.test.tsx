@@ -6,6 +6,7 @@ import { describe, expect, test } from 'vitest';
 import type { AiChatRequest } from '@/schemas/api';
 
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
+import { aiChatRequestSchema } from '@/schemas/api';
 
 import { createMockAiResponse } from '../__tests__/factories';
 import { server } from '../__tests__/setup';
@@ -35,11 +36,14 @@ describe('Text Selection Workflow Integration Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        const requestData = body;
+        const validationResult = aiChatRequestSchema.safeParse(body);
 
-        // Capture editor-mate-response requests
-        if (requestData.messageType === 'editor-mate-response') {
-          capturedEditorRequest = requestData;
+        if (validationResult.success) {
+          const requestData = validationResult.data;
+          // Capture editor-mate-response requests
+          if (requestData.messageType === 'editor-mate-response') {
+            capturedEditorRequest = requestData;
+          }
         }
 
         return HttpResponse.json(mockResponse);

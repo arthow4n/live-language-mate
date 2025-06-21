@@ -23,11 +23,14 @@ describe('Chat Title Generator Integration Tests', () => {
     server.use(
       http.post('http://*/ai-chat', async ({ request }) => {
         const body = await request.json();
-        capturedRequest = body;
 
         // Use Zod to validate the entire request structure
         const validationResult = aiChatRequestSchema.safeParse(body);
         expect(validationResult.success).toBe(true);
+
+        if (validationResult.success) {
+          capturedRequest = validationResult.data;
+        }
 
         return HttpResponse.json(mockResponse);
       })
