@@ -160,6 +160,7 @@ The API server can be deployed to any platform supporting Deno:
 
 ## Claude Code operations
 
+- Prioritise to use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
 - After you finish all the edits in the task, make sure to `npm run check` then fix the lint and type errors.
 - If you make a git commit, prefix you commit message with `(Claude Code) ` and add a line at the end of commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
 - When doing tasks and when you are done with tasks, be proactive to make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
