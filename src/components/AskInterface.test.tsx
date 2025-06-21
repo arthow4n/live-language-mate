@@ -32,7 +32,7 @@ afterAll(() => {
 });
 
 describe('AskInterface Integration Tests', () => {
-  test.skip('editor mate request includes all required fields', async () => {
+  test('editor mate request includes all required fields', async () => {
     const user = userEvent.setup();
     const mockResponse = createMockAiResponse({ response: 'Editor response' });
 
@@ -40,9 +40,11 @@ describe('AskInterface Integration Tests', () => {
 
     // Set up MSW handler to capture the request
     server.use(
-      http.post('http://localhost:8000/ai-chat', async ({ request }) => {
+      http.post('http://*/ai-chat', async ({ request }) => {
+        console.log('MSW Handler: API call intercepted');
         const body = await request.json();
         capturedRequest = body as AiChatRequest;
+        console.log('MSW Handler: Request captured', capturedRequest);
 
         // Use Zod to validate the entire request structure
         const validationResult = aiChatRequestSchema.safeParse(body);
@@ -58,9 +60,15 @@ describe('AskInterface Integration Tests', () => {
       </TestWrapper>
     );
 
-    const input = screen.getByRole('textbox');
-    await user.type(input, 'What does this mean?');
-    await user.keyboard('{Enter}');
+    const questionInput = screen.getByPlaceholderText(
+      'Ask Editor Mate about Swedish...'
+    );
+    await user.type(questionInput, 'What does this mean?');
+
+    // Get all buttons and find the send button (should be the last one)
+    const buttons = screen.getAllByRole('button');
+    const sendButton = buttons[buttons.length - 1]; // Send button is the last button
+    await user.click(sendButton);
 
     await waitFor(() => {
       expect(capturedRequest).not.toBeNull();

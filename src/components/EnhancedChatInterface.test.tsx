@@ -32,7 +32,7 @@ afterAll(() => {
 });
 
 describe('EnhancedChatInterface Integration Tests', () => {
-  test.skip('sending message creates valid API request', async () => {
+  test('sending message creates valid API request', async () => {
     const user = userEvent.setup();
     const mockResponse = createMockAiResponse({
       response: 'Chat Mate response',
@@ -88,7 +88,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
     expect(capturedRequest).toHaveProperty('targetLanguage', 'Swedish');
   });
 
-  test.skip('handles API errors gracefully', async () => {
+  test('handles API errors gracefully', async () => {
     const user = userEvent.setup();
 
     // Set up MSW handler to return error
