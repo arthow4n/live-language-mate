@@ -96,8 +96,9 @@ ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
-      itemConfig.color;
+      // @ts-expect-error -- originally from external library
+      itemConfig.theme?.[theme] ?? itemConfig.color;
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- originally from external library
     return color ? `  --color-${key}: ${color};` : null;
   })
   .join('\n')}
@@ -233,13 +234,11 @@ const ChartTooltipContent = React.forwardRef<
                               'w-1': indicator === 'line',
                             }
                           )}
-                          style={
-                            {
-                              '--color-bg': indicatorColor,
-
-                              '--color-border': indicatorColor,
-                            } as React.CSSProperties
-                          }
+                          style={{
+                            // @ts-expect-error -- CSS variable
+                            '--color-bg': indicatorColor,
+                            '--color-border': indicatorColor,
+                          }}
                         />
                       )
                     )}
