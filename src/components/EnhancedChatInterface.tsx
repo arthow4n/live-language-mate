@@ -1,5 +1,6 @@
 import { Loader2, MessageSquare, Send, Square } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { z } from 'zod';
 
 import type { Message, MessageMetadata } from '@/schemas/messages';
 import type { MessageType, PromptVariables } from '@/services/prompts';
@@ -758,7 +759,11 @@ const EnhancedChatInterface = ({
     );
 
     if (!response.ok) {
-      const errorData = (await response.json()) as { error?: string };
+      const rawErrorData = await response.json();
+      const errorData = z
+        .object({ error: z.string().optional() })
+        .passthrough()
+        .parse(rawErrorData);
       throw new Error(errorData.error ?? 'Failed to get AI response');
     }
 
@@ -770,10 +775,13 @@ const EnhancedChatInterface = ({
         startTime
       );
     } else {
-      const data = (await response.json()) as {
-        reasoning: string;
-        response: string;
-      };
+      const rawData = await response.json();
+      const data = z
+        .object({
+          reasoning: z.string(),
+          response: z.string(),
+        })
+        .parse(rawData);
       const endTime = Date.now();
       const generationTime = endTime - startTime;
       const metadata = {

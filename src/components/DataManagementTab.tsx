@@ -1,10 +1,8 @@
 import { Download, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
+import { z } from 'zod';
 
-import type {
-  ConversationSettingsUpdate,
-  GlobalSettings,
-} from '@/schemas/settings';
+import type { GlobalSettings } from '@/schemas/settings';
 
 import {
   AlertDialog,
@@ -99,13 +97,17 @@ const DataManagementTab = () => {
 
     try {
       const text = await importFile.text();
-      const importedData = JSON.parse(text) as {
-        chatSettings?: Record<string, Partial<ConversationSettingsUpdate>>;
-        conversations?: unknown[];
-        globalSettings?: Partial<GlobalSettings>;
-        settings?: unknown;
-        version?: string;
-      };
+      const rawData = JSON.parse(text);
+      const importedData = z
+        .object({
+          chatSettings: z.record(z.object({}).passthrough()).optional(),
+          conversations: z.array(z.unknown()).optional(),
+          globalSettings: z.object({}).passthrough().optional(),
+          settings: z.unknown().optional(),
+          version: z.string().optional(),
+        })
+        .passthrough()
+        .parse(rawData);
 
       // Handle different export formats for backwards compatibility
       if (importedData.version) {
@@ -122,10 +124,16 @@ const DataManagementTab = () => {
         }
         // Handle conversations if present
         if (importedData.conversations) {
-          const oldData = JSON.parse(
+          const rawOldData = JSON.parse(
             localStorage.getItem('language-mate-data') ??
               '{"conversations": [], "settings": {}}'
-          ) as { conversations: unknown[]; settings: unknown };
+          );
+          const oldData = z
+            .object({
+              conversations: z.array(z.unknown()),
+              settings: z.unknown(),
+            })
+            .parse(rawOldData);
           oldData.conversations = importedData.conversations;
           localStorage.setItem('language-mate-data', JSON.stringify(oldData));
         }
@@ -140,37 +148,42 @@ const DataManagementTab = () => {
 
           // Try to migrate settings to new structure
           const oldSettings = importedData.settings;
+          const settingsParseResult = z
+            .record(z.unknown())
+            .safeParse(oldSettings);
           if (
-            oldSettings &&
-            typeof oldSettings === 'object' &&
-            Object.keys(oldSettings).length > 0
+            settingsParseResult.success &&
+            Object.keys(settingsParseResult.data).length > 0
           ) {
+            const validatedSettings = settingsParseResult.data;
             const newGlobalSettings: Partial<GlobalSettings> = {
               apiKey:
-                'apiKey' in oldSettings &&
-                typeof oldSettings.apiKey === 'string'
-                  ? oldSettings.apiKey
+                'apiKey' in validatedSettings &&
+                typeof validatedSettings.apiKey === 'string'
+                  ? validatedSettings.apiKey
                   : globalSettings.apiKey,
               model:
-                'model' in oldSettings && typeof oldSettings.model === 'string'
-                  ? oldSettings.model
+                'model' in validatedSettings &&
+                typeof validatedSettings.model === 'string'
+                  ? validatedSettings.model
                   : globalSettings.model,
               streaming:
-                'streaming' in oldSettings &&
-                typeof oldSettings.streaming === 'boolean'
-                  ? oldSettings.streaming
+                'streaming' in validatedSettings &&
+                typeof validatedSettings.streaming === 'boolean'
+                  ? validatedSettings.streaming
                   : globalSettings.streaming,
               targetLanguage:
-                'targetLanguage' in oldSettings &&
-                typeof oldSettings.targetLanguage === 'string'
-                  ? oldSettings.targetLanguage
+                'targetLanguage' in validatedSettings &&
+                typeof validatedSettings.targetLanguage === 'string'
+                  ? validatedSettings.targetLanguage
                   : globalSettings.targetLanguage,
-              theme:
-                'theme' in oldSettings &&
-                typeof oldSettings.theme === 'string' &&
-                ['dark', 'light', 'system'].includes(oldSettings.theme)
-                  ? (oldSettings.theme as 'dark' | 'light' | 'system')
-                  : globalSettings.theme,
+              theme: (() => {
+                const theme = validatedSettings.theme;
+                return typeof theme === 'string' &&
+                  ['dark', 'light', 'system'].includes(theme)
+                  ? theme
+                  : globalSettings.theme;
+              })(),
             };
             updateGlobalSettings(newGlobalSettings);
           }

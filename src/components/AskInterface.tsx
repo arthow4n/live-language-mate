@@ -18,7 +18,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useToast } from '@/hooks/use-toast';
-import { aiChatNonStreamResponseSchema } from '@/schemas/api';
+import {
+  aiChatNonStreamResponseSchema,
+  aiChatStreamResponseSchema,
+} from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts';
 
@@ -255,7 +258,6 @@ const AskInterface = ({
       const result = await callEditorMateStreaming(currentQuestion);
       // Type guard to check the result structure
       if (
-        !result ||
         typeof result !== 'object' ||
         !('model' in result) ||
         !('response' in result)
@@ -341,8 +343,9 @@ const AskInterface = ({
                     continue;
                   }
                   const parsed = parseResult.data;
-                  if (parsed.content) {
-                    accumulatedContent += parsed.content;
+                  if (parsed.content && typeof parsed.content === 'string') {
+                    const content: string = parsed.content;
+                    accumulatedContent += content;
                     setConversation((prev) =>
                       prev.map((msg) =>
                         msg.id === editorMessageId

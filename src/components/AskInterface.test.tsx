@@ -71,12 +71,10 @@ describe('AskInterface Integration Tests', () => {
       'editor-mate-response'
     );
     expect(capturedRequest).toHaveProperty('message');
-    expect(
-      capturedRequest &&
-        typeof capturedRequest === 'object' &&
-        'message' in capturedRequest
-        ? capturedRequest.message
-        : ''
-    ).toContain('What does this mean?');
+
+    // Assert that capturedRequest is not null before accessing its properties
+    const request = capturedRequest;
+    expect(request).not.toBeNull();
+    expect(request?.message).toContain('What does this mean?');
   });
 });

@@ -101,7 +101,7 @@ const LanguageMateApp = () => {
           sizes.length === 2 &&
           typeof sizes[0] === 'number' &&
           typeof sizes[1] === 'number'
-          ? ([sizes[0], sizes[1]] as [number, number])
+          ? [sizes[0], sizes[1]]
           : [70, 30];
       } catch {
         return [70, 30];

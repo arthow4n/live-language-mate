@@ -417,10 +417,7 @@ const UnifiedSettingsDialog = ({
                   <UISettingsTab
                     onSettingChange={handleSettingChange}
                     settings={{
-                      theme:
-                        isGlobalMode && 'theme' in settings
-                          ? settings.theme
-                          : 'system',
+                      theme: 'theme' in settings ? settings.theme : 'system',
                     }}
                   />
                 </TabsContent>
