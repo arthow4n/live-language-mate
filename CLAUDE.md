@@ -6,9 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Building and Development
 
-- `npm run check` - Run linter and type check both frontend and backend.
-- `npm test:frontend` - Run frontend test (Vitest), this will also type check the frontend files.
-- `npm test:backend` - Run backend test (Deno), this will also type check the backend files.
+- `npm run check` - Run linter and type check all files in both frontend and backend.
+- `npm run test:frontend` - Run all frontend tests (Vitest), this will also type check the frontend files.
+  - If you need to run test for individual files, just run `npx eslint` directly.
+- `npm run test:backend` - Run all backend tests (Deno), this will also type check the backend files.
 
 ### API Server (backend)
 
