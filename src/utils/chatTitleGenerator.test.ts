@@ -45,8 +45,8 @@ describe('Chat Title Generator Integration Tests', () => {
 
     // Additional specific checks beyond Zod validation
     expect(capturedRequest).toBeTruthy();
-    expect(capturedRequest.messageType).toBe('title-generation');
-    expect(capturedRequest.chatMatePrompt).toBe('N/A');
-    expect(capturedRequest.editorMatePrompt).toBe('N/A');
+    expect(capturedRequest!.messageType).toBe('title-generation');
+    expect(capturedRequest!.chatMatePrompt).toBe('N/A');
+    expect(capturedRequest!.editorMatePrompt).toBe('N/A');
   });
 });
