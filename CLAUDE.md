@@ -138,6 +138,13 @@ The API server can be deployed to any platform supporting Deno:
 - Docker containers
 - VPS with Deno runtime
 
+## Engineering mindset
+
+- Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
+- Prefer integration tests over unit tests. Don't mock modules, instead think of how the data flows and mock from the data's source.
+- Use TDD/BDD as much as possible.
+- Validate and cast unknown objects with Zod.
+
 ## TypeScript coding style and conventions
 
 - Prefer named import/export over default import/export.
