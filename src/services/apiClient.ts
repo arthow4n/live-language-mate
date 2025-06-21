@@ -1,8 +1,11 @@
 import type { AiChatRequest, ModelsResponse } from '@/schemas/api';
 
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  'http://localhost:8000';
+import { modelsResponseSchema } from '@/schemas/api';
+
+const API_BASE_URL = (() => {
+  const url: unknown = import.meta.env.VITE_API_BASE_URL;
+  return typeof url === 'string' ? url : 'http://localhost:8000';
+})();
 
 /**
  *
@@ -27,9 +30,10 @@ async function aiChat(
     const errorText = await response.text();
     let errorMessage: string;
     try {
-      const errorData = JSON.parse(errorText) as { error?: string };
+      const parsed: unknown = JSON.parse(errorText);
+      const apiError = getErrorMessage(parsed);
       errorMessage =
-        errorData.error ?? `API request failed: ${response.status.toString()}`;
+        apiError ?? `API request failed: ${response.status.toString()}`;
     } catch {
       errorMessage = `API request failed: ${response.status.toString()}`;
     }
@@ -37,6 +41,18 @@ async function aiChat(
   }
 
   return response;
+}
+
+/**
+ *
+ * @param value
+ */
+function getErrorMessage(value: unknown): string | undefined {
+  if (value === null || typeof value !== 'object') return undefined;
+  if (!('error' in value)) return undefined;
+  // TypeScript knows 'error' exists in value at this point
+  const errorProperty = value.error;
+  return typeof errorProperty === 'string' ? errorProperty : undefined;
 }
 
 /**
@@ -54,16 +70,18 @@ async function getModels(): Promise<ModelsResponse> {
     const errorText = await response.text();
     let errorMessage: string;
     try {
-      const errorData = JSON.parse(errorText) as { error?: string };
+      const parsed: unknown = JSON.parse(errorText);
+      const apiError = getErrorMessage(parsed);
       errorMessage =
-        errorData.error ?? `API request failed: ${response.status.toString()}`;
+        apiError ?? `API request failed: ${response.status.toString()}`;
     } catch {
       errorMessage = `API request failed: ${response.status.toString()}`;
     }
     throw new Error(errorMessage);
   }
 
-  return response.json() as Promise<ModelsResponse>;
+  const data: unknown = await response.json();
+  return modelsResponseSchema.parse(data);
 }
 
 export const apiClient = {

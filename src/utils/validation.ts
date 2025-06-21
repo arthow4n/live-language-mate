@@ -25,7 +25,7 @@ export const parseStoredData = <T>(
   if (!stored) return null;
 
   try {
-    const parsed = JSON.parse(stored) as unknown;
+    const parsed: unknown = JSON.parse(stored);
     return schema.parse(parsed);
   } catch (error) {
     // Clear invalid data and re-throw for debugging
@@ -47,7 +47,7 @@ export const validateApiRequest = async <T>(
   schema: z.ZodSchema<T>
 ): Promise<T> => {
   try {
-    const body = (await req.json()) as unknown;
+    const body: unknown = await req.json();
     return schema.parse(body);
   } catch (error) {
     throw new Error(

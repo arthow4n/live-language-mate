@@ -40,22 +40,20 @@ export default tseslint.config(
         { ignore: [] },
       ],
 
+      // "@typescript-eslint/explicit-function-return-type": "error"
+      // '@typescript-eslint/ban-ts-comment': 'error',
+      '@typescript-eslint/consistent-type-assertions': [
+        'error',
+        {
+          assertionStyle: 'never',
+        },
+      ],
       '@typescript-eslint/consistent-type-imports': [
         'error',
         {
           fixStyle: 'separate-type-imports',
         },
       ],
-      // "@typescript-eslint/explicit-function-return-type": "error"
-      // '@typescript-eslint/ban-ts-comment': 'error',
-      // '@typescript-eslint/consistent-type-assertions': [
-      //   'error',
-      //   {
-      //     arrayLiteralTypeAssertions: 'allow',
-      //     assertionStyle: 'never',
-      //     objectLiteralTypeAssertions: 'allow',
-      //   },
-      // ],
       // '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/no-import-type-side-effects': 'error',
 
