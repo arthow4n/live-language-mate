@@ -43,7 +43,7 @@ describe('API Client Integration Tests', () => {
     expect(response).toBeInstanceOf(Response);
     expect(response.ok).toBe(true);
 
-    const result = await response.json();
+    const result = (await response.json()) as unknown;
     expect(result).toEqual(mockResponse);
   });
 

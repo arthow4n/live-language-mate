@@ -63,9 +63,9 @@ const EnhancedChatMessage = ({
         messageId: message.id,
         messageType: message.type,
         hasContent: !!message.content,
-        contentLength: message.content?.length || 0,
+        contentLength: message.content.length,
         hasReasoning: !!message.reasoning,
-        reasoningLength: message.reasoning?.length || 0,
+        reasoningLength: message.reasoning?.length ?? 0,
         isStreaming: message.isStreaming,
         globalReasoningEnabled: globalSettings.enableReasoning,
       });
@@ -126,13 +126,13 @@ const EnhancedChatMessage = ({
 
   const formatGenerationTime = (timeMs: number) => {
     if (timeMs < 1000) {
-      return `${timeMs}ms`;
+      return `${timeMs.toString()}ms`;
     }
     return `${(timeMs / 1000).toFixed(1)}s`;
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(message.content);
+    void navigator.clipboard.writeText(message.content);
   };
 
   const getDisplayName = () => {
@@ -181,7 +181,7 @@ const EnhancedChatMessage = ({
 
           {/* Metadata display */}
           {message.metadata &&
-            (message.metadata.model || message.metadata.generationTime) && (
+            (message.metadata.model ?? message.metadata.generationTime) && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {message.metadata.model && (
                   <div className="flex items-center gap-1">

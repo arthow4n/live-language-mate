@@ -13,12 +13,7 @@ interface ThemeProviderState {
   setTheme: (theme: Theme) => void;
 }
 
-const initialState: ThemeProviderState = {
-  theme: 'system',
-  setTheme: () => null,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+const ThemeProviderContext = createContext<ThemeProviderState | null>(null);
 
 export function ThemeProvider({
   children,
@@ -33,7 +28,7 @@ export function ThemeProvider({
         'language-mate-global-settings'
       );
       if (globalSettings) {
-        const parsed = JSON.parse(globalSettings);
+        const parsed = JSON.parse(globalSettings) as { theme?: string };
         if (parsed.theme) {
           console.log('🎨 Loading theme from global settings:', parsed.theme);
           return parsed.theme as Theme;
@@ -45,7 +40,7 @@ export function ThemeProvider({
 
     // Fallback to old theme storage
     const stored = localStorage.getItem(storageKey);
-    return (stored as Theme) || defaultTheme;
+    return stored ? (stored as Theme) : defaultTheme;
   });
 
   useEffect(() => {
@@ -87,8 +82,9 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
-  if (context === undefined)
+  if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider');
+  }
 
   return context;
 };

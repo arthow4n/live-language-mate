@@ -400,7 +400,7 @@ const EnhancedChatInterface = ({
       let messageType = '';
       if (message.type === 'chat-mate') {
         messageType = 'chat-mate-response';
-      } else if (message.type === 'editor-mate') {
+      } else {
         const isUserComment =
           message.parentMessageId &&
           messages.find((m) => m.id === message.parentMessageId)?.type ===
@@ -482,7 +482,7 @@ const EnhancedChatInterface = ({
     let buffer = '';
 
     try {
-      while (true) {
+      while (componentReady) {
         const { done, value } = await reader.read();
 
         if (done) break;
@@ -609,7 +609,7 @@ const EnhancedChatInterface = ({
     return { content: fullContent, reasoning: reasoningContent, metadata };
   };
 
-  const forkFromMessage = async (messageId: string) => {
+  const forkFromMessage = (messageId: string) => {
     try {
       // Find the message index
       const messageIndex = messages.findIndex((msg) => msg.id === messageId);
@@ -657,12 +657,12 @@ const EnhancedChatInterface = ({
       targetLanguage,
       chatMatePersonality: chatMatePrompt,
       chatMateBackground:
-        chatSettings?.chatMateBackground ||
+        chatSettings?.chatMateBackground ??
         'A friendly local who enjoys helping people learn the language and culture.',
       editorMatePersonality: currentEditorMatePrompt,
       editorMateExpertise:
-        chatSettings?.editorMateExpertise || '10+ years teaching experience',
-      feedbackStyle: chatSettings?.feedbackStyle || 'encouraging',
+        chatSettings?.editorMateExpertise ?? '10+ years teaching experience',
+      feedbackStyle: chatSettings?.feedbackStyle ?? 'encouraging',
       culturalContext: chatSettings?.culturalContext ?? true,
       progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
     };
@@ -736,8 +736,8 @@ const EnhancedChatInterface = ({
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to get AI response');
+      const errorData = (await response.json()) as { error?: string };
+      throw new Error(errorData.error ?? 'Failed to get AI response');
     }
 
     const contentType = response.headers.get('content-type');
@@ -748,7 +748,10 @@ const EnhancedChatInterface = ({
         startTime
       );
     } else {
-      const data = await response.json();
+      const data = (await response.json()) as {
+        response: string;
+        reasoning: string;
+      };
       const endTime = Date.now();
       const generationTime = endTime - startTime;
       const metadata = {
@@ -807,7 +810,7 @@ const EnhancedChatInterface = ({
     }
 
     const userMessage: Message = {
-      id: `temp-${Date.now()}`,
+      id: `temp-${Date.now().toString()}`,
       type: 'user',
       content: inputMessage.trim(),
       timestamp: new Date(),
@@ -846,9 +849,9 @@ const EnhancedChatInterface = ({
 
       console.log('🔄 Processing AI responses for message:', currentInput);
 
-      const editorUserTempId = `temp-${Date.now() + 1}`;
-      const chatMateTempId = `temp-${Date.now() + 2}`;
-      const editorChatMateTempId = `temp-${Date.now() + 3}`;
+      const editorUserTempId = `temp-${(Date.now() + 1).toString()}`;
+      const chatMateTempId = `temp-${(Date.now() + 2).toString()}`;
+      const editorChatMateTempId = `temp-${(Date.now() + 3).toString()}`;
 
       // Editor Mate comment on user message
       const editorUserMessage: Message = {
@@ -857,7 +860,7 @@ const EnhancedChatInterface = ({
         content: '',
         timestamp: new Date(),
         isStreaming: true,
-        parentMessageId: savedUserMessage?.id || userMessage.id,
+        parentMessageId: savedUserMessage?.id ?? userMessage.id,
       };
 
       setMessages((prev) => [...prev, editorUserMessage]);
@@ -875,7 +878,7 @@ const EnhancedChatInterface = ({
           type: 'editor-mate',
           content: editorUserResult.content,
           reasoning: editorUserResult.reasoning,
-          parentMessageId: savedUserMessage?.id || userMessage.id,
+          parentMessageId: savedUserMessage?.id ?? userMessage.id,
           metadata: editorUserResult.metadata,
         },
         currentConversationId
@@ -951,7 +954,7 @@ const EnhancedChatInterface = ({
         content: '',
         timestamp: new Date(),
         isStreaming: true,
-        parentMessageId: savedChatMateMessage?.id || chatMateTempId,
+        parentMessageId: savedChatMateMessage?.id ?? chatMateTempId,
       };
 
       setMessages((prev) => [...prev, editorChatMateMessage]);
@@ -969,7 +972,7 @@ const EnhancedChatInterface = ({
           type: 'editor-mate',
           content: editorChatMateResult.content,
           reasoning: editorChatMateResult.reasoning,
-          parentMessageId: savedChatMateMessage?.id || chatMateTempId,
+          parentMessageId: savedChatMateMessage?.id ?? chatMateTempId,
           metadata: editorChatMateResult.metadata,
         },
         currentConversationId
@@ -1022,7 +1025,7 @@ const EnhancedChatInterface = ({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      void handleSendMessage();
     }
   };
 
@@ -1056,7 +1059,9 @@ const EnhancedChatInterface = ({
             key={message.id}
             message={message}
             onTextSelect={handleTextSelect}
-            onRegenerateMessage={regenerateMessage}
+            onRegenerateMessage={(messageId) =>
+              void regenerateMessage(messageId)
+            }
             onEditMessage={editMessage}
             onDeleteMessage={deleteMessage}
             onDeleteAllBelow={deleteAllBelow}
@@ -1091,7 +1096,7 @@ const EnhancedChatInterface = ({
               onChange={(e) => {
                 setInputMessage(e.target.value);
               }}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder={`Type in ${targetLanguage} or your native language...`}
               className="flex-1 min-h-[40px] max-h-[120px]"
               disabled={isLoading}
@@ -1109,7 +1114,7 @@ const EnhancedChatInterface = ({
               </Button>
             )}
             <Button
-              onClick={handleSendMessage}
+              onClick={() => void handleSendMessage()}
               disabled={!inputMessage.trim() || isLoading}
               size="icon"
               className="h-10 w-10 flex-shrink-0"

@@ -36,12 +36,16 @@ describe('API Schema Integration Tests', () => {
     ];
 
     requiredFields.forEach((field) => {
-      const requestWithoutField = createRealChatRequest();
-      delete (requestWithoutField as Record<string, unknown>)[field];
+      const requestWithoutField = createRealChatRequest() as Record<
+        string,
+        unknown
+      >;
+      const { [field]: _, ...requestWithoutFieldDeleted } = requestWithoutField;
+      void _;
 
-      expect(() => aiChatRequestSchema.parse(requestWithoutField)).toThrow(
-        /Required/
-      );
+      expect(() =>
+        aiChatRequestSchema.parse(requestWithoutFieldDeleted)
+      ).toThrow(/Required/);
     });
   });
 });

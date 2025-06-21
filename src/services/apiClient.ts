@@ -6,7 +6,8 @@ import {
 
 // Configuration for the standalone API
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+  'http://localhost:8000';
 
 // Import types from schemas - no more manual interfaces
 import type { AiChatRequest, ModelsResponse } from '@/types/api';
@@ -42,11 +43,11 @@ class ApiClient {
 
     if (!response.ok) {
       try {
-        const errorData = await response.json();
+        const errorData = (await response.json()) as unknown;
         const validatedError = apiErrorResponseSchema.parse(errorData);
         throw new Error(validatedError.error);
       } catch {
-        throw new Error(`API request failed: ${response.status}`);
+        throw new Error(`API request failed: ${response.status.toString()}`);
       }
     }
 
@@ -64,15 +65,15 @@ class ApiClient {
 
       if (!response.ok) {
         try {
-          const errorData = await response.json();
+          const errorData = (await response.json()) as unknown;
           const validatedError = apiErrorResponseSchema.parse(errorData);
           throw new Error(validatedError.error);
         } catch {
-          throw new Error(`API request failed: ${response.status}`);
+          throw new Error(`API request failed: ${response.status.toString()}`);
         }
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as unknown;
       // Validate response data - strict validation
       const validatedData = modelsResponseSchema.parse(data);
       return { data: validatedData };

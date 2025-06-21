@@ -77,7 +77,7 @@ const ModelSelector = ({
           );
           setModels(validModels);
           console.log(
-            `Loaded ${data.models.length} models${data.fallback ? ' (using fallback)' : ''}`
+            `Loaded ${data.models.length.toString()} models${data.fallback ? ' (using fallback)' : ''}`
           );
         } else {
           throw new Error('No models data received');
@@ -100,7 +100,7 @@ const ModelSelector = ({
       }
     };
 
-    loadModels();
+    void loadModels();
   }, []);
 
   const selectedModel = models.find((model) => model.id === value);

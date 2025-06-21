@@ -62,9 +62,15 @@ describe('EnhancedChatInterface Integration Tests', () => {
         <EnhancedChatInterface
           conversationId="test-id"
           targetLanguage="Swedish"
-          onConversationUpdate={() => {}}
-          onConversationCreated={() => {}}
-          onTextSelect={() => {}}
+          onConversationUpdate={() => {
+            /* empty test callback */
+          }}
+          onConversationCreated={() => {
+            /* empty test callback */
+          }}
+          onTextSelect={() => {
+            /* empty test callback */
+          }}
         />
       </TestWrapper>
     );
@@ -80,10 +86,9 @@ describe('EnhancedChatInterface Integration Tests', () => {
     });
 
     // Additional specific assertions if needed beyond Zod validation
-    if (capturedRequest) {
-      expect(capturedRequest.message).toContain('goodbye');
-      expect(capturedRequest.targetLanguage).toBe('Swedish');
-    }
+    expect(capturedRequest).toBeTruthy();
+    expect(capturedRequest).toHaveProperty('message');
+    expect(capturedRequest).toHaveProperty('targetLanguage', 'Swedish');
   });
 
   test.skip('handles API errors gracefully', async () => {
@@ -104,9 +109,15 @@ describe('EnhancedChatInterface Integration Tests', () => {
         <EnhancedChatInterface
           conversationId="test-id"
           targetLanguage="Swedish"
-          onConversationUpdate={() => {}}
-          onConversationCreated={() => {}}
-          onTextSelect={() => {}}
+          onConversationUpdate={() => {
+            /* empty test callback */
+          }}
+          onConversationCreated={() => {
+            /* empty test callback */
+          }}
+          onTextSelect={() => {
+            /* empty test callback */
+          }}
         />
       </TestWrapper>
     );

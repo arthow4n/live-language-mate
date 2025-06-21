@@ -102,8 +102,10 @@ const LanguageMateApp = () => {
     const saved = localStorage.getItem('languageMate_panelSizes');
     if (saved) {
       try {
-        const sizes = JSON.parse(saved);
-        return Array.isArray(sizes) && sizes.length === 2 ? sizes : [70, 30];
+        const sizes = JSON.parse(saved) as unknown[];
+        return Array.isArray(sizes) && sizes.length === 2
+          ? (sizes as [number, number])
+          : [70, 30];
       } catch {
         return [70, 30];
       }
@@ -300,7 +302,7 @@ const LanguageMateApp = () => {
           mode="chat"
           initialSettings={getCombinedChatSettings()}
           onSave={handleChatSettingsSave}
-          conversationTitle={currentConversation?.title || 'New Chat'}
+          conversationTitle={currentConversation?.title ?? 'New Chat'}
         />
       </div>
     </SidebarProvider>

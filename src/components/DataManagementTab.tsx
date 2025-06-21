@@ -8,7 +8,7 @@ import {
   useSettings,
 } from '@/contexts/SettingsContext';
 import { Download, Upload, Trash2 } from 'lucide-react';
-import { type ChatSettingsUpdate } from '@/types/settings';
+import { type ChatSettingsUpdate, type GlobalSettings } from '@/types/settings';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,30 +87,31 @@ const DataManagementTab = () => {
       const text = await importFile.text();
       const importedData = JSON.parse(text) as {
         version?: string;
-        globalSettings?: any;
-        chatSettings?: Record<string, any>;
-        conversations?: any[];
+        globalSettings?: Partial<GlobalSettings>;
+        chatSettings?: Record<string, Partial<ChatSettingsUpdate>>;
+        conversations?: unknown[];
+        settings?: unknown;
       };
 
       // Handle different export formats for backwards compatibility
       if (importedData.version) {
         // New format with version
         if (importedData.globalSettings) {
-          updateGlobalSettings(importedData.globalSettings as any);
+          updateGlobalSettings(importedData.globalSettings);
         }
         if (importedData.chatSettings) {
           Object.entries(importedData.chatSettings).forEach(
             ([id, settings]) => {
-              updateChatSettings(id, settings as ChatSettingsUpdate);
+              updateChatSettings(id, settings);
             }
           );
         }
         // Handle conversations if present
         if (importedData.conversations) {
           const oldData = JSON.parse(
-            localStorage.getItem('language-mate-data') ||
+            localStorage.getItem('language-mate-data') ??
               '{"conversations": [], "settings": {}}'
-          );
+          ) as { conversations: unknown[]; settings: unknown };
           oldData.conversations = importedData.conversations;
           localStorage.setItem('language-mate-data', JSON.stringify(oldData));
         }
@@ -124,18 +125,25 @@ const DataManagementTab = () => {
           );
 
           // Try to migrate settings to new structure
-          const oldSettings = importedData.settings;
-          if (oldSettings) {
-            const newGlobalSettings = {
-              model: oldSettings.model || globalSettings.model,
-              apiKey: oldSettings.apiKey || globalSettings.apiKey,
+          const oldSettings = importedData.settings as Record<string, unknown>;
+          if (Object.keys(oldSettings).length > 0) {
+            const newGlobalSettings: Partial<GlobalSettings> = {
+              model:
+                (oldSettings.model as string | undefined) ??
+                globalSettings.model,
+              apiKey:
+                (oldSettings.apiKey as string | undefined) ??
+                globalSettings.apiKey,
               targetLanguage:
-                oldSettings.targetLanguage || globalSettings.targetLanguage,
+                (oldSettings.targetLanguage as string | undefined) ??
+                globalSettings.targetLanguage,
               streaming:
                 oldSettings.streaming !== undefined
-                  ? oldSettings.streaming
+                  ? (oldSettings.streaming as boolean)
                   : globalSettings.streaming,
-              theme: oldSettings.theme || globalSettings.theme,
+              theme:
+                (oldSettings.theme as string | undefined) ??
+                globalSettings.theme,
             };
             updateGlobalSettings(newGlobalSettings);
           }
@@ -150,8 +158,10 @@ const DataManagementTab = () => {
       // Reset the file input
       const fileInput = document.getElementById(
         'import-file'
-      ) as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      ) as HTMLInputElement | null;
+      if (fileInput) {
+        fileInput.value = '';
+      }
     } catch {
       toast({
         title: 'Import failed',
@@ -188,8 +198,8 @@ const DataManagementTab = () => {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    setImportFile(file || null);
+    const file = event.target.files?.[0] ?? null;
+    setImportFile(file ?? null);
   };
 
   return (
@@ -223,7 +233,7 @@ const DataManagementTab = () => {
               className="cursor-pointer"
             />
             <Button
-              onClick={handleImportData}
+              onClick={() => void handleImportData()}
               disabled={!importFile}
               className="w-full"
             >

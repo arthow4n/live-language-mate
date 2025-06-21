@@ -41,7 +41,7 @@ class LocalStorageService {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
+        const parsed = JSON.parse(stored) as unknown;
 
         // Convert date strings back to Date objects before validation
         // Type for raw parsed data from localStorage (with string dates)
@@ -81,8 +81,8 @@ class LocalStorageService {
                 conv.messages?.map((msg) => ({
                   ...msg,
                   timestamp: new Date(msg.timestamp),
-                })) || [],
-            })) || [],
+                })) ?? [],
+            })) ?? [],
         };
 
         // Validate with Zod schema - strict validation
@@ -117,7 +117,7 @@ class LocalStorageService {
 
   getConversation(id: string): LocalConversation | null {
     const conversations = this.getConversations();
-    return conversations.find((conv) => conv.id === id) || null;
+    return conversations.find((conv) => conv.id === id) ?? null;
   }
 
   saveConversation(conversation: LocalConversation): void {
@@ -152,7 +152,7 @@ class LocalStorageService {
 
     if (conversation) {
       const newMessage: LocalMessage = {
-        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+        id: `msg_${Date.now().toString()}_${Math.random().toString(36).substring(2)}`,
         timestamp: new Date(),
         ...message,
       };
@@ -236,7 +236,7 @@ class LocalStorageService {
 
   importData(jsonData: string): boolean {
     try {
-      const data = JSON.parse(jsonData);
+      const data = JSON.parse(jsonData) as unknown;
       // Validate the structure
       if (!data.conversations || !data.settings) {
         throw new Error('Invalid data structure');

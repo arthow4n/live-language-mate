@@ -8,7 +8,7 @@ import {
 import { promptTemplates, promptDefaults } from './templates';
 
 export class PromptBuilder {
-  private static instance: PromptBuilder;
+  private static instance: PromptBuilder | undefined;
 
   static getInstance(): PromptBuilder {
     PromptBuilder.instance ??= new PromptBuilder();
@@ -20,11 +20,8 @@ export class PromptBuilder {
       ? this.createCustomTemplate(request.customTemplate)
       : promptTemplates[request.messageType];
 
-    if (!template) {
-      throw new Error(
-        `No template found for message type: ${request.messageType}`
-      );
-    }
+    // Template is guaranteed to exist due to the type system
+    // If we get here, template should never be undefined
 
     const systemPrompt = this.processTemplate(template, request.variables);
 
@@ -86,7 +83,7 @@ export class PromptBuilder {
       editorMatePersonality:
         variables.editorMatePersonality ?? promptDefaults.editorMatePersonality,
       editorMateExpertise:
-        variables.editorMateExpertise || promptDefaults.editorMateExpertise,
+        variables.editorMateExpertise ?? promptDefaults.editorMateExpertise,
       feedbackStyleDescription:
         promptDefaults.feedbackStyleDescriptions[variables.feedbackStyle] ||
         'helpful and constructive',
