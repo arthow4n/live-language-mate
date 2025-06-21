@@ -1,10 +1,10 @@
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import js from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier';
-// import jsdoc from 'eslint-plugin-jsdoc';
-// import testingLibrary from 'eslint-plugin-testing-library';
 import perfectionist from 'eslint-plugin-perfectionist';
 import reactHooks from 'eslint-plugin-react-hooks';
+// import jsdoc from 'eslint-plugin-jsdoc';
+import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -14,7 +14,7 @@ export default tseslint.config(
   prettierConfig,
   comments.recommended,
   // jsdoc.configs['flat/recommended-typescript-error'],
-  // testingLibrary.configs['flat/react'],
+  testingLibrary.configs['flat/react'],
   reactHooks.configs['recommended-latest'],
   {
     extends: [

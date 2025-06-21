@@ -152,8 +152,8 @@ describe('ChatSidebar Integration Tests', () => {
     // Wait for conversations to load
     await waitFor(() => {
       expect(screen.getByText('First Conversation')).toBeInTheDocument();
-      expect(screen.getByText('Second Conversation')).toBeInTheDocument();
     });
+    expect(screen.getByText('Second Conversation')).toBeInTheDocument();
 
     // Click on first conversation
     const firstConv = screen.getByText('First Conversation');
