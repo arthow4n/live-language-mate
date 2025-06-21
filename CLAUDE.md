@@ -177,9 +177,13 @@ The API server can be deployed to any platform supporting Deno:
 - Prioritise to use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
 - If there's a tool instead of command, use the tool, for example, use your own Read tool instead of running commands to read file.
-- If you must run a command, prefer read-only command, for example use `git ls-files` instead of running `find` command.
-- If you need to remove files, use `git rm` instead of `rm`.
-- You should not update any config files unless that's the only way or the best way to fix things, if you must update a config file, pause and ask the user for feedback.
+- You should not update any config files, unless that's the only way or the best way to fix things, if you must update a config file, pause and ask the user for feedback.
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
 - If you would eslint disable anything, think again and see if there's a better approach to fix it, if you still need to eslint disable, make sure you add -- comment after it to explain why you chose to disable.
-- Don't `grep` the lint result or test result, if you need to run a focused check, just use the focused commands.
+- Don't `grep` the lint result or test result or count errors, if you need to run a focused check, just use the focused commands.
+
+### Instead of command X, use Y
+
+- `rg`, `grep` -> use Search tool
+- `find` -> `git ls-files`
+- `rm` -> `git rm`
