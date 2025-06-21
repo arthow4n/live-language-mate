@@ -1,5 +1,5 @@
-import { aiChatRequestSchema } from '@/schemas/api.ts';
-import { validateApiRequest } from '@/utils/validation.ts';
+import { aiChatRequestSchema } from '../../src/schemas/api.ts';
+import { validateApiRequest } from '../../src/utils/validation.ts';
 
 export async function aiChatHandler(req: Request): Promise<Response> {
   try {
@@ -27,7 +27,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
       enableReasoning,
     } = requestData;
 
-    const model = originalModel.replace(/:thinking$/, '');
+    const model = (originalModel as string).replace(/:thinking$/, '');
 
     console.log('🔍 AI Chat request received:', {
       messageType,
@@ -48,7 +48,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
 
     const openRouterApiKey = apiKey?.trim()
       ? apiKey.trim()
-      : Deno.env.get('OPENAI_API_KEY');
+      : (Deno.env.get('OPENAI_API_KEY') ?? '');
 
     if (!openRouterApiKey) {
       throw new Error(
