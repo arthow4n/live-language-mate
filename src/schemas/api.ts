@@ -58,7 +58,7 @@ export const aiChatStreamResponseSchema = z
 export const aiChatNonStreamResponseSchema = z
   .object({
     response: z.string(),
-    reasoning: z.string().nullable(),
+    reasoning: z.string().optional(),
   })
   .strict();
 

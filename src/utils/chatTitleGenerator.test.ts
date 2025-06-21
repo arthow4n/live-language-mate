@@ -30,7 +30,7 @@ describe('Chat Title Generator Integration Tests', () => {
       })
     );
 
-    const history = [
+    const history: { message_type: string; content: string }[] = [
       { message_type: 'user', content: 'How do I say hello in Swedish?' },
       { message_type: 'assistant', content: 'You can say "Hej" or "Hallo"' },
     ];

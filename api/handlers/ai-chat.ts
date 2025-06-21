@@ -310,10 +310,7 @@ Language notes:
       const message = data.choices[0].message;
       const aiResponse = message.content;
 
-      let reasoning = null;
-      if (message.reasoning) {
-        reasoning = message.reasoning;
-      }
+      const reasoning = message.reasoning || undefined;
 
       console.log('✅ OpenRouter response received successfully:', {
         model,
@@ -325,7 +322,7 @@ Language notes:
       // Validate response before sending - strict validation
       const responseData = {
         response: aiResponse || '',
-        reasoning: reasoning || null,
+        reasoning,
       };
 
       return new Response(JSON.stringify(responseData), {

@@ -60,7 +60,9 @@ Deno.test('AI Chat Handler - validates real frontend requests', async () => {
     url: string | URL | Request,
     init?: RequestInit
   ): Promise<Response> => {
-    if (url.toString().includes('openrouter.ai')) {
+    const urlString =
+      typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+    if (urlString.includes('openrouter.ai')) {
       return new Response(
         JSON.stringify({
           choices: [{ message: { content: 'Test response' } }],
@@ -121,7 +123,7 @@ Deno.test('AI Chat Handler - rejects invalid requests', async () => {
 Deno.test(
   'AI Chat Handler - OpenRouter payload structure validation',
   async () => {
-    let capturedPayload: OpenRouterPayload = {} as OpenRouterPayload;
+    let capturedPayload: OpenRouterPayload | null = null;
 
     // Mock fetch to capture the payload sent to OpenRouter
     const originalFetch = globalThis.fetch;
@@ -129,10 +131,12 @@ Deno.test(
       url: string | URL | Request,
       init?: RequestInit
     ): Promise<Response> => {
-      if (url.toString().includes('openrouter.ai')) {
+      const urlString =
+        typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+      if (urlString.includes('openrouter.ai')) {
         const bodyString = init?.body;
         if (typeof bodyString === 'string') {
-          capturedPayload = JSON.parse(bodyString);
+          capturedPayload = JSON.parse(bodyString) as OpenRouterPayload;
         }
 
         // Return properly typed mock response
@@ -167,14 +171,16 @@ Deno.test(
 
     // Verify the OpenRouter payload structure with proper null check
     assertExists(capturedPayload);
-    assertEquals(capturedPayload.model, 'google/gemini-2.5-flash');
-    assertEquals(capturedPayload.stream, false);
-    assertEquals(capturedPayload.temperature, 0.7);
-    assertEquals(capturedPayload.max_tokens, 4096); // Should be 4096 when reasoning enabled
-    assertExists(capturedPayload.reasoning);
-    assertEquals(capturedPayload.reasoning.max_tokens, 2000);
-    assertExists(capturedPayload.messages);
-    assertEquals(Array.isArray(capturedPayload.messages), true);
+    if (capturedPayload) {
+      assertEquals(capturedPayload.model, 'google/gemini-2.5-flash');
+      assertEquals(capturedPayload.stream, false);
+      assertEquals(capturedPayload.temperature, 0.7);
+      assertEquals(capturedPayload.max_tokens, 4096); // Should be 4096 when reasoning enabled
+      assertExists(capturedPayload.reasoning);
+      assertEquals(capturedPayload.reasoning.max_tokens, 2000);
+      assertExists(capturedPayload.messages);
+      assertEquals(Array.isArray(capturedPayload.messages), true);
+    }
 
     // Restore original fetch
     globalThis.fetch = originalFetch;

@@ -442,7 +442,7 @@ const EnhancedChatInterface = ({
         description: 'Message regenerated',
       });
     } catch (error) {
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         console.log('🛑 Regeneration cancelled by user.');
         toast({
           title: 'Cancelled',
@@ -676,7 +676,7 @@ const EnhancedChatInterface = ({
     signal: AbortSignal
   ): Promise<{
     content: string;
-    reasoning: string | null;
+    reasoning: string | undefined;
     metadata: MessageMetadata;
   }> => {
     console.log('🚀 Calling AI with model:', effectiveModel);
@@ -991,7 +991,7 @@ const EnhancedChatInterface = ({
 
       onConversationUpdate();
     } catch (error) {
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         console.log('🛑 Generation cancelled by user.');
         toast({
           title: 'Cancelled',
@@ -1004,7 +1004,8 @@ const EnhancedChatInterface = ({
         console.error('❌ Error sending message:', error);
         toast({
           title: 'Error',
-          description: error.message || 'Failed to send message',
+          description:
+            error instanceof Error ? error.message : 'Failed to send message',
           variant: 'destructive',
         });
       }

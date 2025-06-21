@@ -59,7 +59,7 @@ const LanguageMateApp = () => {
     ? getConversation(currentConversationId)
     : null;
 
-  const handleConversationSelect = (conversationId: string) => {
+  const handleConversationSelect = (conversationId: string | null) => {
     setCurrentConversationId(conversationId);
   };
 
