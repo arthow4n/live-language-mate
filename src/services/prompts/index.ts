@@ -4,8 +4,4 @@ export * from './promptBuilder';
 export * from './templates';
 
 // Re-export key functions for convenience
-export {
-  buildPrompt,
-  previewPrompt,
-  getAvailableTemplates,
-} from './promptBuilder';
+export { buildPrompt, getAvailableTemplates } from './promptBuilder';
