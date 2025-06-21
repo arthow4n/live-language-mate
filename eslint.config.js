@@ -40,7 +40,6 @@ export default tseslint.config(
         { ignore: [] },
       ],
 
-      // '@typescript-eslint/explicit-function-return-type': 'error', // Too strict - 163 violations, TypeScript inference is sufficient
       '@typescript-eslint/ban-ts-comment': 'error',
       '@typescript-eslint/consistent-type-assertions': [
         'error',
@@ -54,6 +53,7 @@ export default tseslint.config(
           fixStyle: 'separate-type-imports',
         },
       ],
+      '@typescript-eslint/explicit-function-return-type': 'error', // Helps to clarify type for LLM processing
       '@typescript-eslint/no-import-type-side-effects': 'error',
       '@typescript-eslint/no-unsafe-argument': 'off', // TODO: Turn on to error again.
       '@typescript-eslint/no-unsafe-assignment': 'off', // TODO: Turn on to error again.
