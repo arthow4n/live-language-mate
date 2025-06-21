@@ -40,10 +40,12 @@ const DataManagementTab = () => {
         chatSettings,
         // Include conversations from localStorage for backwards compatibility
         conversations:
-          JSON.parse(
-            localStorage.getItem('language-mate-data') ||
-              '{"conversations": []}'
-          ).conversations || [],
+          (
+            JSON.parse(
+              localStorage.getItem('language-mate-data') ??
+                '{"conversations": []}'
+            ) as { conversations?: any[] }
+          ).conversations ?? [],
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], {
@@ -83,13 +85,18 @@ const DataManagementTab = () => {
 
     try {
       const text = await importFile.text();
-      const importedData = JSON.parse(text);
+      const importedData = JSON.parse(text) as {
+        version?: string;
+        globalSettings?: any;
+        chatSettings?: Record<string, any>;
+        conversations?: any[];
+      };
 
       // Handle different export formats for backwards compatibility
       if (importedData.version) {
         // New format with version
         if (importedData.globalSettings) {
-          updateGlobalSettings(importedData.globalSettings);
+          updateGlobalSettings(importedData.globalSettings as any);
         }
         if (importedData.chatSettings) {
           Object.entries(importedData.chatSettings).forEach(

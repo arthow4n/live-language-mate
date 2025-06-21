@@ -286,7 +286,7 @@ const ChatSidebar = ({
               setEditTitle(e.target.value);
             }}
             placeholder="Enter new title..."
-            onKeyPress={(e) => {
+            onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleRenameConversation();
               }
