@@ -31,7 +31,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Message } from '@/schemas/messages';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 
 interface EnhancedChatMessageProps {
   message: Message;
@@ -55,7 +55,7 @@ const EnhancedChatMessage = ({
   const [, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
-  const { globalSettings } = useSettings();
+  const { globalSettings } = useUnifiedStorage();
 
   useEffect(() => {
     if (message.type !== 'user') {

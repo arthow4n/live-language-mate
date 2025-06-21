@@ -5,11 +5,11 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import {
   getDefaultGlobalSettings,
-  useSettings,
-} from '@/contexts/SettingsContext';
+  useUnifiedStorage,
+} from '@/contexts/UnifiedStorageContext';
 import { Download, Upload, Trash2 } from 'lucide-react';
 import {
-  type ChatSettingsUpdate,
+  type ConversationSettingsUpdate,
   type GlobalSettings,
 } from '@/schemas/settings';
 import {
@@ -28,10 +28,10 @@ const DataManagementTab = () => {
   const [importFile, setImportFile] = useState<File | null>(null);
   const {
     globalSettings,
-    chatSettings,
+    conversationSettings,
     updateGlobalSettings,
-    updateChatSettings,
-  } = useSettings();
+    updateConversationSettings,
+  } = useUnifiedStorage();
   const { toast } = useToast();
 
   const handleExportData = () => {
@@ -40,7 +40,7 @@ const DataManagementTab = () => {
         version: '1.0.0',
         exportDate: new Date().toISOString(),
         globalSettings,
-        chatSettings,
+        chatSettings: conversationSettings,
         // Include conversations from localStorage for backwards compatibility
         conversations:
           (
@@ -91,7 +91,7 @@ const DataManagementTab = () => {
       const importedData = JSON.parse(text) as {
         version?: string;
         globalSettings?: Partial<GlobalSettings>;
-        chatSettings?: Record<string, Partial<ChatSettingsUpdate>>;
+        chatSettings?: Record<string, Partial<ConversationSettingsUpdate>>;
         conversations?: unknown[];
         settings?: unknown;
       };
@@ -105,7 +105,7 @@ const DataManagementTab = () => {
         if (importedData.chatSettings) {
           Object.entries(importedData.chatSettings).forEach(
             ([id, settings]) => {
-              updateChatSettings(id, settings);
+              updateConversationSettings(id, settings);
             }
           );
         }

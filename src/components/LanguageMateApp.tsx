@@ -17,13 +17,12 @@ import ChatSidebar from './ChatSidebar';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import AskInterface from './AskInterface';
 import UnifiedSettingsDialog from './UnifiedSettingsDialog';
-import { useSettings } from '@/contexts/SettingsContext';
-import { useLocalStorage } from '@/contexts/LocalStorageContext';
+import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/components/ThemeProvider';
 import {
   type GlobalSettingsUpdate,
-  type ChatSettingsUpdate,
+  type ConversationSettingsUpdate,
 } from '@/schemas/settings';
 
 const LanguageMateApp = () => {
@@ -41,11 +40,11 @@ const LanguageMateApp = () => {
   const {
     globalSettings,
     updateGlobalSettings,
-    getChatSettings,
-    updateChatSettings,
-    createChatSettings,
-  } = useSettings();
-  const { getConversation, updateSettings } = useLocalStorage();
+    getConversationSettings,
+    updateConversationSettings,
+    createConversationSettings,
+    getConversation,
+  } = useUnifiedStorage();
   const { setTheme } = useTheme();
   const isMobile = useIsMobile();
 
@@ -73,24 +72,16 @@ const LanguageMateApp = () => {
 
   const handleConversationCreated = (conversationId: string) => {
     setCurrentConversationId(conversationId);
-    // Create chat-specific settings from global defaults when a new conversation is created
-    createChatSettings(conversationId);
+    createConversationSettings(conversationId);
   };
 
   const handleGlobalSettingsSave = (newSettings: GlobalSettingsUpdate) => {
     updateGlobalSettings(newSettings);
-    // Also update the legacy settings format for backwards compatibility
-    updateSettings({
-      model: newSettings.model,
-      apiKey: newSettings.apiKey,
-      targetLanguage: newSettings.targetLanguage,
-      streaming: newSettings.streaming,
-    });
   };
 
-  const handleChatSettingsSave = (chatSettings: ChatSettingsUpdate) => {
+  const handleChatSettingsSave = (chatSettings: ConversationSettingsUpdate) => {
     if (currentConversationId) {
-      updateChatSettings(currentConversationId, chatSettings);
+      updateConversationSettings(currentConversationId, chatSettings);
     }
   };
 
@@ -130,13 +121,13 @@ const LanguageMateApp = () => {
 
   const getCurrentChatSettings = () => {
     if (currentConversationId) {
-      return getChatSettings(currentConversationId);
+      return getConversationSettings(currentConversationId);
     }
-    return getChatSettings('default');
+    return getConversationSettings('default');
   };
 
   const getCombinedGlobalSettings = () => {
-    const chatDefaults = getChatSettings('default');
+    const chatDefaults = getConversationSettings('default');
     return {
       ...globalSettings,
       ...chatDefaults,
@@ -145,7 +136,9 @@ const LanguageMateApp = () => {
 
   const getCombinedChatSettings = () => {
     if (currentConversationId) {
-      const chatSpecificSettings = getChatSettings(currentConversationId);
+      const chatSpecificSettings = getConversationSettings(
+        currentConversationId
+      );
       return {
         ...globalSettings,
         ...chatSpecificSettings,

@@ -4,8 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import EnhancedChatInterface from './EnhancedChatInterface';
-import { SettingsProvider } from '@/contexts/SettingsContext';
-import { LocalStorageProvider } from '@/contexts/LocalStorageContext';
+import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 import { createMockAiResponse } from '../__tests__/factories';
 import { aiChatRequestSchema } from '@/schemas/api';
 import type { AiChatRequest } from '@/schemas/api';
@@ -15,9 +14,7 @@ interface TestWrapperProps {
 }
 
 const TestWrapper = ({ children }: TestWrapperProps) => (
-  <SettingsProvider>
-    <LocalStorageProvider>{children}</LocalStorageProvider>
-  </SettingsProvider>
+  <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
 );
 
 // Create test-specific server

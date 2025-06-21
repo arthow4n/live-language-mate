@@ -24,17 +24,17 @@ import DataManagementTab from './DataManagementTab';
 import UISettingsTab from './UISettingsTab';
 import {
   type GlobalSettings,
-  type ChatSettings,
+  type ConversationSettings,
   type GlobalSettingsUpdate,
-  type ChatSettingsUpdate,
-} from '@/contexts/SettingsContext';
+  type ConversationSettingsUpdate,
+} from '@/schemas/settings';
 
 interface UnifiedSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: 'global' | 'chat';
-  initialSettings: GlobalSettings | ChatSettings;
-  onSave: (settings: GlobalSettingsUpdate | ChatSettingsUpdate) => void;
+  initialSettings: GlobalSettings | ConversationSettings;
+  onSave: (settings: GlobalSettingsUpdate | ConversationSettingsUpdate) => void;
   conversationTitle?: string;
 }
 
@@ -46,9 +46,9 @@ const UnifiedSettingsDialog = ({
   onSave,
   conversationTitle,
 }: UnifiedSettingsDialogProps) => {
-  const [settings, setSettings] = useState<GlobalSettings | ChatSettings>(
-    initialSettings
-  );
+  const [settings, setSettings] = useState<
+    GlobalSettings | ConversationSettings
+  >(initialSettings);
 
   useEffect(() => {
     setSettings(initialSettings);
@@ -250,7 +250,8 @@ const UnifiedSettingsDialog = ({
                           id="chat-mate-background"
                           value={
                             !isGlobalMode
-                              ? (settings as ChatSettings).chatMateBackground
+                              ? (settings as ConversationSettings)
+                                  .chatMateBackground
                               : ''
                           }
                           onChange={(e) => {
@@ -271,7 +272,8 @@ const UnifiedSettingsDialog = ({
                           id="editor-mate-expertise"
                           value={
                             !isGlobalMode
-                              ? (settings as ChatSettings).editorMateExpertise
+                              ? (settings as ConversationSettings)
+                                  .editorMateExpertise
                               : ''
                           }
                           onChange={(e) => {
@@ -291,7 +293,7 @@ const UnifiedSettingsDialog = ({
                         <Select
                           value={
                             !isGlobalMode
-                              ? (settings as ChatSettings).feedbackStyle
+                              ? (settings as ConversationSettings).feedbackStyle
                               : undefined
                           }
                           onValueChange={(value) => {
@@ -318,7 +320,8 @@ const UnifiedSettingsDialog = ({
                             id="cultural-context"
                             checked={
                               !isGlobalMode
-                                ? (settings as ChatSettings).culturalContext
+                                ? (settings as ConversationSettings)
+                                    .culturalContext
                                 : false
                             }
                             onCheckedChange={(checked) => {
@@ -335,7 +338,7 @@ const UnifiedSettingsDialog = ({
                             id="progressive-complexity"
                             checked={
                               !isGlobalMode
-                                ? (settings as ChatSettings)
+                                ? (settings as ConversationSettings)
                                     .progressiveComplexity
                                 : false
                             }
@@ -367,7 +370,8 @@ const UnifiedSettingsDialog = ({
                         id="chat-mate-personality"
                         value={
                           !isGlobalMode
-                            ? (settings as ChatSettings).chatMatePersonality
+                            ? (settings as ConversationSettings)
+                                .chatMatePersonality
                             : ''
                         }
                         onChange={(e) => {
@@ -389,7 +393,8 @@ const UnifiedSettingsDialog = ({
                         id="editor-mate-personality"
                         value={
                           !isGlobalMode
-                            ? (settings as ChatSettings).editorMatePersonality
+                            ? (settings as ConversationSettings)
+                                .editorMatePersonality
                             : ''
                         }
                         onChange={(e) => {

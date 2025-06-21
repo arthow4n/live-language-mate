@@ -13,7 +13,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalStorage } from '@/contexts/LocalStorageContext';
+import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { Message } from '@/schemas/messages';
 import { apiClient } from '@/services/apiClient';
@@ -44,7 +44,7 @@ const AskInterface = ({
   const [editableSelectedText, setEditableSelectedText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { settings } = useLocalStorage();
+  const { globalSettings } = useUnifiedStorage();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -124,10 +124,10 @@ const AskInterface = ({
       chatMateBackground:
         'A friendly local who enjoys helping people learn the language and culture.',
       editorMatePersonality: editorMatePrompt,
-      editorMateExpertise: settings.editorMateExpertise,
-      feedbackStyle: settings.feedbackStyle,
-      culturalContext: settings.culturalContext,
-      progressiveComplexity: settings.progressiveComplexity,
+      editorMateExpertise: globalSettings.editorMateExpertise,
+      feedbackStyle: globalSettings.feedbackStyle,
+      culturalContext: globalSettings.culturalContext,
+      progressiveComplexity: globalSettings.progressiveComplexity,
     };
 
     const builtPrompt = buildPrompt({
@@ -159,8 +159,8 @@ const AskInterface = ({
       editorMatePrompt:
         promptVariables.editorMatePersonality ?? editorMatePrompt,
       targetLanguage,
-      model: settings.model || 'google/gemini-2.5-flash',
-      apiKey: settings.apiKey || '',
+      model: globalSettings.model || 'google/gemini-2.5-flash',
+      apiKey: globalSettings.apiKey || '',
       chatMateBackground:
         promptVariables.chatMateBackground ?? 'A friendly local',
       editorMateExpertise:
@@ -168,10 +168,10 @@ const AskInterface = ({
       feedbackStyle: promptVariables.feedbackStyle,
       culturalContext: promptVariables.culturalContext,
       progressiveComplexity: promptVariables.progressiveComplexity,
-      streaming: settings.streaming,
+      streaming: globalSettings.streaming,
       currentDateTime,
       userTimezone,
-      enableReasoning: settings.enableReasoning,
+      enableReasoning: globalSettings.enableReasoning,
     });
 
     if (!response.ok) {
@@ -179,8 +179,12 @@ const AskInterface = ({
       throw new Error(errorData.error ?? 'Failed to get Editor Mate response');
     }
 
-    if (settings.streaming && response.body) {
-      return { response: response.body, startTime, model: settings.model };
+    if (globalSettings.streaming && response.body) {
+      return {
+        response: response.body,
+        startTime,
+        model: globalSettings.model,
+      };
     } else {
       const data = (await response.json()) as {
         response?: string;
@@ -191,7 +195,11 @@ const AskInterface = ({
       }
       const endTime = Date.now();
       const generationTime = endTime - startTime;
-      return { response: data.response, generationTime, model: settings.model };
+      return {
+        response: data.response,
+        generationTime,
+        model: globalSettings.model,
+      };
     }
   };
 

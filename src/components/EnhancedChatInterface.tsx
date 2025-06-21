@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, Loader2, MessageSquare, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalStorage } from '@/contexts/LocalStorageContext';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { generateChatTitle } from '@/utils/chatTitleGenerator';
 import EnhancedChatMessage from './EnhancedChatMessage';
@@ -55,16 +54,18 @@ const EnhancedChatInterface = ({
     getMessages,
     deleteMessage: deleteMessageFromStorage,
     updateMessage,
-  } = useLocalStorage();
-  const { getChatSettings, getGlobalSettings } = useSettings();
+    getConversationSettings,
+    globalSettings,
+  } = useUnifiedStorage();
   const isMobile = useIsMobile();
 
   // Get current conversation and settings
   const currentConversation = conversationId
     ? getConversation(conversationId)
     : null;
-  const chatSettings = conversationId ? getChatSettings(conversationId) : null;
-  const globalSettings = getGlobalSettings();
+  const chatSettings = conversationId
+    ? getConversationSettings(conversationId)
+    : null;
 
   // Use chat-specific settings if available, otherwise fall back to global settings
   const effectiveModel = chatSettings?.model ?? globalSettings.model;

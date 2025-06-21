@@ -25,7 +25,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalStorage } from '@/contexts/LocalStorageContext';
+import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import {
   Sidebar,
   SidebarContent,
@@ -63,7 +63,7 @@ const ChatSidebar = ({
     updateConversation,
     deleteConversation,
     createConversation,
-  } = useLocalStorage();
+  } = useUnifiedStorage();
 
   // Sort conversations by updated_at timestamp (most recent first)
   const sortedConversations = [...conversations].sort((a, b) => {
