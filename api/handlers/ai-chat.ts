@@ -331,6 +331,12 @@ Language notes:
     }
   } catch (error) {
     console.error('❌ Error in AI chat function:', error);
+
+    // Determine status code based on error type
+    const isValidationError =
+      error instanceof Error && error.message.includes('Invalid API request');
+    const status = isValidationError ? 400 : 500;
+
     return new Response(
       JSON.stringify({
         error:
@@ -339,7 +345,7 @@ Language notes:
             : 'An error occurred while processing your request',
       }),
       {
-        status: 500,
+        status,
         headers: { 'Content-Type': 'application/json' },
       }
     );
