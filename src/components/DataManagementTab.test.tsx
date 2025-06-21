@@ -391,11 +391,12 @@ describe('DataManagementTab Integration Tests', () => {
       </TestWrapper>
     );
 
-    const fileInput = screen.getByLabelText(
-      /select backup file/i
-    ) as HTMLInputElement;
-    expect(fileInput.accept).toBe('.json');
-    expect(fileInput.type).toBe('file');
+    const fileInput = screen.getByLabelText(/select backup file/i);
+    expect(fileInput).toBeInstanceOf(HTMLInputElement);
+    if (fileInput instanceof HTMLInputElement) {
+      expect(fileInput.accept).toBe('.json');
+      expect(fileInput.type).toBe('file');
+    }
   });
 
   test('import button remains disabled without file selection', async () => {
