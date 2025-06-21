@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 
 import type { AiChatRequest } from '@/schemas/api';
 
+import { expectToBeInstanceOf } from '@/__tests__/typedExpectHelpers';
 import { aiChatRequestSchema } from '@/schemas/api';
 
 import {
@@ -29,8 +30,8 @@ describe('API Client Integration Tests', () => {
 
         if (validationResult.success) {
           // Additional specific checks if needed
-          expect(validationResult.data.chatMatePrompt).toBeTruthy();
-          expect(validationResult.data.editorMatePrompt).toBeTruthy();
+          expect(validationResult.data.chatMatePrompt).not.toBe('');
+          expect(validationResult.data.editorMatePrompt).not.toBe('');
         }
 
         return HttpResponse.json(mockResponse);
@@ -43,7 +44,7 @@ describe('API Client Integration Tests', () => {
     const response = await apiClient.aiChat(request);
 
     // Validate the response is a Response object and can be parsed
-    expect(response).toBeInstanceOf(Response);
+    expectToBeInstanceOf(response, Response);
     expect(response.ok).toBe(true);
 
     const result = await response.json();

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { expectToBeInstanceOf } from '@/__tests__/typedExpectHelpers';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import DataManagementTab from './DataManagementTab';
@@ -467,11 +468,9 @@ describe('DataManagementTab Integration Tests', () => {
     );
 
     const fileInput = screen.getByLabelText(/select backup file/i);
-    expect(fileInput).toBeInstanceOf(HTMLInputElement);
-    if (fileInput instanceof HTMLInputElement) {
-      expect(fileInput.accept).toBe('.json');
-      expect(fileInput.type).toBe('file');
-    }
+    expectToBeInstanceOf(fileInput, HTMLInputElement);
+    expect(fileInput.accept).toBe('.json');
+    expect(fileInput.type).toBe('file');
   });
 
   test('import button remains disabled without file selection', async () => {

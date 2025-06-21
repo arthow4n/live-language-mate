@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { ConversationSettings, GlobalSettings } from '@/schemas/settings';
 
+import { expectToBeInstanceOf } from '@/__tests__/typedExpectHelpers';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import UnifiedSettingsDialog from './UnifiedSettingsDialog';
@@ -543,10 +544,8 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     });
 
     const apiKeyInput = screen.getByLabelText(/openrouter api key/i);
-    expect(apiKeyInput).toBeInstanceOf(HTMLInputElement);
-    if (apiKeyInput instanceof HTMLInputElement) {
-      expect(apiKeyInput.value).toBe('original-key');
-    }
+    expectToBeInstanceOf(apiKeyInput, HTMLInputElement);
+    expect(apiKeyInput.value).toBe('original-key');
 
     // Close and reopen dialog
     rerender(
@@ -579,10 +578,8 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
 
     // Settings should be reset to initial values
     const resetApiKeyInput = screen.getByLabelText(/openrouter api key/i);
-    expect(resetApiKeyInput).toBeInstanceOf(HTMLInputElement);
-    if (resetApiKeyInput instanceof HTMLInputElement) {
-      expect(resetApiKeyInput.value).toBe('original-key');
-    }
+    expectToBeInstanceOf(resetApiKeyInput, HTMLInputElement);
+    expect(resetApiKeyInput.value).toBe('original-key');
   });
 
   test('reasoning expanded toggle dependency', async () => {
