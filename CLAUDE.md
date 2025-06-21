@@ -162,7 +162,7 @@ The API server can be deployed to any platform supporting Deno:
 
 - After you finish all the edits in the task, make sure to `npm run check` then fix the lint and type errors.
 - If you make a git commit, prefix you commit message with `(Claude Code) ` and add a line at the end of commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
-- After each task completed, you should automatically and frequently make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
+- When doing tasks and when you are done with tasks, be proactive to make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
 - Instead of running individual lint and typecheck commands, you should use `npm run check` to perform type check and linting, `npm run check` performs lint and type check on all files.
 - Instead of using your own Search tool, prefer using ast-grep (`sg --lang tsx` (or set `--lang` appropriately )) first, then fall back to your own search tool or `rg`/`grep`.
