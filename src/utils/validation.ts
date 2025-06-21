@@ -3,6 +3,7 @@ import type { z } from 'zod';
 /**
  * Creates a strict parser function for a given Zod schema
  * Throws validation errors if data doesn't match schema
+ * @param schema
  */
 export const createStrictParser =
   <T>(schema: z.ZodSchema<T>) =>
@@ -13,6 +14,8 @@ export const createStrictParser =
  * Safely parses stored data from localStorage with schema validation
  * Returns null if key doesn't exist or data is invalid
  * Throws error if schema validation fails
+ * @param key
+ * @param schema
  */
 export const parseStoredData = <T>(
   key: string,
@@ -36,6 +39,8 @@ export const parseStoredData = <T>(
 /**
  * Validates API request body with schema
  * For use in Deno API handlers
+ * @param req
+ * @param schema
  */
 export const validateApiRequest = async <T>(
   req: Request,
@@ -53,6 +58,9 @@ export const validateApiRequest = async <T>(
 
 /**
  * Type-safe localStorage setter with schema validation
+ * @param key
+ * @param data
+ * @param schema
  */
 export const setStoredData = <T>(
   key: string,

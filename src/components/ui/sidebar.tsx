@@ -26,6 +26,9 @@ const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
+/**
+ *
+ */
 interface SidebarContext {
   isMobile: boolean;
   open: boolean;
@@ -38,6 +41,9 @@ interface SidebarContext {
 
 const SidebarContext = React.createContext<null | SidebarContext>(null);
 
+/**
+ *
+ */
 function useSidebar() {
   const context = React.useContext(SidebarContext);
   if (!context) {

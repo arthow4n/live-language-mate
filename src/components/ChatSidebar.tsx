@@ -39,6 +39,9 @@ import {
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ *
+ */
 interface ChatSidebarProps {
   currentConversationId: null | string;
   onChatSettingsOpen: () => void;

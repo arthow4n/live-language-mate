@@ -1,10 +1,10 @@
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import js from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier';
+import jsdoc from 'eslint-plugin-jsdoc';
 import perfectionist from 'eslint-plugin-perfectionist';
 import reactHooks from 'eslint-plugin-react-hooks';
-// import jsdoc from 'eslint-plugin-jsdoc';
-import testingLibrary from 'eslint-plugin-testing-library';
+// import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -13,8 +13,8 @@ export default tseslint.config(
   js.configs.recommended,
   prettierConfig,
   comments.recommended,
-  // jsdoc.configs['flat/recommended-typescript-error'],
-  testingLibrary.configs['flat/react'],
+  jsdoc.configs['flat/recommended-typescript-error'],
+  // testingLibrary.configs['flat/react'],
   reactHooks.configs['recommended-latest'],
   {
     extends: [
@@ -58,6 +58,29 @@ export default tseslint.config(
       // ],
       // '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/no-import-type-side-effects': 'error',
+
+      // Configure JSDoc to be less strict for UI components
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          contexts: [
+            'TSInterfaceDeclaration',
+            'TSTypeAliasDeclaration',
+            'TSEnumDeclaration',
+          ],
+          require: {
+            ArrowFunctionExpression: false,
+            ClassDeclaration: true,
+            ClassExpression: false,
+            FunctionDeclaration: true,
+            FunctionExpression: false,
+            MethodDefinition: false,
+          },
+        },
+      ],
+      'jsdoc/require-param-description': 'off',
+      'jsdoc/require-returns': 'off', // TypeScript provides return type info
+      'jsdoc/require-returns-description': 'off',
     },
   },
   perfectionist.configs['recommended-natural']

@@ -23,6 +23,9 @@ import { buildPrompt } from '@/services/prompts';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 
+/**
+ *
+ */
 interface AskInterfaceProps {
   editorMatePrompt?: string;
   hideHeader?: boolean;

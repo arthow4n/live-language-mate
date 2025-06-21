@@ -18,12 +18,18 @@ import {
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
 
+/**
+ *
+ */
 interface ModelSelectorProps {
   onValueChange: (value: string) => void;
   placeholder?: string;
   value: string;
 }
 
+/**
+ *
+ */
 interface OpenRouterModel {
   architecture?: {
     instruct_type?: string;

@@ -30,6 +30,9 @@ export type {
   LocalMessage,
 };
 
+/**
+ *
+ */
 interface UnifiedStorageContextType {
   // Message methods
   addMessage: (
@@ -118,6 +121,9 @@ export const UnifiedStorageProvider = ({
           const parsed = JSON.parse(stored) as unknown;
 
           // Convert date strings back to Date objects
+          /**
+           *
+           */
           interface ParsedStorageData {
             conversations?: {
               ai_mode: string;

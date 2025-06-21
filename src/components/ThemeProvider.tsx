@@ -1,13 +1,22 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
+/**
+ *
+ */
 type Theme = 'dark' | 'light' | 'system';
 
+/**
+ *
+ */
 interface ThemeProviderProps {
   children: React.ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
 }
 
+/**
+ *
+ */
 interface ThemeProviderState {
   setTheme: (theme: Theme) => void;
   theme: Theme;
@@ -15,6 +24,13 @@ interface ThemeProviderState {
 
 const ThemeProviderContext = createContext<null | ThemeProviderState>(null);
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.defaultTheme
+ * @param root0.storageKey
+ */
 export function ThemeProvider({
   children,
   defaultTheme = 'system',

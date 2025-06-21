@@ -8,6 +8,10 @@ import type {
 
 import { promptDefaults, promptTemplates } from './templates';
 
+/**
+ *
+ * @param request
+ */
 export function buildPrompt(request: PromptBuildRequest): BuiltPrompt {
   const template = request.customTemplate
     ? createCustomTemplate(request.customTemplate)
@@ -23,10 +27,17 @@ export function buildPrompt(request: PromptBuildRequest): BuiltPrompt {
   };
 }
 
+/**
+ *
+ */
 export function getAvailableTemplates(): Record<MessageType, PromptTemplate> {
   return promptTemplates;
 }
 
+/**
+ *
+ * @param variables
+ */
 function buildTemplateVariables(
   variables: PromptVariables
 ): Record<string, string> {
@@ -56,6 +67,10 @@ function buildTemplateVariables(
   };
 }
 
+/**
+ *
+ * @param customTemplate
+ */
 function createCustomTemplate(customTemplate: string): PromptTemplate {
   return {
     id: 'custom',
@@ -65,15 +80,26 @@ function createCustomTemplate(customTemplate: string): PromptTemplate {
   };
 }
 
+/**
+ *
+ * @param template
+ */
 function extractVariables(template: string): string[] {
   const matches = template.match(/\{([^}]+)\}/g) ?? [];
   return matches.map((match) => match.slice(1, -1));
 }
 
+/**
+ *
+ */
 function getCulturalContextInstructions(): string {
   return promptDefaults.culturalContextInstructions.enabled || '';
 }
 
+/**
+ *
+ * @param currentLevel
+ */
 function getProgressiveComplexityInstructions(currentLevel?: string): string {
   const baseInstructions =
     promptDefaults.progressiveComplexityInstructions.enabled || '';
@@ -83,6 +109,11 @@ function getProgressiveComplexityInstructions(currentLevel?: string): string {
   return baseInstructions;
 }
 
+/**
+ *
+ * @param template
+ * @param variables
+ */
 function processTemplate(
   template: PromptTemplate,
   variables: PromptVariables

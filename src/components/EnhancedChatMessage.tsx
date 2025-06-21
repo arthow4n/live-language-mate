@@ -35,6 +35,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 
+/**
+ *
+ */
 interface EnhancedChatMessageProps {
   message: Message;
   onDeleteAllBelow?: (messageId: string) => void;

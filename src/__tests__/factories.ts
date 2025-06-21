@@ -5,6 +5,9 @@ import type {
 } from '@/schemas/api';
 
 // OpenRouter API payload interface (what gets sent to OpenRouter)
+/**
+ *
+ */
 export interface OpenRouterPayload {
   max_tokens: number;
   messages: ChatMessage[];

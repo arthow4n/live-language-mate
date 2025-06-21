@@ -103,15 +103,42 @@ export const apiErrorResponseSchema = z
   })
   .strict();
 
+/**
+ *
+ */
 export type AiChatNonStreamResponse = z.infer<
   typeof aiChatNonStreamResponseSchema
 >;
+/**
+ *
+ */
 export type AiChatRequest = z.infer<typeof aiChatRequestSchema>;
+/**
+ *
+ */
 export type AiChatStreamResponse = z.infer<typeof aiChatStreamResponseSchema>;
+/**
+ *
+ */
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
+/**
+ *
+ */
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
+/**
+ *
+ */
 export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
 // Export type helpers for better DX
+/**
+ *
+ */
 export type MessageType = z.infer<typeof messageTypeSchema>;
+/**
+ *
+ */
 export type Model = z.infer<typeof modelSchema>;
+/**
+ *
+ */
 export type ModelsResponse = z.infer<typeof modelsResponseSchema>;

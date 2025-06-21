@@ -5,6 +5,9 @@ import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
 
+/**
+ *
+ */
 enum ActionType {
   ADD_TOAST = 'ADD_TOAST',
   DISMISS_TOAST = 'DISMISS_TOAST',
@@ -12,6 +15,9 @@ enum ActionType {
   UPDATE_TOAST = 'UPDATE_TOAST',
 }
 
+/**
+ *
+ */
 type ToasterToast = ToastProps & {
   action?: ToastActionElement;
   description?: React.ReactNode;
@@ -21,6 +27,9 @@ type ToasterToast = ToastProps & {
 
 let count = 0;
 
+/**
+ *
+ */
 type Action =
   | {
       toast: Partial<ToasterToast>;
@@ -39,10 +48,16 @@ type Action =
       type: ActionType.REMOVE_TOAST;
     };
 
+/**
+ *
+ */
 interface State {
   toasts: ToasterToast[];
 }
 
+/**
+ *
+ */
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER;
   return count.toString();
@@ -125,8 +140,15 @@ const listeners: ((state: State) => void)[] = [];
 
 let memoryState: State = { toasts: [] };
 
+/**
+ *
+ */
 type Toast = Omit<ToasterToast, 'id'>;
 
+/**
+ *
+ * @param action
+ */
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
@@ -134,6 +156,10 @@ function dispatch(action: Action) {
   });
 }
 
+/**
+ *
+ * @param root0
+ */
 function toast({ ...props }: Toast) {
   const id = genId();
 
@@ -166,6 +192,9 @@ function toast({ ...props }: Toast) {
   };
 }
 
+/**
+ *
+ */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 

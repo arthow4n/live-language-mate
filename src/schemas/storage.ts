@@ -33,6 +33,15 @@ export const localStorageSchemas = {
 } as const;
 
 // Export type helpers
+/**
+ *
+ */
 export type LocalAppData = z.infer<typeof localAppDataSchema>;
+/**
+ *
+ */
 export type LocalStorageKeyType = keyof typeof localStorageSchemas;
+/**
+ *
+ */
 export type PanelSizes = z.infer<typeof panelSizesSchema>;

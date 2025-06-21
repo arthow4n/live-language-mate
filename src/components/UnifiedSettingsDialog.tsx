@@ -32,6 +32,9 @@ import DataManagementTab from './DataManagementTab';
 import ModelSelector from './ModelSelector';
 import UISettingsTab from './UISettingsTab';
 
+/**
+ *
+ */
 interface UnifiedSettingsDialogProps {
   conversationTitle?: string;
   initialSettings: ConversationSettings | GlobalSettings;

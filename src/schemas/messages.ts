@@ -79,15 +79,48 @@ export const conversationCreateSchema = conversationSchema
 // Conversation update schema (partial for updates)
 export const conversationUpdateSchema = conversationSchema.partial();
 
+/**
+ *
+ */
 export type AiMode = z.infer<typeof aiModeSchema>;
+/**
+ *
+ */
 export type Conversation = z.infer<typeof conversationSchema>;
+/**
+ *
+ */
 export type ConversationCreate = z.infer<typeof conversationCreateSchema>;
+/**
+ *
+ */
 export type ConversationUpdate = z.infer<typeof conversationUpdateSchema>;
+/**
+ *
+ */
 export type LocalConversation = z.infer<typeof localConversationSchema>;
+/**
+ *
+ */
 export type LocalMessage = z.infer<typeof localMessageSchema>;
+/**
+ *
+ */
 export type Message = z.infer<typeof messageSchema>;
+/**
+ *
+ */
 export type MessageCreate = z.infer<typeof messageCreateSchema>;
+/**
+ *
+ */
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 // Export type helpers
+/**
+ *
+ */
 export type MessageType = z.infer<typeof messageTypeSchema>;
+/**
+ *
+ */
 export type MessageUpdate = z.infer<typeof messageUpdateSchema>;

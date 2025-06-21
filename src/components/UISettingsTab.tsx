@@ -9,6 +9,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+/**
+ *
+ */
 interface UISettingsTabProps {
   onSettingChange: (key: string, value: boolean | number | string) => void;
   settings: {

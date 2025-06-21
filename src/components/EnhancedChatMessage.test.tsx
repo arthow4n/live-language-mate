@@ -8,6 +8,9 @@ import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 
+/**
+ *
+ */
 interface TestWrapperProps {
   children: React.ReactNode;
 }

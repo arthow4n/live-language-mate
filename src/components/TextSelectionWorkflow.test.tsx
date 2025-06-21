@@ -11,6 +11,9 @@ import { createMockAiResponse } from '../__tests__/factories';
 import { server } from '../__tests__/setup';
 import AskInterface from './AskInterface';
 
+/**
+ *
+ */
 interface TestWrapperProps {
   children: React.ReactNode;
 }

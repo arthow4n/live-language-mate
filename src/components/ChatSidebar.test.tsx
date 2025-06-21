@@ -9,6 +9,9 @@ import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import ChatSidebar from './ChatSidebar';
 
+/**
+ *
+ */
 interface TestWrapperProps {
   children: React.ReactNode;
 }

@@ -6,6 +6,9 @@ import { cn } from '@/lib/utils';
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { dark: '.dark', light: '' } as const;
 
+/**
+ *
+ */
 export type ChartConfig = Record<
   string,
   {
@@ -17,12 +20,18 @@ export type ChartConfig = Record<
   )
 >;
 
+/**
+ *
+ */
 interface ChartContextProps {
   config: ChartConfig;
 }
 
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
+/**
+ *
+ */
 function useChart() {
   const context = React.useContext(ChartContext);
 
@@ -326,6 +335,12 @@ const ChartLegendContent = React.forwardRef<
 ChartLegendContent.displayName = 'ChartLegend';
 
 // Helper to extract item config from a payload.
+/**
+ *
+ * @param config
+ * @param payload
+ * @param key
+ */
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,

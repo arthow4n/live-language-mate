@@ -7,7 +7,13 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+/**
+ *
+ */
 type CarouselApi = UseEmblaCarouselType[1];
+/**
+ *
+ */
 type CarouselContextProps = CarouselProps & {
   api: ReturnType<typeof useEmblaCarousel>[1];
   canScrollNext: boolean;
@@ -16,9 +22,18 @@ type CarouselContextProps = CarouselProps & {
   scrollNext: () => void;
   scrollPrev: () => void;
 };
+/**
+ *
+ */
 type CarouselOptions = UseCarouselParameters[0];
+/**
+ *
+ */
 type CarouselPlugin = UseCarouselParameters[1];
 
+/**
+ *
+ */
 interface CarouselProps {
   opts?: CarouselOptions;
   orientation?: 'horizontal' | 'vertical';
@@ -26,10 +41,16 @@ interface CarouselProps {
   setApi?: (api: CarouselApi) => void;
 }
 
+/**
+ *
+ */
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null);
 
+/**
+ *
+ */
 function useCarousel() {
   const context = React.useContext(CarouselContext);
 

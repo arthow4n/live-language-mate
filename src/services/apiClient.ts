@@ -4,6 +4,12 @@ const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
   'http://localhost:8000';
 
+/**
+ *
+ * @param request
+ * @param options
+ * @param options.signal
+ */
 async function aiChat(
   request: AiChatRequest,
   options?: { signal?: AbortSignal }
@@ -33,6 +39,9 @@ async function aiChat(
   return response;
 }
 
+/**
+ *
+ */
 async function getModels(): Promise<ModelsResponse> {
   const response = await fetch(`${API_BASE_URL}/models`, {
     headers: {

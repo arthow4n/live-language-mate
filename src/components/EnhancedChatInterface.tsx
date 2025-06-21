@@ -15,6 +15,9 @@ import { generateChatTitle } from '@/utils/chatTitleGenerator';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 
+/**
+ *
+ */
 interface EnhancedChatInterfaceProps {
   conversationId: null | string;
   editorMatePrompt?: string;

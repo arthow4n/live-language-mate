@@ -1,3 +1,6 @@
+/**
+ *
+ */
 export interface BuiltPrompt {
   systemPrompt: string;
   templateId: string;
@@ -5,18 +8,27 @@ export interface BuiltPrompt {
   variables: PromptVariables;
 }
 
+/**
+ *
+ */
 export type MessageType =
   | 'chat-mate-response'
   | 'editor-mate-chatmate-comment'
   | 'editor-mate-response'
   | 'editor-mate-user-comment';
 
+/**
+ *
+ */
 export interface PromptBuildRequest {
   customTemplate?: string;
   messageType: MessageType;
   variables: PromptVariables;
 }
 
+/**
+ *
+ */
 export interface PromptTemplate {
   description?: string;
   id: string;
@@ -25,6 +37,9 @@ export interface PromptTemplate {
   variables: string[];
 }
 
+/**
+ *
+ */
 export interface PromptVariables {
   chatMateBackground?: string;
   chatMatePersonality?: string;

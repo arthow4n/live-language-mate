@@ -78,21 +78,57 @@ export const storedConversationSettingsSchema = z.record(
 );
 
 // Legacy aliases for backward compatibility during migration
+/**
+ *
+ */
 export type ChatSettings = ConversationSettings;
+/**
+ *
+ */
 export type ChatSettingsUpdate = ConversationSettingsUpdate;
+/**
+ *
+ */
 export type ConversationSettings = z.infer<typeof conversationSettingsSchema>;
+/**
+ *
+ */
 export type ConversationSettingsUpdate = z.infer<
   typeof conversationSettingsUpdateSchema
 >;
+/**
+ *
+ */
 export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
+/**
+ *
+ */
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>;
+/**
+ *
+ */
 export type GlobalSettingsUpdate = z.infer<typeof globalSettingsUpdateSchema>;
+/**
+ *
+ */
 export type SettingsContextState = z.infer<typeof settingsContextStateSchema>;
+/**
+ *
+ */
 export type StoredChatSettings = StoredConversationSettings;
 
+/**
+ *
+ */
 export type StoredConversationSettings = z.infer<
   typeof storedConversationSettingsSchema
 >;
+/**
+ *
+ */
 export type StoredGlobalSettings = z.infer<typeof storedGlobalSettingsSchema>;
 // Export type helpers
+/**
+ *
+ */
 export type Theme = z.infer<typeof themeSchema>;
