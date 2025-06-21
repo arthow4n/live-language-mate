@@ -71,10 +71,10 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
     data: Partial<LocalConversation>
   ): LocalConversation => {
     const newConversation: LocalConversation = {
-      id: `conv_${Date.now()}_${Math.random().toString(36).substring(2)}`,
-      title: data.title || 'New Chat',
-      language: data.language || 'Swedish',
-      ai_mode: data.ai_mode || 'dual',
+      id: `conv_${Date.now().toString()}_${Math.random().toString(36).substring(2)}`,
+      title: data.title ?? 'New Chat',
+      language: data.language ?? 'Swedish',
+      ai_mode: data.ai_mode ?? 'dual',
       chat_mate_prompt: data.chat_mate_prompt,
       editor_mate_prompt: data.editor_mate_prompt,
       created_at: new Date(),
@@ -118,7 +118,7 @@ export const LocalStorageProvider = ({ children }: { children: ReactNode }) => {
 
   const getMessages = (conversationId: string): LocalMessage[] => {
     const conversation = localStorageService.getConversation(conversationId);
-    return conversation?.messages || [];
+    return conversation?.messages ?? [];
   };
 
   const updateMessage = (messageId: string, updates: Partial<LocalMessage>) => {
