@@ -76,6 +76,8 @@ describe('AskInterface Integration Tests', () => {
       'editor-mate-response'
     );
     expect(capturedRequest).toHaveProperty('message');
-    expect(capturedRequest?.message).toContain('What does this mean?');
+    expect((capturedRequest as unknown as AiChatRequest).message).toContain(
+      'What does this mean?'
+    );
   });
 });

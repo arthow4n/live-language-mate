@@ -171,16 +171,16 @@ Deno.test(
 
     // Verify the OpenRouter payload structure with proper null check
     assertExists(capturedPayload);
-    if (capturedPayload) {
-      assertEquals(capturedPayload.model, 'google/gemini-2.5-flash');
-      assertEquals(capturedPayload.stream, false);
-      assertEquals(capturedPayload.temperature, 0.7);
-      assertEquals(capturedPayload.max_tokens, 4096); // Should be 4096 when reasoning enabled
-      assertExists(capturedPayload.reasoning);
-      assertEquals(capturedPayload.reasoning.max_tokens, 2000);
-      assertExists(capturedPayload.messages);
-      assertEquals(Array.isArray(capturedPayload.messages), true);
-    }
+    const payload = capturedPayload as OpenRouterPayload;
+
+    assertEquals(payload.model, 'google/gemini-2.5-flash');
+    assertEquals(payload.stream, false);
+    assertEquals(payload.temperature, 0.7);
+    assertEquals(payload.max_tokens, 4096); // Should be 4096 when reasoning enabled
+    assertExists(payload.reasoning);
+    assertEquals(payload.reasoning!.max_tokens, 2000);
+    assertExists(payload.messages);
+    assertEquals(Array.isArray(payload.messages), true);
 
     // Restore original fetch
     globalThis.fetch = originalFetch;

@@ -159,8 +159,8 @@ const AskInterface = ({
       editorMatePrompt:
         promptVariables.editorMatePersonality ?? editorMatePrompt,
       targetLanguage,
-      model: settings.model ?? 'google/gemini-2.5-flash',
-      apiKey: settings.apiKey ?? '',
+      model: settings.model || 'google/gemini-2.5-flash',
+      apiKey: settings.apiKey || '',
       chatMateBackground:
         promptVariables.chatMateBackground ?? 'A friendly local',
       editorMateExpertise:
