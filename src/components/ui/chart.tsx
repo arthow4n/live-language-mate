@@ -192,7 +192,7 @@ const ChartTooltipContent = React.forwardRef<
               'value'
             ).toString();
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- chart library payload has dynamic color properties
             const indicatorColor = color ?? item.payload.fill ?? item.color;
 
             return (
@@ -204,7 +204,7 @@ const ChartTooltipContent = React.forwardRef<
                 )}
               >
                 {formatter && item.value !== undefined && item.name ? (
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- chart formatter callback accepts dynamic payload types
                   formatter(item.value, item.name, item, index, item.payload)
                 ) : (
                   <>
@@ -225,9 +225,9 @@ const ChartTooltipContent = React.forwardRef<
                           )}
                           style={
                             {
-                              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- CSS custom properties require string values from chart data
                               '--color-bg': indicatorColor,
-                              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- CSS custom properties require string values from chart data
                               '--color-border': indicatorColor,
                             } as React.CSSProperties
                           }
@@ -299,7 +299,7 @@ const ChartLegendContent = React.forwardRef<
 
           return (
             <div
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- chart data item values are dynamically typed
               key={item.value}
               className={cn(
                 'flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground'

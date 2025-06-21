@@ -277,7 +277,7 @@ export const UnifiedStorageProvider = ({
     const defaultSettings = getDefaultConversationSettings();
 
     // Property-level merging: use stored values where available, fallback to defaults for missing properties
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- stored may be undefined from localStorage
     const settings = stored
       ? { ...defaultSettings, ...stored }
       : defaultSettings;
@@ -363,7 +363,7 @@ export const UnifiedStorageProvider = ({
   const deleteConversation = (id: string) => {
     setConversations((prev) => prev.filter((conv) => conv.id !== id));
     setConversationSettings((prev) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructuring pattern requires unused variable to extract from object
       const { [id]: _removed, ...rest } = prev;
       return rest;
     });

@@ -273,7 +273,7 @@ const AskInterface = ({
         let isStreamingComplete = false;
 
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- infinite loop requires explicit break condition
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
