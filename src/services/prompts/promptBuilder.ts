@@ -22,7 +22,7 @@ export class PromptBuilder {
       ? this.createCustomTemplate(request.customTemplate)
       : promptTemplates[request.messageType];
 
-    if (!template) {
+    if (template === undefined) {
       throw new Error(
         `No template found for message type: ${request.messageType}`
       );
@@ -48,7 +48,7 @@ export class PromptBuilder {
   }
 
   private extractVariables(template: string): string[] {
-    const matches = template.match(/\{([^}]+)\}/g) || [];
+    const matches = template.match(/\{([^}]+)\}/g) ?? [];
     return matches.map((match) => match.slice(1, -1));
   }
 
@@ -80,20 +80,20 @@ export class PromptBuilder {
   ): Record<string, string> {
     return {
       targetLanguage: variables.targetLanguage,
-      chatMatePersonality: variables.chatMatePersonality || 'Chat Mate',
+      chatMatePersonality: variables.chatMatePersonality ?? 'Chat Mate',
       chatMatePrompt: promptDefaults.chatMatePrompt,
       chatMateBackground:
-        variables.chatMateBackground ||
+        variables.chatMateBackground ??
         'A friendly local who enjoys helping people learn the language and culture.',
       editorMatePersonality:
-        variables.editorMatePersonality || promptDefaults.editorMatePersonality,
+        variables.editorMatePersonality ?? promptDefaults.editorMatePersonality,
       editorMateExpertise:
-        variables.editorMateExpertise || promptDefaults.editorMateExpertise,
+        variables.editorMateExpertise ?? promptDefaults.editorMateExpertise,
       feedbackStyleDescription:
-        promptDefaults.feedbackStyleDescriptions?.[variables.feedbackStyle] ||
+        promptDefaults.feedbackStyleDescriptions[variables.feedbackStyle] ??
         'helpful and constructive',
       feedbackStyleTone:
-        promptDefaults.feedbackStyleTones?.[variables.feedbackStyle] ||
+        promptDefaults.feedbackStyleTones[variables.feedbackStyle] ??
         'supportive and clear',
       culturalContextInstructions: variables.culturalContext
         ? this.getCulturalContextInstructions()
@@ -107,12 +107,12 @@ export class PromptBuilder {
   }
 
   private getCulturalContextInstructions(): string {
-    return promptDefaults.culturalContextInstructions?.enabled || '';
+    return promptDefaults.culturalContextInstructions.enabled ?? '';
   }
 
   private getProgressiveComplexityInstructions(currentLevel?: string): string {
     const baseInstructions =
-      promptDefaults.progressiveComplexityInstructions?.enabled || '';
+      promptDefaults.progressiveComplexityInstructions.enabled ?? '';
     if (currentLevel) {
       return `${baseInstructions}\n\nCurrent complexity level: ${currentLevel}`;
     }
