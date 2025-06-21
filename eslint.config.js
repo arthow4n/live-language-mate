@@ -40,7 +40,7 @@ export default tseslint.config(
         { ignore: [] },
       ],
 
-      // "@typescript-eslint/explicit-function-return-type": "error"
+      // '@typescript-eslint/explicit-function-return-type': 'error', // Too strict - 163 violations, TypeScript inference is sufficient
       '@typescript-eslint/ban-ts-comment': 'error',
       '@typescript-eslint/consistent-type-assertions': [
         'error',
