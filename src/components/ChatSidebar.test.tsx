@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ChatSidebar from './ChatSidebar';
@@ -16,135 +16,591 @@ const TestWrapper = ({ children }: TestWrapperProps) => (
   </SidebarProvider>
 );
 
-// Helper to create mock conversations
 const createMockConversation = (
   id: string,
-  title: string
+  title: string,
+  updatedAt: Date = new Date()
 ): LocalConversation => ({
   id,
   title,
   language: 'Swedish',
   ai_mode: 'dual',
   created_at: new Date(),
-  updated_at: new Date(),
+  updated_at: updatedAt,
   messages: [],
 });
 
+// Mock toast hook
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
+
 describe('ChatSidebar Integration Tests', () => {
+  beforeEach(() => {
+    // Clear localStorage before each test
+    localStorage.clear();
+  });
+
   test('displays empty state when no conversations exist', async () => {
-    let onNewConversationCalled = false;
-    let onMainSettingsOpenCalled = false;
+    const onNewConversation = vi.fn();
+    const onMainSettingsOpen = vi.fn();
 
     render(
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={() => {
-            /* empty test callback */
-          }}
-          onNewConversation={() => {
-            onNewConversationCalled = true;
-          }}
-          onChatSettingsOpen={() => {
-            /* empty test callback */
-          }}
-          onMainSettingsOpen={() => {
-            onMainSettingsOpenCalled = true;
-          }}
+          onConversationSelect={vi.fn()}
+          onNewConversation={onNewConversation}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={onMainSettingsOpen}
         />
       </TestWrapper>
     );
 
-    // Should show empty state message
     await waitFor(() => {
       expect(
         screen.getByText('No conversations yet. Start a new chat!')
       ).toBeInTheDocument();
     });
 
-    // Should have New Chat button
-    const newChatButton = screen.getByText('New Chat');
-    expect(newChatButton).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /new chat/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /main settings/i })
+    ).toBeInTheDocument();
+  });
 
-    // Should have Main Settings button
-    const settingsButton = screen.getByText('Main Settings');
-    expect(settingsButton).toBeInTheDocument();
-
-    // Test New Chat button functionality
+  test('new chat button triggers callback', async () => {
     const user = userEvent.setup();
-    await user.click(newChatButton);
-    expect(onNewConversationCalled).toBe(true);
-
-    // Test Settings button functionality
-    await user.click(settingsButton);
-    expect(onMainSettingsOpenCalled).toBe(true);
-  });
-
-  test('displays conversations and handles selection', async () => {
-    // Mock the localStorage to return some conversations
-    // TODO: These conversations would be used to populate the storage context
-    createMockConversation('conv1', 'Swedish Basics');
-    createMockConversation('conv2', 'Advanced Grammar');
-
-    // We need to pre-populate the storage context with conversations
-    // This test would need to be enhanced to properly mock the storage context
-    render(
-      <TestWrapper>
-        <ChatSidebar
-          currentConversationId="conv1"
-          onConversationSelect={() => {
-            // Handle conversation selection
-          }}
-          onNewConversation={() => {
-            /* empty test callback */
-          }}
-          onChatSettingsOpen={() => {
-            /* empty test callback */
-          }}
-          onMainSettingsOpen={() => {
-            /* empty test callback */
-          }}
-        />
-      </TestWrapper>
-    );
-
-    // For this test to work properly, we would need to add conversations to the storage first
-    // This is a simplified version that tests the component structure
-    await waitFor(() => {
-      expect(screen.getByText('Recent Chats')).toBeInTheDocument();
-    });
-  });
-
-  test('handles conversation creation workflow', async () => {
-    let newConversationCreated = false;
+    const onNewConversation = vi.fn();
 
     render(
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={() => {
-            /* empty test callback */
-          }}
-          onNewConversation={() => {
-            newConversationCreated = true;
-          }}
-          onChatSettingsOpen={() => {
-            /* empty test callback */
-          }}
-          onMainSettingsOpen={() => {
-            /* empty test callback */
-          }}
+          onConversationSelect={vi.fn()}
+          onNewConversation={onNewConversation}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
         />
       </TestWrapper>
     );
 
-    const user = userEvent.setup();
-
-    // Click the New Chat button
-    const newChatButton = screen.getByText('New Chat');
+    const newChatButton = screen.getByRole('button', { name: /new chat/i });
     await user.click(newChatButton);
 
-    // Verify the callback was called
-    expect(newConversationCreated).toBe(true);
+    expect(onNewConversation).toHaveBeenCalledOnce();
+  });
+
+  test('main settings button triggers callback', async () => {
+    const user = userEvent.setup();
+    const onMainSettingsOpen = vi.fn();
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId={null}
+          onConversationSelect={vi.fn()}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={onMainSettingsOpen}
+        />
+      </TestWrapper>
+    );
+
+    const mainSettingsButton = screen.getByRole('button', {
+      name: /main settings/i,
+    });
+    await user.click(mainSettingsButton);
+
+    expect(onMainSettingsOpen).toHaveBeenCalledOnce();
+  });
+
+  test('conversation selection workflow', async () => {
+    const user = userEvent.setup();
+    const onConversationSelect = vi.fn();
+
+    // Pre-populate localStorage with conversations
+    const conversations = [
+      createMockConversation('conv-1', 'First Conversation'),
+      createMockConversation('conv-2', 'Second Conversation'),
+    ];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId={null}
+          onConversationSelect={onConversationSelect}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    // Wait for conversations to load
+    await waitFor(() => {
+      expect(screen.getByText('First Conversation')).toBeInTheDocument();
+      expect(screen.getByText('Second Conversation')).toBeInTheDocument();
+    });
+
+    // Click on first conversation
+    const firstConv = screen.getByText('First Conversation');
+    await user.click(firstConv);
+
+    expect(onConversationSelect).toHaveBeenCalledWith('conv-1');
+  });
+
+  test('conversation highlighting for current selection', async () => {
+    const conversations = [
+      createMockConversation('conv-1', 'Active Conversation'),
+      createMockConversation('conv-2', 'Inactive Conversation'),
+    ];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId="conv-1"
+          onConversationSelect={vi.fn()}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Active Conversation')).toBeInTheDocument();
+    });
+
+    // The active conversation should have highlight styling
+    const activeConvContainer = screen
+      .getByText('Active Conversation')
+      .closest('div');
+    expect(activeConvContainer).toHaveClass('bg-primary/90');
+  });
+
+  test('conversation dropdown menu actions', async () => {
+    const user = userEvent.setup();
+    const onChatSettingsOpen = vi.fn();
+
+    const conversations = [
+      createMockConversation('conv-1', 'Test Conversation'),
+    ];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId="conv-1"
+          onConversationSelect={vi.fn()}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={onChatSettingsOpen}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Conversation')).toBeInTheDocument();
+    });
+
+    // Find and click the dropdown trigger
+    const dropdownTriggers = screen.getAllByRole('button');
+    const moreButton = dropdownTriggers.find(
+      (button) =>
+        button.querySelector('svg') &&
+        button.getAttribute('class')?.includes('w-6 h-6')
+    );
+
+    expect(moreButton).toBeInTheDocument();
+    if (moreButton) {
+      await user.click(moreButton);
+    }
+
+    // Test Chat Settings option
+    await waitFor(() => {
+      expect(
+        screen.getByRole('menuitem', { name: /chat settings/i })
+      ).toBeInTheDocument();
+    });
+
+    const chatSettingsItem = screen.getByRole('menuitem', {
+      name: /chat settings/i,
+    });
+    await user.click(chatSettingsItem);
+
+    expect(onChatSettingsOpen).toHaveBeenCalledOnce();
+  });
+
+  test('rename conversation dialog workflow', async () => {
+    const user = userEvent.setup();
+
+    const conversations = [createMockConversation('conv-1', 'Original Title')];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId="conv-1"
+          onConversationSelect={vi.fn()}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Original Title')).toBeInTheDocument();
+    });
+
+    // Open dropdown menu
+    const dropdownTriggers = screen.getAllByRole('button');
+    const moreButton = dropdownTriggers.find(
+      (button) =>
+        button.querySelector('svg') &&
+        button.getAttribute('class')?.includes('w-6 h-6')
+    );
+
+    if (moreButton) {
+      await user.click(moreButton);
+    }
+
+    // Click Rename option
+    await waitFor(() => {
+      expect(
+        screen.getByRole('menuitem', { name: /rename/i })
+      ).toBeInTheDocument();
+    });
+
+    const renameItem = screen.getByRole('menuitem', { name: /rename/i });
+    await user.click(renameItem);
+
+    // Should open rename dialog
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Rename Conversation')).toBeInTheDocument();
+    });
+
+    // Input should be pre-filled with current title
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveValue('Original Title');
+
+    // Change the title
+    await user.clear(input);
+    await user.type(input, 'New Title');
+
+    // Save the changes
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    await user.click(saveButton);
+
+    // Dialog should close and title should be updated
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByText('New Title')).toBeInTheDocument();
+    });
+  });
+
+  test('rename dialog enter key saves changes', async () => {
+    const user = userEvent.setup();
+
+    const conversations = [createMockConversation('conv-1', 'Original Title')];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId="conv-1"
+          onConversationSelect={vi.fn()}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Original Title')).toBeInTheDocument();
+    });
+
+    // Open dropdown and click rename
+    const dropdownTriggers = screen.getAllByRole('button');
+    const moreButton = dropdownTriggers.find(
+      (button) =>
+        button.querySelector('svg') &&
+        button.getAttribute('class')?.includes('w-6 h-6')
+    );
+
+    if (moreButton) {
+      await user.click(moreButton);
+    }
+
+    const renameItem = screen.getByRole('menuitem', { name: /rename/i });
+    await user.click(renameItem);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'Title via Enter');
+    await user.keyboard('{Enter}');
+
+    // Dialog should close and title should be updated
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByText('Title via Enter')).toBeInTheDocument();
+    });
+  });
+
+  test('rename dialog cancel button discards changes', async () => {
+    const user = userEvent.setup();
+
+    const conversations = [createMockConversation('conv-1', 'Original Title')];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId="conv-1"
+          onConversationSelect={vi.fn()}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Original Title')).toBeInTheDocument();
+    });
+
+    // Open rename dialog
+    const dropdownTriggers = screen.getAllByRole('button');
+    const moreButton = dropdownTriggers.find(
+      (button) =>
+        button.querySelector('svg') &&
+        button.getAttribute('class')?.includes('w-6 h-6')
+    );
+
+    if (moreButton) {
+      await user.click(moreButton);
+    }
+
+    const renameItem = screen.getByRole('menuitem', { name: /rename/i });
+    await user.click(renameItem);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    // Change the title but cancel
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'Cancelled Title');
+
+    const cancelButton = screen.getByRole('button', { name: /cancel/i });
+    await user.click(cancelButton);
+
+    // Dialog should close and original title should remain
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByText('Original Title')).toBeInTheDocument();
+      expect(screen.queryByText('Cancelled Title')).not.toBeInTheDocument();
+    });
+  });
+
+  test('fork conversation creates duplicate', async () => {
+    const user = userEvent.setup();
+    const onConversationSelect = vi.fn();
+
+    const conversations = [
+      createMockConversation('conv-1', 'Original Conversation'),
+    ];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId="conv-1"
+          onConversationSelect={onConversationSelect}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Original Conversation')).toBeInTheDocument();
+    });
+
+    // Open dropdown and click fork
+    const dropdownTriggers = screen.getAllByRole('button');
+    const moreButton = dropdownTriggers.find(
+      (button) =>
+        button.querySelector('svg') &&
+        button.getAttribute('class')?.includes('w-6 h-6')
+    );
+
+    if (moreButton) {
+      await user.click(moreButton);
+    }
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('menuitem', { name: /fork chat/i })
+      ).toBeInTheDocument();
+    });
+
+    const forkItem = screen.getByRole('menuitem', { name: /fork chat/i });
+    await user.click(forkItem);
+
+    // Should create a forked conversation and select it
+    await waitFor(() => {
+      expect(
+        screen.getByText('Forked: Original Conversation')
+      ).toBeInTheDocument();
+    });
+
+    // onConversationSelect should be called with the new conversation ID
+    expect(onConversationSelect).toHaveBeenCalled();
+    const callArgs = onConversationSelect.mock.calls[0];
+    expect(callArgs[0]).toMatch(/^[a-f0-9-]+$/); // Should be a UUID
+  });
+
+  test('delete conversation removes from list', async () => {
+    const user = userEvent.setup();
+    const onConversationSelect = vi.fn();
+
+    const conversations = [
+      createMockConversation('conv-1', 'To Be Deleted'),
+      createMockConversation('conv-2', 'Should Remain'),
+    ];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId="conv-1"
+          onConversationSelect={onConversationSelect}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('To Be Deleted')).toBeInTheDocument();
+      expect(screen.getByText('Should Remain')).toBeInTheDocument();
+    });
+
+    // Open dropdown and click delete
+    const dropdownTriggers = screen.getAllByRole('button');
+    const moreButton = dropdownTriggers.find(
+      (button) =>
+        button.querySelector('svg') &&
+        button.getAttribute('class')?.includes('w-6 h-6')
+    );
+
+    if (moreButton) {
+      await user.click(moreButton);
+    }
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('menuitem', { name: /delete/i })
+      ).toBeInTheDocument();
+    });
+
+    const deleteItem = screen.getByRole('menuitem', { name: /delete/i });
+    await user.click(deleteItem);
+
+    // Conversation should be removed and selection should be cleared
+    await waitFor(() => {
+      expect(screen.queryByText('To Be Deleted')).not.toBeInTheDocument();
+      expect(screen.getByText('Should Remain')).toBeInTheDocument();
+    });
+
+    expect(onConversationSelect).toHaveBeenCalledWith(null);
+  });
+
+  test('conversations sorted by updated_at timestamp', async () => {
+    const oldDate = new Date('2024-01-01T10:00:00Z');
+    const newDate = new Date('2024-01-01T12:00:00Z');
+
+    const conversations = [
+      createMockConversation('conv-1', 'Older Conversation', oldDate),
+      createMockConversation('conv-2', 'Newer Conversation', newDate),
+    ];
+
+    localStorage.setItem(
+      'live-language-mate-conversations',
+      JSON.stringify(conversations)
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar
+          currentConversationId={null}
+          onConversationSelect={vi.fn()}
+          onNewConversation={vi.fn()}
+          onChatSettingsOpen={vi.fn()}
+          onMainSettingsOpen={vi.fn()}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Newer Conversation')).toBeInTheDocument();
+      expect(screen.getByText('Older Conversation')).toBeInTheDocument();
+    });
+
+    // Get all conversation elements
+    const conversationElements = screen.getAllByText(/Conversation$/);
+
+    // The newer conversation should appear first (index 0)
+    expect(conversationElements[0]).toHaveTextContent('Newer Conversation');
+    expect(conversationElements[1]).toHaveTextContent('Older Conversation');
   });
 });
