@@ -145,16 +145,20 @@ The API server can be deployed to any platform supporting Deno:
 - Only use `?.` when the logic is really optional, if the object before `?.` should not be null, do a proper null check beforehand and throw if the object null.
 - If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
 - Avoid default values, optional Zod property, `null` or `undefined` in the type, if you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it.
+- In test file when writing assertions, use expect toBeTruthy instead of using if statement to do null check.
+- Use Zod to validate and cast type whenever possible and feasible.
 
 ## Claude Code operations
 
 - After you finish all the edits in the task, make sure to `npm run check` then fix the lint and type errors.
-- If you make a git commit, prefix you commit message with `(Claude Code) `
+- If you make a git commit, prefix you commit message with `(Claude Code) ` and add a line at the end of commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
 - After each task completed, you should automatically and frequently make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
 - Instead of running individual lint and typecheck commands, you should use `npm run check` to perform type check and linting, `npm run check` performs lint and type check on all files.
-- When searching in the codebase, instead of using your own search tool, prefer using ast-grep (`sg --lang tsx` (or set `--lang` appropriately )) first, then fall back to your own search tool or `rg`/`grep`.
-- Use `git ls-files` instead of running `find` command.
+- Instead of using your own Search tool, prefer using ast-grep (`sg --lang tsx` (or set `--lang` appropriately )) first, then fall back to your own search tool or `rg`/`grep`.
+- If there's a tool instead of command, use the tool, for example, use your own Read tool instead of running commands to read file.
+- If you must run a command, prefer read-only command, for example use `git ls-files` instead of running `find` command.
 - You should not update any config files unless that's the only way or the best way to fix things, if you must update a config file, pause and ask the user for feedback.
 - When planning changes, plan ahead to see if you need to update tests at the same time.
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
+- You can use eslint commands directly with `npx eslint`, this is useful for linting only a few files.
