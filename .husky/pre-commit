@@ -4,9 +4,9 @@
 
 # Lint and ignore warning, mainly to ignore "File ignored because no matching configuration was supplied".
 git diff --cached --name-only --diff-filter=ACMR -z | \
-xargs -0 npx eslint --fix --quiet
+xargs -r -0 npx eslint --fix --quiet
 
 git diff --cached --name-only --diff-filter=ACMR -z | \
-xargs -0 npx prettier --write --ignore-unknown --log-level=silent
+xargs -r -0 npx prettier --write --ignore-unknown --log-level=silent
 
 git update-index --again
