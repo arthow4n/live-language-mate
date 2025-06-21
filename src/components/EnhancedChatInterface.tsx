@@ -67,17 +67,17 @@ const EnhancedChatInterface = ({
   const globalSettings = getGlobalSettings();
 
   // Use chat-specific settings if available, otherwise fall back to global settings
-  const effectiveModel = chatSettings?.model || globalSettings.model;
-  const effectiveApiKey = chatSettings?.apiKey || globalSettings.apiKey;
+  const effectiveModel = chatSettings?.model ?? globalSettings.model;
+  const effectiveApiKey = chatSettings?.apiKey ?? globalSettings.apiKey;
 
   const chatMatePrompt =
-    currentConversation?.chat_mate_prompt ||
-    chatSettings?.chatMatePersonality ||
+    currentConversation?.chat_mate_prompt ??
+    chatSettings?.chatMatePersonality ??
     'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt =
-    currentConversation?.editor_mate_prompt ||
-    editorMatePrompt ||
-    chatSettings?.editorMatePersonality ||
+    currentConversation?.editor_mate_prompt ??
+    editorMatePrompt ??
+    chatSettings?.editorMatePersonality ??
     'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
 
   const shouldGenerateTitle = (
@@ -200,7 +200,7 @@ const EnhancedChatInterface = ({
     if (conversationId && shouldGenerateTitle(messages, conversationId)) {
       // Use a small delay to ensure all messages are saved before generating title
       const timeoutId = setTimeout(() => {
-        generateAndUpdateTitle(messages, conversationId);
+        void generateAndUpdateTitle(messages, conversationId);
       }, 500);
 
       return () => {
@@ -335,7 +335,7 @@ const EnhancedChatInterface = ({
 
       toast({
         title: 'Success',
-        description: `Deleted ${messagesToDelete.length} message${messagesToDelete.length > 1 ? 's' : ''}`,
+        description: `Deleted ${messagesToDelete.length.toString()} message${messagesToDelete.length > 1 ? 's' : ''}`,
       });
     } catch (error) {
       console.error('Error deleting messages:', error);
@@ -490,12 +490,15 @@ const EnhancedChatInterface = ({
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
 
-        buffer = lines.pop() || '';
+        buffer = lines.pop() ?? '';
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.slice(6));
+              const data = JSON.parse(line.slice(6)) as {
+                type?: string;
+                content?: string;
+              };
 
               if (data.type === 'content' && data.content) {
                 fullContent += data.content;
