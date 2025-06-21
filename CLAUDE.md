@@ -144,6 +144,7 @@ The API server can be deployed to any platform supporting Deno:
 - Prefer integration tests over unit tests. Don't mock modules, instead think of how the data flows and mock from the data's source.
 - Use TDD/BDD as much as possible.
 - Validate and cast unknown objects with Zod.
+- For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
 
 ## TypeScript coding style and conventions
 
