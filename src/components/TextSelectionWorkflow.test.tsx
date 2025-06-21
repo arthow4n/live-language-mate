@@ -84,8 +84,10 @@ describe('Text Selection Workflow Integration Tests', () => {
       'messageType',
       'editor-mate-response'
     );
-    expect(capturedEditorRequest?.message).toContain('What does this mean?');
-    expect(capturedEditorRequest?.message).toContain('Hej på dig');
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- capturedEditorRequest is verified to be non-null above
+    expect(capturedEditorRequest!.message).toContain('What does this mean?');
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- capturedEditorRequest is verified to be non-null above
+    expect(capturedEditorRequest!.message).toContain('Hej på dig');
   });
 
   test('AskInterface handles empty selection gracefully', async () => {

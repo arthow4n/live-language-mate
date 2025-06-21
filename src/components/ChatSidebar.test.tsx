@@ -39,11 +39,15 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={() => {}}
+          onConversationSelect={() => {
+            /* empty test callback */
+          }}
           onNewConversation={() => {
             onNewConversationCalled = true;
           }}
-          onChatSettingsOpen={() => {}}
+          onChatSettingsOpen={() => {
+            /* empty test callback */
+          }}
           onMainSettingsOpen={() => {
             onMainSettingsOpenCalled = true;
           }}
@@ -77,14 +81,10 @@ describe('ChatSidebar Integration Tests', () => {
   });
 
   test('displays conversations and handles selection', async () => {
-    let selectedConversationId: string | null = null;
-    let chatSettingsOpenCalled = false;
-
     // Mock the localStorage to return some conversations
-    const mockConversations = [
-      createMockConversation('conv1', 'Swedish Basics'),
-      createMockConversation('conv2', 'Advanced Grammar'),
-    ];
+    // TODO: These conversations would be used to populate the storage context
+    createMockConversation('conv1', 'Swedish Basics');
+    createMockConversation('conv2', 'Advanced Grammar');
 
     // We need to pre-populate the storage context with conversations
     // This test would need to be enhanced to properly mock the storage context
@@ -92,14 +92,18 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId="conv1"
-          onConversationSelect={(id) => {
-            selectedConversationId = id;
+          onConversationSelect={() => {
+            // Handle conversation selection
           }}
-          onNewConversation={() => {}}
+          onNewConversation={() => {
+            /* empty test callback */
+          }}
           onChatSettingsOpen={() => {
-            chatSettingsOpenCalled = true;
+            /* empty test callback */
           }}
-          onMainSettingsOpen={() => {}}
+          onMainSettingsOpen={() => {
+            /* empty test callback */
+          }}
         />
       </TestWrapper>
     );
@@ -118,12 +122,18 @@ describe('ChatSidebar Integration Tests', () => {
       <TestWrapper>
         <ChatSidebar
           currentConversationId={null}
-          onConversationSelect={() => {}}
+          onConversationSelect={() => {
+            /* empty test callback */
+          }}
           onNewConversation={() => {
             newConversationCreated = true;
           }}
-          onChatSettingsOpen={() => {}}
-          onMainSettingsOpen={() => {}}
+          onChatSettingsOpen={() => {
+            /* empty test callback */
+          }}
+          onMainSettingsOpen={() => {
+            /* empty test callback */
+          }}
         />
       </TestWrapper>
     );
