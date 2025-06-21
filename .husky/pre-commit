@@ -1,6 +1,10 @@
 #!/usr/bin/bash
 
-# npm test
+# Make sure you have setup nvm in https://typicode.github.io/husky/how-to.html#startup-files
 
-prettier $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g') --write --ignore-unknown
-git update-index --again
+changed_files="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+if [[ -n "$changed_files" ]]; then
+    npx prettier "$changed_files" --write --ignore-unknown
+    git update-index --again
+fi
