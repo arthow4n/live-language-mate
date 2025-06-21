@@ -70,9 +70,8 @@ describe('AskInterface Integration Tests', () => {
     });
 
     // Additional specific checks beyond Zod validation
-    if (capturedRequest) {
-      expect(capturedRequest.messageType).toBe('editor-mate-response');
-      expect(capturedRequest.message).toContain('What does this mean?');
-    }
+    expect(capturedRequest).toBeTruthy();
+    expect(capturedRequest.messageType).toBe('editor-mate-response');
+    expect(capturedRequest.message).toContain('What does this mean?');
   });
 });

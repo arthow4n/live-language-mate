@@ -3,7 +3,6 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
-import path from 'node:path';
 
 /** @type {import("eslint").Linter.Config[]} */
 export default tseslint.config(

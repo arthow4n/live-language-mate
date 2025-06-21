@@ -11,9 +11,7 @@ export class PromptBuilder {
   private static instance: PromptBuilder;
 
   static getInstance(): PromptBuilder {
-    if (!PromptBuilder.instance) {
-      PromptBuilder.instance = new PromptBuilder();
-    }
+    PromptBuilder.instance ??= new PromptBuilder();
     return PromptBuilder.instance;
   }
 
@@ -22,7 +20,7 @@ export class PromptBuilder {
       ? this.createCustomTemplate(request.customTemplate)
       : promptTemplates[request.messageType];
 
-    if (template === undefined) {
+    if (!template) {
       throw new Error(
         `No template found for message type: ${request.messageType}`
       );
@@ -88,12 +86,12 @@ export class PromptBuilder {
       editorMatePersonality:
         variables.editorMatePersonality ?? promptDefaults.editorMatePersonality,
       editorMateExpertise:
-        variables.editorMateExpertise ?? promptDefaults.editorMateExpertise,
+        variables.editorMateExpertise || promptDefaults.editorMateExpertise,
       feedbackStyleDescription:
-        promptDefaults.feedbackStyleDescriptions[variables.feedbackStyle] ??
+        promptDefaults.feedbackStyleDescriptions[variables.feedbackStyle] ||
         'helpful and constructive',
       feedbackStyleTone:
-        promptDefaults.feedbackStyleTones[variables.feedbackStyle] ??
+        promptDefaults.feedbackStyleTones[variables.feedbackStyle] ||
         'supportive and clear',
       culturalContextInstructions: variables.culturalContext
         ? this.getCulturalContextInstructions()
@@ -107,12 +105,12 @@ export class PromptBuilder {
   }
 
   private getCulturalContextInstructions(): string {
-    return promptDefaults.culturalContextInstructions.enabled ?? '';
+    return promptDefaults.culturalContextInstructions.enabled || '';
   }
 
   private getProgressiveComplexityInstructions(currentLevel?: string): string {
     const baseInstructions =
-      promptDefaults.progressiveComplexityInstructions.enabled ?? '';
+      promptDefaults.progressiveComplexityInstructions.enabled || '';
     if (currentLevel) {
       return `${baseInstructions}\n\nCurrent complexity level: ${currentLevel}`;
     }

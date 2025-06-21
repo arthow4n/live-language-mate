@@ -300,7 +300,7 @@ const AskInterface = ({
                     content?: string;
                     type?: string;
                   };
-                  if (parsed.content && !isStreamingComplete) {
+                  if (parsed.content) {
                     accumulatedContent += parsed.content;
                     setConversation((prev) =>
                       prev.map((msg) =>
