@@ -23,6 +23,8 @@ This is a React TypeScript language learning application called "Live Language M
 
 - React 18 with TypeScript
 - Vite for build tooling
+- Vitest for test
+- MSW for mocking backend API in frontend test
 - Tailwind CSS + shadcn/ui components
 - Zustand-like context for state management
 - React Router for navigation
@@ -44,7 +46,6 @@ z.looseObject({ name: z.string() });
 
 - Standalone Deno HTTP API server (`api/main.ts`)
 - OpenRouter API integration for AI models
-- Local storage for chat persistence
 
 ### Key Components Structure
 
@@ -150,6 +151,7 @@ The API server can be deployed to any platform supporting Deno:
 
 ## Engineering mindset
 
+- Follow the existing code style, if you are about to implement something new or write a new test, search for existing files to understand the current style and convention.
 - Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
 - Use TDD/BDD as much as possible.
 - For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
@@ -208,6 +210,7 @@ x?.Y(); // Y is optional because ...
 - The environment is covered with git, leverage git commands during your work.
 - Unless otherwise specified by the user, when making progress in your task, be proactive to make small git commits with descriptive messages, and then git push.
 - When you make commit, there's a pre-commit hook which will lint and test staged files.
+- YOU SHOULD NEVER RUN `git commit --no-verify`. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
 - If you make a git commit, prefix you commit message title with `(Claude Code) ` and add a footer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
 
 ## Tool
