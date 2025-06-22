@@ -412,6 +412,58 @@ describe('EnhancedChatMessage Integration Tests', () => {
     expect(mockOnDeleteAllBelow).toHaveBeenCalledWith('test-message-1');
     expect(mockOnDeleteAllBelow).toHaveBeenCalledTimes(1);
   });
-  test.todo('reasoning section toggle functionality');
+  test('reasoning section toggle functionality', async () => {
+    const user = userEvent.setup();
+    const mockOnTextSelect = vi.fn();
+
+    const testMessage: Message = {
+      content: 'Test message content',
+      id: 'test-message-1',
+      reasoning: 'This is the AI reasoning content that should be toggleable.',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'chat-mate',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={testMessage}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Should display the reasoning toggle button
+    const reasoningToggle = screen.getByTestId('reasoning-toggle');
+    expect(reasoningToggle).toBeInTheDocument();
+    expect(screen.getByText('AI Reasoning')).toBeInTheDocument();
+
+    // The reasoning content should be visible by default (globalSettings.reasoningExpanded defaults to true)
+    expect(
+      screen.getByText(
+        'This is the AI reasoning content that should be toggleable.'
+      )
+    ).toBeInTheDocument();
+
+    // Click to collapse the reasoning section
+    await user.click(reasoningToggle);
+
+    // The reasoning content should be hidden after collapse
+    expect(
+      screen.queryByText(
+        'This is the AI reasoning content that should be toggleable.'
+      )
+    ).not.toBeInTheDocument();
+
+    // Click to expand the reasoning section again
+    await user.click(reasoningToggle);
+
+    // The reasoning content should be visible again
+    expect(
+      screen.getByText(
+        'This is the AI reasoning content that should be toggleable.'
+      )
+    ).toBeInTheDocument();
+  });
   test.todo('streaming indicator displays when message is streaming');
 });
