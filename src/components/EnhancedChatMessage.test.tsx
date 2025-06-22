@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, test } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { Message } from '@/schemas/messages';
 
@@ -21,9 +22,7 @@ describe('EnhancedChatMessage Integration Tests', () => {
   });
 
   test('displays message content and metadata correctly', () => {
-    const mockOnTextSelect = (): void => {
-      // Mock function for test
-    };
+    const mockOnTextSelect = vi.fn();
 
     const testMessage: Message = {
       content: 'Hello, this is a test message!',
@@ -65,7 +64,64 @@ describe('EnhancedChatMessage Integration Tests', () => {
     expect(screen.getByText('1.5s')).toBeInTheDocument();
   });
 
-  test.todo('message actions dropdown functionality');
+  test('message actions dropdown functionality', async () => {
+    const user = userEvent.setup();
+    const mockOnEditMessage = vi.fn();
+    const mockOnRegenerateMessage = vi.fn();
+    const mockOnForkFrom = vi.fn();
+    const mockOnDeleteMessage = vi.fn();
+    const mockOnDeleteAllBelow = vi.fn();
+    const mockOnTextSelect = vi.fn();
+
+    const testMessage: Message = {
+      content: 'Test message content',
+      id: 'test-message-1',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'chat-mate',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={testMessage}
+          onDeleteAllBelow={mockOnDeleteAllBelow}
+          onDeleteMessage={mockOnDeleteMessage}
+          onEditMessage={mockOnEditMessage}
+          onForkFrom={mockOnForkFrom}
+          onRegenerateMessage={mockOnRegenerateMessage}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Click the dropdown trigger button
+    const actionsTrigger = screen.getByTestId('message-actions-trigger');
+    await user.click(actionsTrigger);
+
+    // Verify all expected menu items are present
+    expect(screen.getByText('Copy')).toBeInTheDocument();
+    expect(screen.getByText('Edit')).toBeInTheDocument();
+    expect(screen.getByText('Regenerate')).toBeInTheDocument();
+    expect(screen.getByText('Fork from here')).toBeInTheDocument();
+    expect(screen.getByText('Delete message')).toBeInTheDocument();
+    expect(screen.getByText('Delete all below')).toBeInTheDocument();
+
+    // Test Fork action - close menu with Escape, then reopen
+    await user.keyboard('{Escape}');
+    await user.click(actionsTrigger);
+    await user.click(screen.getByText('Fork from here'));
+    expect(mockOnForkFrom).toHaveBeenCalledWith('test-message-1');
+
+    // Test Delete message action
+    await user.click(actionsTrigger);
+    await user.click(screen.getByText('Delete message'));
+    expect(mockOnDeleteMessage).toHaveBeenCalledWith('test-message-1');
+
+    // Test Delete all below action
+    await user.click(actionsTrigger);
+    await user.click(screen.getByText('Delete all below'));
+    expect(mockOnDeleteAllBelow).toHaveBeenCalledWith('test-message-1');
+  });
   test.todo('edit mode save and cancel functionality');
   test.todo('edit mode cancel restores original content');
   test.todo('regenerate action only available for non-user messages');
