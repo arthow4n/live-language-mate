@@ -165,8 +165,9 @@ The API server can be deployed to any platform supporting Deno:
 ### In fronted, instead of X use Y
 
 - `console.error` -> `logError`
-- In test `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
 - `JSX.Element` -> `React.JSX.Element`
+- In test `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
+- In test `getAllBy*()[*]` -> `getByTestId`
 
 ## Claude Code operations
 
