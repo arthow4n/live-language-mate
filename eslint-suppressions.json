@@ -12,10 +12,5 @@
     "@typescript-eslint/no-unsafe-member-access": {
       "count": 1
     }
-  },
-  "src/contexts/UnifiedStorageContext.tsx": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 13
-    }
   }
 }
