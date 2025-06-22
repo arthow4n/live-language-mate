@@ -237,7 +237,68 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Danger Zone')).toBeInTheDocument();
   });
-  test.todo('form controls update settings state');
+  test('form controls update settings state', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // TODO: Test target language selection - skipped due to complex Select component structure
+    // Need to investigate how Radix Select component renders in tests
+
+    // Test API key input
+    const apiKeyInput = screen.getByDisplayValue('test-api-key');
+    await user.clear(apiKeyInput);
+    await user.type(apiKeyInput, 'new-api-key');
+
+    // Test streaming toggle
+    const streamingSwitch = screen.getByLabelText('Enable streaming responses');
+    expect(streamingSwitch).toBeChecked();
+    await user.click(streamingSwitch);
+
+    // Test reasoning toggle
+    const reasoningSwitch = screen.getByLabelText('Enable reasoning tokens');
+    expect(reasoningSwitch).toBeChecked();
+    await user.click(reasoningSwitch);
+
+    // Test reasoning expanded toggle
+    const reasoningExpandedSwitch = screen.getByLabelText(
+      'Reasoning expanded by default'
+    );
+    expect(reasoningExpandedSwitch).toBeChecked();
+    await user.click(reasoningExpandedSwitch);
+
+    // Click Save Changes to trigger the save callback
+    const saveButton = screen.getByText('Save Changes');
+    await user.click(saveButton);
+
+    // Verify the save callback was called with updated settings
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
+
+    // Check that the settings were updated
+    expect(mockOnSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        apiKey: 'new-api-key',
+        enableReasoning: false,
+        reasoningExpanded: false,
+        streaming: false,
+      })
+    );
+
+    // Dialog should close after saving
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+  });
   test.todo('conversation-specific settings for chat mode');
   test.todo('AI personalities tab functionality');
   test.todo('model selector integration');
