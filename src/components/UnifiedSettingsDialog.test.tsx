@@ -16,7 +16,7 @@ interface TestWrapperProps {
   children: React.ReactNode;
 }
 
-const TestWrapper = ({ children }: TestWrapperProps) => (
+const TestWrapper = ({ children }: TestWrapperProps): React.JSX.Element => (
   <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
 );
 
@@ -68,7 +68,7 @@ vi.mock('./ModelSelector', () => ({
   }: {
     onValueChange: (value: string) => void;
     value: string;
-  }) => (
+  }): React.JSX.Element => (
     <select
       data-testid="model-selector"
       onChange={(e) => {
@@ -84,7 +84,9 @@ vi.mock('./ModelSelector', () => ({
 
 // Mock DataManagementTab and UISettingsTab
 vi.mock('./DataManagementTab', () => ({
-  default: () => <div data-testid="data-management-tab">Data Management</div>,
+  default: (): React.JSX.Element => (
+    <div data-testid="data-management-tab">Data Management</div>
+  ),
 }));
 
 vi.mock('./UISettingsTab', () => ({
@@ -92,7 +94,7 @@ vi.mock('./UISettingsTab', () => ({
     onSettingChange,
   }: {
     onSettingChange: (key: string, value: string) => void;
-  }) => (
+  }): React.JSX.Element => (
     <div data-testid="ui-settings-tab">
       <select
         data-testid="theme-selector"
