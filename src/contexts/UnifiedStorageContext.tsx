@@ -104,7 +104,7 @@ export const UnifiedStorageProvider = ({
   children,
 }: {
   children: ReactNode;
-}) => {
+}): React.JSX.Element => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [conversations, setConversations] = useState<LocalConversation[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(
@@ -116,7 +116,7 @@ export const UnifiedStorageProvider = ({
 
   // Load all data from localStorage on mount
   useEffect(() => {
-    const loadData = () => {
+    const loadData = (): void => {
       try {
         const stored = localStorage.getItem(LocalStorageKeys.APP_DATA);
         if (stored) {
@@ -234,7 +234,7 @@ export const UnifiedStorageProvider = ({
     }
   }, [conversations, globalSettings, conversationSettings]);
 
-  const updateGlobalSettings = (newSettings: GlobalSettingsUpdate) => {
+  const updateGlobalSettings = (newSettings: GlobalSettingsUpdate): void => {
     setGlobalSettings((prev) => {
       const updatedSettings = { ...prev, ...newSettings };
       try {
@@ -268,7 +268,7 @@ export const UnifiedStorageProvider = ({
   const updateConversationSettings = (
     conversationId: string,
     newSettings: ConversationSettingsUpdate
-  ) => {
+  ): void => {
     setConversationSettings((prev) => {
       const currentSettings =
         prev[conversationId] ?? getDefaultConversationSettings();
@@ -316,7 +316,7 @@ export const UnifiedStorageProvider = ({
     return defaultSettings;
   };
 
-  const refreshConversations = () => {
+  const refreshConversations = (): void => {
     // Data is already in sync, just trigger re-render if needed
   };
 
@@ -324,7 +324,7 @@ export const UnifiedStorageProvider = ({
     return conversations.find((conv) => conv.id === id) ?? null;
   };
 
-  const saveConversation = (conversation: LocalConversation) => {
+  const saveConversation = (conversation: LocalConversation): void => {
     setConversations((prev) => {
       const index = prev.findIndex((conv) => conv.id === conversation.id);
       let updated: LocalConversation[];
@@ -362,7 +362,7 @@ export const UnifiedStorageProvider = ({
   const updateConversation = (
     id: string,
     updates: Partial<LocalConversation>
-  ) => {
+  ): void => {
     setConversations((prev) => {
       const index = prev.findIndex((conv) => conv.id === id);
       if (index >= 0) {
@@ -378,7 +378,7 @@ export const UnifiedStorageProvider = ({
     });
   };
 
-  const deleteConversation = (id: string) => {
+  const deleteConversation = (id: string): void => {
     setConversations((prev) => prev.filter((conv) => conv.id !== id));
     setConversationSettings((prev) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructuring pattern requires unused variable to extract from object
@@ -387,7 +387,7 @@ export const UnifiedStorageProvider = ({
     });
   };
 
-  const updateConversationTitle = (id: string, title: string) => {
+  const updateConversationTitle = (id: string, title: string): void => {
     updateConversation(id, { title });
   };
 
@@ -423,7 +423,10 @@ export const UnifiedStorageProvider = ({
     return conversation?.messages ?? [];
   };
 
-  const updateMessage = (messageId: string, updates: Partial<LocalMessage>) => {
+  const updateMessage = (
+    messageId: string,
+    updates: Partial<LocalMessage>
+  ): void => {
     setConversations((prev) => {
       return prev.map((conv) => {
         const messageIndex = conv.messages.findIndex(
@@ -446,7 +449,7 @@ export const UnifiedStorageProvider = ({
     });
   };
 
-  const deleteMessage = (messageId: string) => {
+  const deleteMessage = (messageId: string): void => {
     setConversations((prev) => {
       return prev.map((conv) => {
         const messageIndex = conv.messages.findIndex(
@@ -466,7 +469,7 @@ export const UnifiedStorageProvider = ({
     });
   };
 
-  const deleteAllChats = () => {
+  const deleteAllChats = (): void => {
     setConversations([]);
     setConversationSettings({});
   };
@@ -538,7 +541,7 @@ export const UnifiedStorageProvider = ({
   );
 };
 
-export const useUnifiedStorage = () => {
+export const useUnifiedStorage = (): UnifiedStorageContextType => {
   const context = useContext(UnifiedStorageContext);
   if (context === undefined) {
     throw new Error(
