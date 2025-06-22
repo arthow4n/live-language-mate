@@ -597,6 +597,80 @@ describe('ChatSidebar Integration Tests', () => {
     // Verify success toast
     expect(screen.getByText('Conversation forked')).toBeInTheDocument();
   });
-  test.todo('delete conversation removes from list');
+  test('delete conversation removes from list', async () => {
+    const user = userEvent.setup();
+
+    // Set up test conversations
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-01T00:00:00.000Z',
+            id: 'conv-1',
+            language: 'Swedish',
+            messages: [],
+            title: 'Conversation to Delete',
+            updated_at: '2023-01-01T00:00:00.000Z',
+          },
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-02T00:00:00.000Z',
+            id: 'conv-2',
+            language: 'Swedish',
+            messages: [],
+            title: 'Conversation to Keep',
+            updated_at: '2023-01-02T00:00:00.000Z',
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          chatMateBackground: 'young professional',
+          chatMatePersonality: 'friendly',
+          culturalContext: true,
+          editorMateExpertise: '10+ years',
+          editorMatePersonality: 'patient teacher',
+          enableReasoning: true,
+          feedbackStyle: 'encouraging',
+          model: 'google/gemini-2.5-flash',
+          progressiveComplexity: true,
+          reasoningExpanded: true,
+          streaming: true,
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar {...mockProps} currentConversationId="conv-1" />
+      </TestWrapper>
+    );
+
+    // Verify both conversations exist initially
+    expect(screen.getByText('Conversation to Delete')).toBeInTheDocument();
+    expect(screen.getByText('Conversation to Keep')).toBeInTheDocument();
+
+    // Open dropdown menu and click delete
+    const menuButton = screen.getByTestId('conversation-menu-conv-1');
+    await user.click(menuButton);
+    const deleteItem = screen.getByTestId('delete-conv-1');
+    await user.click(deleteItem);
+
+    // Verify conversation is removed from list
+    expect(
+      screen.queryByText('Conversation to Delete')
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Conversation to Keep')).toBeInTheDocument();
+
+    // Verify onConversationSelect was called with null (since deleted conversation was current)
+    expect(mockProps.onConversationSelect).toHaveBeenCalledWith(null);
+
+    // Verify success toast
+    expect(screen.getByText('Conversation deleted')).toBeInTheDocument();
+  });
   test.todo('conversations sorted by updated_at timestamp');
 });
