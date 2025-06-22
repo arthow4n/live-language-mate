@@ -176,7 +176,61 @@ describe('EnhancedChatMessage Integration Tests', () => {
     // Note: The component still shows original content because it expects parent to update the message prop
     expect(screen.getByText('Original message content')).toBeInTheDocument();
   });
-  test.todo('edit mode cancel restores original content');
+  test('edit mode cancel restores original content', async () => {
+    const user = userEvent.setup();
+    const mockOnEditMessage = vi.fn();
+    const mockOnTextSelect = vi.fn();
+
+    const testMessage: Message = {
+      content: 'Original message content',
+      id: 'test-message-1',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'chat-mate',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={testMessage}
+          onEditMessage={mockOnEditMessage}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Click the dropdown trigger and select Edit
+    const actionsTriggers = screen.getAllByTestId('message-actions-trigger');
+    const actionsTrigger = actionsTriggers[actionsTriggers.length - 1]; // Use the last one (most recent render)
+    await user.click(actionsTrigger);
+    await user.click(screen.getByText('Edit'));
+
+    // Should be in edit mode now
+    const textarea = screen.getByRole('textbox');
+    const cancelButton = screen.getByTestId('edit-cancel-button');
+
+    expect(textarea).toHaveValue('Original message content');
+
+    // Edit the content
+    await user.clear(textarea);
+    await user.type(textarea, 'Modified content that should be discarded');
+    expect(textarea).toHaveValue('Modified content that should be discarded');
+
+    // Test cancel functionality
+    await user.click(cancelButton);
+
+    // Should exit edit mode and not call onEditMessage
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(mockOnEditMessage).not.toHaveBeenCalled();
+    expect(screen.getByText('Original message content')).toBeInTheDocument();
+
+    // Verify that entering edit mode again shows original content
+    const newActionsTriggers = screen.getAllByTestId('message-actions-trigger');
+    const newActionsTrigger = newActionsTriggers[newActionsTriggers.length - 1];
+    await user.click(newActionsTrigger);
+    await user.click(screen.getByText('Edit'));
+    const newTextarea = screen.getByRole('textbox');
+    expect(newTextarea).toHaveValue('Original message content');
+  });
   test.todo('regenerate action only available for non-user messages');
   test.todo('text selection triggers onTextSelect callback');
   test.todo('fork and delete actions trigger correct callbacks');
