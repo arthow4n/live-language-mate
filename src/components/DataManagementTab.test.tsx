@@ -202,7 +202,37 @@ describe('DataManagementTab Integration Tests', () => {
     // File input should retain the filename after failed import (expected behavior)
     expect(fileInput).toHaveValue('C:\\fakepath\\test.json');
   });
-  test.todo('delete all chats confirmation dialog');
+  test('delete all chats confirmation dialog', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Click the delete all chats button
+    const deleteChatsButton = screen.getByTestId('delete-chats-button');
+    await user.click(deleteChatsButton);
+
+    // Should open confirmation dialog
+    const confirmationDialog = screen.getByTestId('delete-chats-dialog');
+    expect(confirmationDialog).toBeInTheDocument();
+
+    // Verify dialog content
+    expect(screen.getByText('Are you absolutely sure?')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This action cannot be undone. This will permanently delete all your conversations, settings, and preferences.'
+      )
+    ).toBeInTheDocument();
+
+    // Verify dialog buttons are present
+    expect(screen.getByTestId('delete-chats-cancel')).toBeInTheDocument();
+    expect(screen.getByTestId('delete-chats-confirm')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Yes, delete all chats')).toBeInTheDocument();
+  });
   test.todo('delete all chats confirmation and execution');
   test.todo('delete all chats cancellation');
   test.todo('delete all data confirmation dialog');
