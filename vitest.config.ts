@@ -11,6 +11,9 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    expect: {
+      requireAssertions: true,
+    },
     onStackTrace(error, { file }) {
       // Reduce context noise for LLM.
 
