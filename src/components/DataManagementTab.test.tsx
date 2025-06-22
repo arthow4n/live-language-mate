@@ -12,5 +12,7 @@ describe('DataManagementTab Integration Tests', () => {
   test.todo('delete all data execution clears all localStorage');
   test.todo('file input accepts only JSON files');
   test.todo('import button remains disabled without file selection');
-  test.todo('legacy format import handling');
+  test.skip('legacy format import handling', () => {
+    // This feature is meant to be removed, don't implement this.
+  });
 });
