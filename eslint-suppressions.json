@@ -6,10 +6,5 @@
     "testing-library/no-wait-for-multiple-assertions": {
       "count": 8
     }
-  },
-  "src/components/DataManagementTab.test.tsx": {
-    "testing-library/no-node-access": {
-      "count": 4
-    }
   }
 }

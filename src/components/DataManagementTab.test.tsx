@@ -40,12 +40,14 @@ describe('DataManagementTab Integration Tests', () => {
     });
 
     // Mock HTMLAnchorElement.click() to prevent JSDOM navigation error
-    // eslint-disable-next-line @typescript-eslint/unbound-method -- for test
+    // eslint-disable-next-line @typescript-eslint/unbound-method, testing-library/no-node-access -- necessary for mocking file downloads
     const originalClick = HTMLAnchorElement.prototype.click;
+    // eslint-disable-next-line testing-library/no-node-access -- necessary for mocking file downloads
     HTMLAnchorElement.prototype.click = vi.fn();
 
     // Clean up after each test
     return (): void => {
+      // eslint-disable-next-line testing-library/no-node-access -- necessary for cleanup
       HTMLAnchorElement.prototype.click = originalClick;
     };
   });
