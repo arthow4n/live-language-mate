@@ -233,7 +233,43 @@ describe('DataManagementTab Integration Tests', () => {
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByText('Yes, delete all chats')).toBeInTheDocument();
   });
-  test.todo('delete all chats confirmation and execution');
+  test('delete all chats confirmation and execution', async () => {
+    const user = userEvent.setup();
+
+    // Set up some test data in localStorage
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          { id: '1', messages: [], title: 'Test Chat 1' },
+          { id: '2', messages: [], title: 'Test Chat 2' },
+        ],
+      })
+    );
+
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Click the delete all chats button
+    const deleteChatsButton = screen.getByTestId('delete-chats-button');
+    await user.click(deleteChatsButton);
+
+    // Confirm deletion
+    const confirmButton = screen.getByTestId('delete-chats-confirm');
+    await user.click(confirmButton);
+
+    // Should show success toast
+    expect(screen.getByText('All chats deleted')).toBeInTheDocument();
+    expect(
+      screen.getByText('All conversations have been permanently deleted.')
+    ).toBeInTheDocument();
+
+    // Should remove language-mate-data from localStorage
+    expect(localStorage.getItem('language-mate-data')).toBeNull();
+  });
   test.todo('delete all chats cancellation');
   test.todo('delete all data confirmation dialog');
   test.todo('delete all data execution clears all localStorage');
