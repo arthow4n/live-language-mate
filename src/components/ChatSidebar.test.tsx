@@ -672,5 +672,87 @@ describe('ChatSidebar Integration Tests', () => {
     // Verify success toast
     expect(screen.getByText('Conversation deleted')).toBeInTheDocument();
   });
-  test.todo('conversations sorted by updated_at timestamp');
+  test('conversations sorted by updated_at timestamp', () => {
+    // Set up test conversations with different timestamps
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-01T00:00:00.000Z',
+            id: 'conv-1',
+            language: 'Swedish',
+            messages: [],
+            title: 'Oldest Conversation',
+            updated_at: '2023-01-01T00:00:00.000Z',
+          },
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-02T00:00:00.000Z',
+            id: 'conv-2',
+            language: 'Swedish',
+            messages: [],
+            title: 'Newest Conversation',
+            updated_at: '2023-01-03T00:00:00.000Z',
+          },
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-01T12:00:00.000Z',
+            id: 'conv-3',
+            language: 'Swedish',
+            messages: [],
+            title: 'Middle Conversation',
+            updated_at: '2023-01-02T00:00:00.000Z',
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          chatMateBackground: 'young professional',
+          chatMatePersonality: 'friendly',
+          culturalContext: true,
+          editorMateExpertise: '10+ years',
+          editorMatePersonality: 'patient teacher',
+          enableReasoning: true,
+          feedbackStyle: 'encouraging',
+          model: 'google/gemini-2.5-flash',
+          progressiveComplexity: true,
+          reasoningExpanded: true,
+          streaming: true,
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar {...mockProps} />
+      </TestWrapper>
+    );
+
+    // Get all conversation items in DOM order
+    const conversationItems = screen.getAllByTestId(/^conversation-item-/);
+
+    // Verify they are sorted by updated_at (most recent first)
+    // Expected order: conv-2 (newest), conv-3 (middle), conv-1 (oldest)
+    expect(conversationItems[0]).toHaveAttribute(
+      'data-testid',
+      'conversation-item-conv-2'
+    );
+    expect(conversationItems[1]).toHaveAttribute(
+      'data-testid',
+      'conversation-item-conv-3'
+    );
+    expect(conversationItems[2]).toHaveAttribute(
+      'data-testid',
+      'conversation-item-conv-1'
+    );
+
+    // Also verify the conversation titles exist
+    expect(screen.getByText('Newest Conversation')).toBeInTheDocument();
+    expect(screen.getByText('Middle Conversation')).toBeInTheDocument();
+    expect(screen.getByText('Oldest Conversation')).toBeInTheDocument();
+  });
 });
