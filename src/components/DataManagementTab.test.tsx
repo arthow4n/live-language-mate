@@ -405,7 +405,18 @@ describe('DataManagementTab Integration Tests', () => {
     expect(localStorage.getItem('language-mate-global-settings')).toBeNull();
     expect(localStorage.getItem('language-mate-chat-settings')).toBeNull();
   });
-  test.todo('file input accepts only JSON files');
+  test('file input accepts only JSON files', () => {
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Check the file input has the correct accept attribute
+    const fileInput = screen.getByTestId('import-file-input');
+    expect(fileInput).toHaveAttribute('accept', '.json');
+    expect(fileInput).toHaveAttribute('type', 'file');
+  });
   test.todo('import button remains disabled without file selection');
   test.skip('legacy format import handling', () => {
     // This feature is meant to be removed, don't implement this.
