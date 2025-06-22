@@ -58,13 +58,15 @@ afterAll(() => {
   server.close();
 });
 
-// @ts-expect-error -- hack to reduce LLM context usage.
-Error.prototype.toJSON = function (): Error | undefined {
-  if (this instanceof $ZodError) {
-    return {
-      message: z.prettifyError(this),
-      name: this.name,
-      stack: this.stack,
-    };
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- LLM context saving hack
+$ZodError.prototype.toJSON = function (): Error | undefined {
+  if (!(this instanceof $ZodError)) {
+    throw new Error();
   }
+
+  return {
+    message: z.prettifyError(this),
+    name: this.name,
+    stack: this.stack,
+  };
 };

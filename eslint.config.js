@@ -82,8 +82,20 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
-          message: '`zod` is for Zod v3, import `zod/v4` instead.',
+          message: 'import `zod/v4` instead.',
           name: 'zod',
+        },
+        {
+          message: 'import `zod/v4` instead.',
+          name: 'zod/v3',
+        },
+        {
+          message: 'import `zod-validation-error/v4` instead.',
+          name: 'zod-validation-error',
+        },
+        {
+          message: 'import `zod-validation-error/v4` instead.',
+          name: 'zod-validation-error/v3',
         },
       ],
     },
