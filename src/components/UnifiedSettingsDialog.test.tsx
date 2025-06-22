@@ -216,6 +216,8 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
       expect(
         screen.getByLabelText(/chat mate personality/i)
       ).toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(
         screen.getByLabelText(/editor mate personality/i)
       ).toBeInTheDocument();

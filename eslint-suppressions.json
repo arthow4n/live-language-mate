@@ -16,10 +16,5 @@
     "testing-library/no-node-access": {
       "count": 4
     }
-  },
-  "src/components/UnifiedSettingsDialog.test.tsx": {
-    "testing-library/no-wait-for-multiple-assertions": {
-      "count": 1
-    }
   }
 }
