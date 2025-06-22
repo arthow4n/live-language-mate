@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, test } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { Toaster } from '@/components/ui/toaster';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import DataManagementTab from './DataManagementTab';
@@ -10,7 +12,10 @@ const TestWrapper = ({
 }: {
   children: React.ReactNode;
 }): React.JSX.Element => (
-  <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
+  <UnifiedStorageProvider>
+    <Toaster />
+    {children}
+  </UnifiedStorageProvider>
 );
 
 describe('DataManagementTab Integration Tests', () => {
@@ -66,7 +71,45 @@ describe('DataManagementTab Integration Tests', () => {
     expect(screen.getByText('Delete All Chats')).toBeInTheDocument();
     expect(screen.getByText('Delete All Data')).toBeInTheDocument();
   });
-  test.todo('export functionality creates download');
+  test('export functionality creates download', async () => {
+    const user = userEvent.setup();
+
+    // Set up some test data in localStorage
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [{ id: '1', messages: [], title: 'Test Chat' }],
+      })
+    );
+
+    // Mock only the essential browser APIs that fail in test environment
+    // We need to mock these globally before component loads
+    const mockCreateObjectURL = vi.fn().mockReturnValue('blob:mock-url');
+    const mockRevokeObjectURL = vi.fn();
+    global.URL.createObjectURL = mockCreateObjectURL;
+    global.URL.revokeObjectURL = mockRevokeObjectURL;
+
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Click the export button
+    const exportButton = screen.getByTestId('export-button');
+    await user.click(exportButton);
+
+    // Verify that the export was successful based on the toast message
+    expect(screen.getByText('Data exported')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Your data has been successfully exported as a JSON file.'
+      )
+    ).toBeInTheDocument();
+
+    // Verify that createObjectURL was called (indicates blob creation)
+    expect(mockCreateObjectURL).toHaveBeenCalledTimes(1);
+  });
   test.todo('import file selection and processing');
   test.todo('import validation with invalid JSON');
   test.todo('delete all chats confirmation dialog');
