@@ -166,7 +166,42 @@ describe('DataManagementTab Integration Tests', () => {
       screen.queryByText('Import failed');
     expect(hasImportMessage).toBeInTheDocument();
   });
-  test.todo('import validation with invalid JSON');
+  test('import validation with invalid JSON', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Create a file with invalid JSON
+    const invalidJsonFile = new File(['invalid json content'], 'test.json', {
+      type: 'application/json',
+    });
+
+    // Select the invalid file
+    const fileInput = screen.getByTestId('import-file-input');
+    await user.upload(fileInput, invalidJsonFile);
+
+    // Verify import button is enabled with file selected
+    const importButton = screen.getByTestId('import-button');
+    expect(importButton).toBeEnabled();
+
+    // Click import button with invalid JSON
+    await user.click(importButton);
+
+    // Should show error message for invalid JSON
+    expect(screen.getByText('Import failed')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The selected file contains invalid data or an unsupported format.'
+      )
+    ).toBeInTheDocument();
+
+    // File input should retain the filename after failed import (expected behavior)
+    expect(fileInput).toHaveValue('C:\\fakepath\\test.json');
+  });
   test.todo('delete all chats confirmation dialog');
   test.todo('delete all chats confirmation and execution');
   test.todo('delete all chats cancellation');
