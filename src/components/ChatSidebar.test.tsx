@@ -389,7 +389,75 @@ describe('ChatSidebar Integration Tests', () => {
     // Verify success toast
     expect(screen.getByText('Conversation renamed')).toBeInTheDocument();
   });
-  test.todo('rename dialog enter key saves changes');
+  test('rename dialog enter key saves changes', async () => {
+    const user = userEvent.setup();
+
+    // Set up test conversations
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-01T00:00:00.000Z',
+            id: 'conv-1',
+            language: 'Swedish',
+            messages: [],
+            title: 'Original Title',
+            updated_at: '2023-01-01T00:00:00.000Z',
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          chatMateBackground: 'young professional',
+          chatMatePersonality: 'friendly',
+          culturalContext: true,
+          editorMateExpertise: '10+ years',
+          editorMatePersonality: 'patient teacher',
+          enableReasoning: true,
+          feedbackStyle: 'encouraging',
+          model: 'google/gemini-2.5-flash',
+          progressiveComplexity: true,
+          reasoningExpanded: true,
+          streaming: true,
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar {...mockProps} />
+      </TestWrapper>
+    );
+
+    // Open dropdown menu and click rename
+    const menuButton = screen.getByTestId('conversation-menu-conv-1');
+    await user.click(menuButton);
+    const renameItem = screen.getByTestId('rename-conv-1');
+    await user.click(renameItem);
+
+    // Verify dialog opens
+    expect(screen.getByText('Rename Conversation')).toBeInTheDocument();
+
+    // Clear input and type new title
+    const renameInput = screen.getByTestId('rename-input');
+    await user.clear(renameInput);
+    await user.type(renameInput, 'Enter Key Title');
+
+    // Press Enter to save
+    await user.keyboard('{Enter}');
+
+    // Verify dialog closes and title is updated
+    expect(screen.queryByText('Rename Conversation')).not.toBeInTheDocument();
+    expect(screen.getByText('Enter Key Title')).toBeInTheDocument();
+    expect(screen.queryByText('Original Title')).not.toBeInTheDocument();
+
+    // Verify success toast
+    expect(screen.getByText('Conversation renamed')).toBeInTheDocument();
+  });
   test.todo('rename dialog cancel button discards changes');
   test.todo('fork conversation creates duplicate');
   test.todo('delete conversation removes from list');
