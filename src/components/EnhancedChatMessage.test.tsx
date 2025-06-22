@@ -359,7 +359,59 @@ describe('EnhancedChatMessage Integration Tests', () => {
     // Restore original getSelection
     window.getSelection = originalGetSelection;
   });
-  test.todo('fork and delete actions trigger correct callbacks');
+  test('fork and delete actions trigger correct callbacks', async () => {
+    const user = userEvent.setup();
+    const mockOnForkFrom = vi.fn();
+    const mockOnDeleteMessage = vi.fn();
+    const mockOnDeleteAllBelow = vi.fn();
+    const mockOnTextSelect = vi.fn();
+
+    const testMessage: Message = {
+      content: 'Test message content',
+      id: 'test-message-1',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'chat-mate',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={testMessage}
+          onDeleteAllBelow={mockOnDeleteAllBelow}
+          onDeleteMessage={mockOnDeleteMessage}
+          onForkFrom={mockOnForkFrom}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Test Fork action
+    const actionsTrigger = screen.getByTestId('message-actions-trigger');
+    await user.click(actionsTrigger);
+
+    // Verify Fork option is present and click it
+    const forkOption = screen.getByText('Fork from here');
+    expect(forkOption).toBeInTheDocument();
+    await user.click(forkOption);
+    expect(mockOnForkFrom).toHaveBeenCalledWith('test-message-1');
+    expect(mockOnForkFrom).toHaveBeenCalledTimes(1);
+
+    // Test Delete message action
+    await user.click(actionsTrigger);
+    const deleteMessageOption = screen.getByText('Delete message');
+    expect(deleteMessageOption).toBeInTheDocument();
+    await user.click(deleteMessageOption);
+    expect(mockOnDeleteMessage).toHaveBeenCalledWith('test-message-1');
+    expect(mockOnDeleteMessage).toHaveBeenCalledTimes(1);
+
+    // Test Delete all below action
+    await user.click(actionsTrigger);
+    const deleteAllBelowOption = screen.getByText('Delete all below');
+    expect(deleteAllBelowOption).toBeInTheDocument();
+    await user.click(deleteAllBelowOption);
+    expect(mockOnDeleteAllBelow).toHaveBeenCalledWith('test-message-1');
+    expect(mockOnDeleteAllBelow).toHaveBeenCalledTimes(1);
+  });
   test.todo('reasoning section toggle functionality');
   test.todo('streaming indicator displays when message is streaming');
 });
