@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { Toaster } from '@/components/ui/toaster';
@@ -169,7 +170,73 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     expect(screen.getByText('OpenRouter API Key')).toBeInTheDocument();
     expect(screen.getByText('AI Model')).toBeInTheDocument();
   });
-  test.todo('tab navigation switches content correctly');
+  test('tab navigation switches content correctly', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // General tab should be active by default
+    expect(screen.getByRole('tab', { name: 'General' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByText('Target Language')).toBeInTheDocument();
+
+    // Click on AI Personalities tab
+    const personalitiesTab = screen.getByRole('tab', {
+      name: 'AI Personalities',
+    });
+    await user.click(personalitiesTab);
+
+    // AI Personalities tab should now be active
+    expect(personalitiesTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'General' })).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+
+    // Content should switch to personalities tab
+    expect(screen.getByText('Chat Mate Personality')).toBeInTheDocument();
+    expect(screen.getByText('Editor Mate Personality')).toBeInTheDocument();
+
+    // Click on UI tab
+    const uiTab = screen.getByRole('tab', { name: 'UI' });
+    await user.click(uiTab);
+
+    // UI tab should now be active
+    expect(uiTab).toHaveAttribute('aria-selected', 'true');
+    expect(personalitiesTab).toHaveAttribute('aria-selected', 'false');
+
+    // Content should switch to UI tab (theme settings)
+    expect(screen.getByText('Theme')).toBeInTheDocument();
+
+    // Click on Data tab
+    const dataTab = screen.getByRole('tab', { name: 'Data' });
+    await user.click(dataTab);
+
+    // Data tab should now be active
+    expect(dataTab).toHaveAttribute('aria-selected', 'true');
+    expect(uiTab).toHaveAttribute('aria-selected', 'false');
+
+    // Content should switch to Data tab (data management)
+    expect(screen.getByText('Export Data')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Import Data' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Danger Zone')).toBeInTheDocument();
+  });
   test.todo('form controls update settings state');
   test.todo('conversation-specific settings for chat mode');
   test.todo('AI personalities tab functionality');
