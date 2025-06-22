@@ -1,10 +1,1 @@
-{
-  "src/components/ChatSidebar.test.tsx": {
-    "testing-library/no-node-access": {
-      "count": 14
-    },
-    "testing-library/no-wait-for-multiple-assertions": {
-      "count": 8
-    }
-  }
-}
+{}
