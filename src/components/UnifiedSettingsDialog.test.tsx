@@ -430,7 +430,79 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Dialog should close after saving
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
-  test.todo('AI personalities tab functionality');
+  test('AI personalities tab functionality', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          conversationTitle="Test Conversation"
+          initialSettings={mockConversationSettings}
+          mode="chat"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Click on AI Personalities tab
+    const personalitiesTab = screen.getByRole('tab', {
+      name: 'AI Personalities',
+    });
+    await user.click(personalitiesTab);
+
+    // Verify tab is active
+    expect(personalitiesTab).toHaveAttribute('aria-selected', 'true');
+
+    // Verify AI Personalities tab content is displayed
+    expect(screen.getByLabelText('Chat Mate Personality')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Editor Mate Personality')
+    ).toBeInTheDocument();
+
+    // Test Chat Mate Personality textarea (should have initial value in chat mode)
+    const chatMatePersonalityTextarea = screen.getByLabelText(
+      'Chat Mate Personality'
+    );
+    expect(chatMatePersonalityTextarea).toHaveValue('friendly');
+    await user.clear(chatMatePersonalityTextarea);
+    await user.type(
+      chatMatePersonalityTextarea,
+      'enthusiastic and encouraging, loves sharing cultural insights'
+    );
+
+    // Test Editor Mate Personality textarea (should have initial value in chat mode)
+    const editorMatePersonalityTextarea = screen.getByLabelText(
+      'Editor Mate Personality'
+    );
+    expect(editorMatePersonalityTextarea).toHaveValue('patient teacher');
+    await user.clear(editorMatePersonalityTextarea);
+    await user.type(
+      editorMatePersonalityTextarea,
+      'constructive and supportive, provides detailed explanations with examples'
+    );
+
+    // Save changes
+    const saveButton = screen.getByText('Save Changes');
+    await user.click(saveButton);
+
+    // Verify the save callback was called with updated personality settings
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
+    expect(mockOnSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chatMatePersonality:
+          'enthusiastic and encouraging, loves sharing cultural insights',
+        editorMatePersonality:
+          'constructive and supportive, provides detailed explanations with examples',
+      })
+    );
+
+    // Dialog should close after saving
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+  });
   test.todo('model selector integration');
   test.todo('cancel button closes dialog without saving');
   test.todo('settings reset when dialog reopens');
