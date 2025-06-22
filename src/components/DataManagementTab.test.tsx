@@ -311,7 +311,37 @@ describe('DataManagementTab Integration Tests', () => {
     const storedData = localStorage.getItem('language-mate-data');
     expect(storedData).not.toBeNull();
   });
-  test.todo('delete all data confirmation dialog');
+  test('delete all data confirmation dialog', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Click the delete all data button
+    const deleteDataButton = screen.getByTestId('delete-data-button');
+    await user.click(deleteDataButton);
+
+    // Should open confirmation dialog
+    const confirmationDialog = screen.getByTestId('delete-data-dialog');
+    expect(confirmationDialog).toBeInTheDocument();
+
+    // Verify dialog content
+    expect(screen.getByText('Are you absolutely sure?')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This action cannot be undone. This will permanently delete all your conversations, settings, and preferences.'
+      )
+    ).toBeInTheDocument();
+
+    // Verify dialog buttons are present
+    expect(screen.getByTestId('delete-data-cancel')).toBeInTheDocument();
+    expect(screen.getByTestId('delete-data-confirm')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Yes, delete all data')).toBeInTheDocument();
+  });
   test.todo('delete all data execution clears all localStorage');
   test.todo('file input accepts only JSON files');
   test.todo('import button remains disabled without file selection');
