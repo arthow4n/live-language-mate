@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "check:all": "concurrently --group --names frontend-lint,frontend-typecheck,backend-deno-check 'npm run lint' 'npm run typecheck' 'cd api && deno check'",
+    "check:all": "concurrently --group --names frontend-lint,frontend-typecheck,backend-deno-check 'npm run lint:fix' 'npm run typecheck' 'cd api && deno check'",
     "dev": "kill-port 8000 8080 && concurrently --names frontend,backend 'npm run dev:frontend' 'npm run dev:backend'",
     "dev:frontend": "vite",
     "dev:backend": "cd api && deno task dev",
