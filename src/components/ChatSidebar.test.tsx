@@ -246,7 +246,71 @@ describe('ChatSidebar Integration Tests', () => {
     // Check that conv-2 has the default hover styling instead
     expect(conv2Item).toHaveClass('hover:bg-accent/50');
   });
-  test.todo('conversation dropdown menu actions');
+  test('conversation dropdown menu actions', async () => {
+    const user = userEvent.setup();
+
+    // Set up test conversations
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-01T00:00:00.000Z',
+            id: 'conv-1',
+            language: 'Swedish',
+            messages: [],
+            title: 'Test Conversation 1',
+            updated_at: '2023-01-01T00:00:00.000Z',
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          chatMateBackground: 'young professional',
+          chatMatePersonality: 'friendly',
+          culturalContext: true,
+          editorMateExpertise: '10+ years',
+          editorMatePersonality: 'patient teacher',
+          enableReasoning: true,
+          feedbackStyle: 'encouraging',
+          model: 'google/gemini-2.5-flash',
+          progressiveComplexity: true,
+          reasoningExpanded: true,
+          streaming: true,
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar {...mockProps} />
+      </TestWrapper>
+    );
+
+    // Click the dropdown menu button
+    const menuButton = screen.getByTestId('conversation-menu-conv-1');
+    await user.click(menuButton);
+
+    // Verify dropdown menu items are visible
+    expect(screen.getByTestId('chat-settings-conv-1')).toBeInTheDocument();
+    expect(screen.getByTestId('rename-conv-1')).toBeInTheDocument();
+    expect(screen.getByTestId('fork-conv-1')).toBeInTheDocument();
+    expect(screen.getByTestId('delete-conv-1')).toBeInTheDocument();
+
+    // Verify menu item text content
+    expect(screen.getByText('Chat Settings')).toBeInTheDocument();
+    expect(screen.getByText('Rename')).toBeInTheDocument();
+    expect(screen.getByText('Fork Chat')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+
+    // Test chat settings action
+    const chatSettingsItem = screen.getByTestId('chat-settings-conv-1');
+    await user.click(chatSettingsItem);
+    expect(mockProps.onChatSettingsOpen).toHaveBeenCalledTimes(1);
+  });
   test.todo('rename conversation dialog workflow');
   test.todo('rename dialog enter key saves changes');
   test.todo('rename dialog cancel button discards changes');
