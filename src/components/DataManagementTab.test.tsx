@@ -417,7 +417,20 @@ describe('DataManagementTab Integration Tests', () => {
     expect(fileInput).toHaveAttribute('accept', '.json');
     expect(fileInput).toHaveAttribute('type', 'file');
   });
-  test.todo('import button remains disabled without file selection');
+  test('import button remains disabled without file selection', () => {
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Import button should initially be disabled when no file is selected
+    const importButton = screen.getByTestId('import-button');
+    expect(importButton).toBeDisabled();
+
+    // Verify the button text is correct
+    expect(importButton).toHaveTextContent('Import Data');
+  });
   test.skip('legacy format import handling', () => {
     // This feature is meant to be removed, don't implement this.
   });
