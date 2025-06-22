@@ -34,7 +34,7 @@ const ChartContext = React.createContext<ChartContextProps | null>(null);
 /**
  *
  */
-function useChart() {
+function useChart(): ChartContextProps {
   const context = React.useContext(ChartContext);
 
   if (!context) {
@@ -77,7 +77,13 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = 'Chart';
 
-const ChartStyle = ({ config, id }: { config: ChartConfig; id: string }) => {
+const ChartStyle = ({
+  config,
+  id,
+}: {
+  config: ChartConfig;
+  id: string;
+}): null | React.JSX.Element => {
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme ?? config.color
   );
@@ -95,6 +101,7 @@ const ChartStyle = ({ config, id }: { config: ChartConfig; id: string }) => {
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- External chart library types
     const color =
       // @ts-expect-error -- originally from external library
       itemConfig.theme?.[theme] ?? itemConfig.color;
@@ -205,6 +212,7 @@ const ChartTooltipContent = React.forwardRef<
             ).toString();
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- Chart library payload types
             const indicatorColor = color ?? item.payload.fill ?? item.color;
 
             return (
@@ -216,6 +224,7 @@ const ChartTooltipContent = React.forwardRef<
                 key={item.dataKey}
               >
                 {formatter && item.value !== undefined && item.name ? (
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- Chart library formatter signature
                   formatter(item.value, item.name, item, index, item.payload)
                 ) : (
                   <>
@@ -236,7 +245,9 @@ const ChartTooltipContent = React.forwardRef<
                           )}
                           style={{
                             // @ts-expect-error -- CSS variable
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- CSS custom properties
                             '--color-bg': indicatorColor,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- CSS custom properties
                             '--color-border': indicatorColor,
                           }}
                         />
@@ -310,6 +321,7 @@ const ChartLegendContent = React.forwardRef<
               className={cn(
                 'flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground'
               )}
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Chart library item value
               key={item.value}
             >
               {itemConfig?.icon && !hideIcon ? (
@@ -343,7 +355,7 @@ function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,
   key: string
-) {
+): ChartConfig[string] | undefined {
   if (typeof payload !== 'object' || payload === null) {
     return undefined;
   }
