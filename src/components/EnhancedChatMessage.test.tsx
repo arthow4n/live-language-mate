@@ -231,7 +231,73 @@ describe('EnhancedChatMessage Integration Tests', () => {
     const newTextarea = screen.getByRole('textbox');
     expect(newTextarea).toHaveValue('Original message content');
   });
-  test.todo('regenerate action only available for non-user messages');
+  test('regenerate action only available for non-user messages', async () => {
+    const user = userEvent.setup();
+    const mockOnRegenerateMessage = vi.fn();
+    const mockOnTextSelect = vi.fn();
+
+    // Test with user message - should NOT show regenerate option
+    const userMessage: Message = {
+      content: 'User message content',
+      id: 'user-message-1',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'user',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={userMessage}
+          onRegenerateMessage={mockOnRegenerateMessage}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Click the dropdown trigger
+    const actionsTrigger = screen.getByTestId('message-actions-trigger');
+    await user.click(actionsTrigger);
+
+    // Should NOT have regenerate option for user messages
+    expect(screen.queryByText('Regenerate')).not.toBeInTheDocument();
+
+    // Should have other options
+    expect(screen.getByText('Copy')).toBeInTheDocument();
+    expect(screen.getByText('Edit')).toBeInTheDocument();
+
+    // Close dropdown with Escape
+    await user.keyboard('{Escape}');
+
+    // Test with chat-mate message - should show regenerate option
+    const chatMateMessage: Message = {
+      content: 'Chat mate message content',
+      id: 'chat-mate-message-1',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'chat-mate',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={chatMateMessage}
+          onRegenerateMessage={mockOnRegenerateMessage}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Click the dropdown trigger for the new message
+    const actionsTriggers = screen.getAllByTestId('message-actions-trigger');
+    const newActionsTrigger = actionsTriggers[actionsTriggers.length - 1];
+    await user.click(newActionsTrigger);
+
+    // Should have regenerate option for non-user messages
+    expect(screen.getByText('Regenerate')).toBeInTheDocument();
+
+    // Test clicking regenerate
+    await user.click(screen.getByText('Regenerate'));
+    expect(mockOnRegenerateMessage).toHaveBeenCalledWith('chat-mate-message-1');
+  });
   test.todo('text selection triggers onTextSelect callback');
   test.todo('fork and delete actions trigger correct callbacks');
   test.todo('reasoning section toggle functionality');
