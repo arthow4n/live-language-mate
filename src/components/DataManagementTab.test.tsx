@@ -21,6 +21,8 @@ const TestWrapper = ({
 describe('DataManagementTab Integration Tests', () => {
   beforeEach(() => {
     localStorage.clear();
+    // Clear any existing toasts between tests
+    document.body.innerHTML = '';
   });
 
   test('displays export and import sections', () => {
@@ -270,7 +272,45 @@ describe('DataManagementTab Integration Tests', () => {
     // Should remove language-mate-data from localStorage
     expect(localStorage.getItem('language-mate-data')).toBeNull();
   });
-  test.todo('delete all chats cancellation');
+  test('delete all chats cancellation', async () => {
+    const user = userEvent.setup();
+
+    // Set up some test data in localStorage
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          { id: '1', messages: [], title: 'Test Chat 1' },
+          { id: '2', messages: [], title: 'Test Chat 2' },
+        ],
+      })
+    );
+
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Click the delete all chats button
+    const deleteChatsButton = screen.getByTestId('delete-chats-button');
+    await user.click(deleteChatsButton);
+
+    // Verify dialog opens
+    const confirmationDialog = screen.getByTestId('delete-chats-dialog');
+    expect(confirmationDialog).toBeInTheDocument();
+
+    // Cancel deletion
+    const cancelButton = screen.getByTestId('delete-chats-cancel');
+    await user.click(cancelButton);
+
+    // Dialog should be closed
+    expect(screen.queryByTestId('delete-chats-dialog')).not.toBeInTheDocument();
+
+    // Data should still exist in localStorage (the most important check)
+    const storedData = localStorage.getItem('language-mate-data');
+    expect(storedData).not.toBeNull();
+  });
   test.todo('delete all data confirmation dialog');
   test.todo('delete all data execution clears all localStorage');
   test.todo('file input accepts only JSON files');
