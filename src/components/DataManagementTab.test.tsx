@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { z } from 'zod/v4';
 
 import { Toaster } from '@/components/ui/toaster';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
@@ -342,7 +343,68 @@ describe('DataManagementTab Integration Tests', () => {
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByText('Yes, delete all data')).toBeInTheDocument();
   });
-  test.todo('delete all data execution clears all localStorage');
+  test('delete all data execution clears all localStorage', async () => {
+    const user = userEvent.setup();
+
+    // Set up test data in various localStorage keys
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({ conversations: [{ id: '1', title: 'Test' }] })
+    );
+    localStorage.setItem(
+      'language-mate-global-settings',
+      JSON.stringify({ apiKey: 'test-key' })
+    );
+    localStorage.setItem(
+      'language-mate-chat-settings',
+      JSON.stringify({ 'chat-1': {} })
+    );
+
+    render(
+      <TestWrapper>
+        <DataManagementTab />
+      </TestWrapper>
+    );
+
+    // Click the delete all data button
+    const deleteDataButton = screen.getByTestId('delete-data-button');
+    await user.click(deleteDataButton);
+
+    // Confirm deletion
+    const confirmButton = screen.getByTestId('delete-data-confirm');
+    await user.click(confirmButton);
+
+    // Should show success toast
+    expect(screen.getByText('All data deleted')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'All conversations and settings have been permanently deleted.'
+      )
+    ).toBeInTheDocument();
+
+    // Should clear all language-mate localStorage keys
+    // Note: language-mate-data gets reset to defaults by UnifiedStorageProvider, not cleared
+    const dataAfterDelete = localStorage.getItem('language-mate-data');
+    expect(dataAfterDelete).not.toBeNull();
+    // Verify it's reset to empty state with default global settings
+    const parsedData = z
+      .looseObject({
+        conversations: z.array(z.unknown()).optional(),
+        conversationSettings: z.record(z.string(), z.unknown()).optional(),
+        globalSettings: z
+          .looseObject({
+            targetLanguage: z.string().optional(),
+          })
+          .optional(),
+      })
+      .parse(JSON.parse(dataAfterDelete ?? '{}'));
+    expect(parsedData.conversations).toEqual([]);
+    expect(parsedData.conversationSettings).toEqual({});
+    expect(parsedData.globalSettings?.targetLanguage).toBe('Swedish'); // Default value
+
+    expect(localStorage.getItem('language-mate-global-settings')).toBeNull();
+    expect(localStorage.getItem('language-mate-chat-settings')).toBeNull();
+  });
   test.todo('file input accepts only JSON files');
   test.todo('import button remains disabled without file selection');
   test.skip('legacy format import handling', () => {
