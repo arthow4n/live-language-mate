@@ -157,7 +157,11 @@ const ChatSidebar = ({
   return (
     <Sidebar>
       <SidebarHeader>
-        <Button className="w-full justify-start" onClick={onNewConversation}>
+        <Button
+          className="w-full justify-start"
+          data-testid="new-chat-button"
+          onClick={onNewConversation}
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Chat
         </Button>
@@ -170,7 +174,10 @@ const ChatSidebar = ({
             <ScrollArea className="h-full">
               <SidebarMenu>
                 {sortedConversations.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground text-sm">
+                  <div
+                    className="p-4 text-center text-muted-foreground text-sm"
+                    data-testid="empty-state"
+                  >
                     No conversations yet. Start a new chat!
                   </div>
                 ) : (
@@ -182,9 +189,11 @@ const ChatSidebar = ({
                             ? 'bg-primary/90 text-primary-foreground hover:bg-primary shadow-sm border-l-4 border-gray-800 dark:border-gray-200 font-medium rounded-md'
                             : 'hover:bg-accent/50 rounded-md'
                         }`}
+                        data-testid={`conversation-item-${conversation.id}`}
                       >
                         <button
                           className="flex items-center flex-1 p-2 text-left min-w-0"
+                          data-testid={`conversation-button-${conversation.id}`}
                           onClick={() => {
                             onConversationSelect(conversation.id);
                           }}
@@ -203,6 +212,7 @@ const ChatSidebar = ({
                                   ? 'hover:bg-primary-foreground/20 text-primary-foreground'
                                   : 'hover:bg-accent text-muted-foreground hover:text-foreground'
                               }`}
+                              data-testid={`conversation-menu-${conversation.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}
@@ -214,6 +224,7 @@ const ChatSidebar = ({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
+                              data-testid={`chat-settings-${conversation.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onChatSettingsOpen();
@@ -223,6 +234,7 @@ const ChatSidebar = ({
                               Chat Settings
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              data-testid={`rename-${conversation.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setEditingConversation(conversation.id);
@@ -233,6 +245,7 @@ const ChatSidebar = ({
                               Rename
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              data-testid={`fork-${conversation.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleForkConversation(conversation.id);
@@ -243,6 +256,7 @@ const ChatSidebar = ({
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
+                              data-testid={`delete-${conversation.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteConversation(conversation.id);
@@ -266,6 +280,7 @@ const ChatSidebar = ({
       <SidebarFooter>
         <Button
           className="w-full justify-start"
+          data-testid="main-settings-button"
           onClick={onMainSettingsOpen}
           variant="outline"
         >
@@ -276,6 +291,7 @@ const ChatSidebar = ({
 
       {/* Rename Dialog */}
       <Dialog
+        data-testid="rename-dialog"
         onOpenChange={() => {
           setEditingConversation(null);
         }}
@@ -286,6 +302,7 @@ const ChatSidebar = ({
             <DialogTitle>Rename Conversation</DialogTitle>
           </DialogHeader>
           <Input
+            data-testid="rename-input"
             onChange={(e) => {
               setEditTitle(e.target.value);
             }}
@@ -299,6 +316,7 @@ const ChatSidebar = ({
           />
           <DialogFooter>
             <Button
+              data-testid="rename-cancel-button"
               onClick={() => {
                 setEditingConversation(null);
               }}
@@ -306,7 +324,12 @@ const ChatSidebar = ({
             >
               Cancel
             </Button>
-            <Button onClick={handleRenameConversation}>Save</Button>
+            <Button
+              data-testid="rename-save-button"
+              onClick={handleRenameConversation}
+            >
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

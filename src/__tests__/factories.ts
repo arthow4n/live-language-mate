@@ -3,6 +3,7 @@ import type {
   AiChatRequest,
   ChatMessage,
 } from '@/schemas/api';
+import type { Message } from '@/schemas/messages';
 
 // OpenRouter API payload interface (what gets sent to OpenRouter)
 /**
@@ -83,3 +84,13 @@ export const createExpectedOpenRouterPayload = (
     temperature: 0.7,
     ...overrides,
   }) satisfies OpenRouterPayload;
+
+// Helper for creating test Message objects
+export const createTestMessage = (overrides: Partial<Message> = {}): Message =>
+  ({
+    content: 'Test message content',
+    id: 'test-message-1',
+    timestamp: new Date('2024-01-01T12:00:00Z'),
+    type: 'user',
+    ...overrides,
+  }) satisfies Message;

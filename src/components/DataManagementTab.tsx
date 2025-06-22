@@ -249,21 +249,25 @@ const DataManagementTab = (): React.JSX.Element => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="data-management-tab">
       <div className="space-y-4">
-        <div>
+        <div data-testid="export-section">
           <h3 className="text-lg font-medium mb-2">Export Data</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Download all your conversations, settings, and preferences as a JSON
             file.
           </p>
-          <Button className="w-full" onClick={handleExportData}>
+          <Button
+            className="w-full"
+            data-testid="export-button"
+            onClick={handleExportData}
+          >
             <Download className="w-4 h-4 mr-2" />
             Export All Data
           </Button>
         </div>
 
-        <div>
+        <div data-testid="import-section">
           <h3 className="text-lg font-medium mb-2">Import Data</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Import conversations and settings from a previously exported JSON
@@ -274,12 +278,14 @@ const DataManagementTab = (): React.JSX.Element => {
             <Input
               accept=".json"
               className="cursor-pointer"
+              data-testid="import-file-input"
               id="import-file"
               onChange={handleFileChange}
               type="file"
             />
             <Button
               className="w-full"
+              data-testid="import-button"
               disabled={!importFile}
               onClick={() => void handleImportData()}
             >
@@ -289,7 +295,7 @@ const DataManagementTab = (): React.JSX.Element => {
           </div>
         </div>
 
-        <div>
+        <div data-testid="danger-zone">
           <h3 className="text-lg font-medium mb-2 text-destructive">
             Danger Zone
           </h3>
@@ -300,12 +306,16 @@ const DataManagementTab = (): React.JSX.Element => {
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="w-full" variant="destructive">
+              <Button
+                className="w-full"
+                data-testid="delete-chats-button"
+                variant="destructive"
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete All Chats
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent data-testid="delete-chats-dialog">
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -314,9 +324,12 @@ const DataManagementTab = (): React.JSX.Element => {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel data-testid="delete-chats-cancel">
+                  Cancel
+                </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  data-testid="delete-chats-confirm"
                   onClick={handleDeleteAllChats}
                 >
                   Yes, delete all chats
@@ -326,12 +339,16 @@ const DataManagementTab = (): React.JSX.Element => {
           </AlertDialog>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="w-full" variant="destructive">
+              <Button
+                className="w-full"
+                data-testid="delete-data-button"
+                variant="destructive"
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete All Data
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent data-testid="delete-data-dialog">
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -340,9 +357,12 @@ const DataManagementTab = (): React.JSX.Element => {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel data-testid="delete-data-cancel">
+                  Cancel
+                </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  data-testid="delete-data-confirm"
                   onClick={handleDeleteAllData}
                 >
                   Yes, delete all data
