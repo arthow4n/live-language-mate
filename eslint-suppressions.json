@@ -11,10 +11,5 @@
     "testing-library/no-node-access": {
       "count": 4
     }
-  },
-  "src/components/EnhancedChatMessage.test.tsx": {
-    "testing-library/no-node-access": {
-      "count": 4
-    }
   }
 }
