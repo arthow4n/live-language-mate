@@ -122,7 +122,60 @@ describe('EnhancedChatMessage Integration Tests', () => {
     await user.click(screen.getByText('Delete all below'));
     expect(mockOnDeleteAllBelow).toHaveBeenCalledWith('test-message-1');
   });
-  test.todo('edit mode save and cancel functionality');
+  test('edit mode save and cancel functionality', async () => {
+    const user = userEvent.setup();
+    const mockOnEditMessage = vi.fn();
+    const mockOnTextSelect = vi.fn();
+
+    const testMessage: Message = {
+      content: 'Original message content',
+      id: 'test-message-1',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'chat-mate',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={testMessage}
+          onEditMessage={mockOnEditMessage}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Click the dropdown trigger and select Edit
+    const actionsTrigger = screen.getByTestId('message-actions-trigger');
+    await user.click(actionsTrigger);
+    await user.click(screen.getByText('Edit'));
+
+    // Should be in edit mode now - verify edit UI elements
+    const textarea = screen.getByRole('textbox');
+    const saveButton = screen.getByTestId('edit-save-button');
+    const cancelButton = screen.getByTestId('edit-cancel-button');
+
+    expect(textarea).toBeInTheDocument();
+    expect(saveButton).toBeInTheDocument();
+    expect(cancelButton).toBeInTheDocument();
+    expect(textarea).toHaveValue('Original message content');
+
+    // Edit the content
+    await user.clear(textarea);
+    await user.type(textarea, 'Edited message content');
+    expect(textarea).toHaveValue('Edited message content');
+
+    // Test save functionality
+    await user.click(saveButton);
+    expect(mockOnEditMessage).toHaveBeenCalledWith(
+      'test-message-1',
+      'Edited message content'
+    );
+
+    // Should exit edit mode after save
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    // Note: The component still shows original content because it expects parent to update the message prop
+    expect(screen.getByText('Original message content')).toBeInTheDocument();
+  });
   test.todo('edit mode cancel restores original content');
   test.todo('regenerate action only available for non-user messages');
   test.todo('text selection triggers onTextSelect callback');
