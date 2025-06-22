@@ -7,19 +7,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Focused single/multiple file commands
   - `npm run test:frontend -- [--test-name-pattern=""] file [...files]` - Type check and run frontend test only on the specified test files, or tests related to a non-test file. The command is a faster wrapper of `vitest run`.
   - `npm run test:backend -- file [...files]` - Run backend test only on the specified test files.
-
-### API Server (backend)
-
-- `cd api && deno task start` - Run API server in production mode
-- `cd api && deno task dev` - Run API server in development mode with auto-reload
+- For all `npm run` commands, if you would add any args, be sure to add `--` like `npm run x -- [...args]`. Inspect `package.json` to ensure you can really add args to the command.
 
 ## Architecture Overview
 
-This is a React TypeScript language learning application called "Live Language Mate" built with Vite, using a standalone Deno API server for backend services. The app helps expats learn languages through conversational AI.
+This is a React TypeScript language learning application called "Live Language Mate" built with Vite, using a standalone Deno API server for backend services. The app helps expats learn languages through conversational AI as mentioned in README.md.
 
 ### Core Architecture
 
-**Frontend Stack:**
+#### Frontend Stack
 
 - React 18 with TypeScript
 - Vite for build tooling
@@ -42,14 +38,14 @@ z.strictObject({ name: z.string() });
 z.looseObject({ name: z.string() });
 ```
 
-**Backend:**
+#### Backend
 
 - Standalone Deno HTTP API server (`api/main.ts`)
 - OpenRouter API integration for AI models
 
 ### Key Components Structure
 
-**Main App Components:**
+#### Main App Components
 
 - `LanguageMateApp.tsx` - Root component managing layout and state
 - `EnhancedChatInterface.tsx` - Main chat interface
@@ -57,13 +53,14 @@ z.looseObject({ name: z.string() });
 - `ChatSidebar.tsx` - Conversation management sidebar
 - `UnifiedSettingsDialog.tsx` - Settings management
 
-**State Management:**
+#### State Management
 
 - `SettingsContext.tsx` - Global and per-chat settings
 - `LocalStorageContext.tsx` - Chat data persistence
 - There are 2 types of settings: global (global only settings + template for new chat-specific settings) and chat-specific settings. When a new chat is created, it'll create a new chat-specific setting object based on the template. The chat-specific settings is disconnected from the global one.
 
-**AI Characters System:**
+#### AI Characters System
+
 The app implements a dual-AI system:
 
 - **Chat Mate**: Native speaker for natural conversation in target language
@@ -71,14 +68,14 @@ The app implements a dual-AI system:
 
 ### AI Integration
 
-**Standalone API: `/ai-chat`**
+#### Standalone API `/ai-chat`
 
 - Handles three message types: `chat-mate-response`, `editor-mate-user-comment`, `editor-mate-chatmate-comment`
 - Uses OpenRouter API with configurable models (default: `google/gemini-2.5-flash`)
 - Supports streaming responses and reasoning mode
 - Dynamic system prompts based on message type and user settings
 
-**Model Configuration:**
+#### Model Configuration
 
 - Models configurable via settings (supports OpenRouter format)
 - API keys can be user-provided or environment-based
@@ -87,21 +84,21 @@ The app implements a dual-AI system:
 ### Data Flow
 
 1. User sends message in main chat
-2. Triggers parallel AI responses:
-   - Chat Mate responds as native speaker
+2. Triggers AI responses:
    - Editor Mate comments on user's message
-   - Editor Mate provides example response to Chat Mate
+   - Chat Mate responds as native speaker
+   - Editor Mate comments on Chat Mate's message
 3. All responses stored in local storage
 4. Text selection opens Editor Mate panel for focused help
 
 ### UI Patterns
 
-**Responsive Design:**
+#### Responsive Design
 
 - Desktop: Split-panel layout (chat + editor mate sidebar)
 - Mobile: Single panel with drawer for editor mate
 
-**Settings Architecture:**
+#### Settings Architecture
 
 - Global settings (model, API key, theme, target language)
 - Per-chat settings (AI personalities, feedback style, cultural context)
@@ -109,12 +106,11 @@ The app implements a dual-AI system:
 
 ### Important Files
 
-- `src/contexts/SettingsContext.tsx` - Settings management and defaults
+- `src/contexts/UnifiedStorageContext.tsx` - Chat history, settings management and defaults.
 - `src/components/LanguageMateApp.tsx` - Main app layout and state
 - `api/handlers/ai-chat.ts` - AI integration logic
 - `api/handlers/models.ts` - OpenRouter models fetching
 - `src/services/apiClient.ts` - Frontend API client
-- `src/services/localStorageService.ts` - Chat persistence
 
 ### Development Notes
 
@@ -126,7 +122,7 @@ The app implements a dual-AI system:
 
 ### API Configuration
 
-**Environment Variables:**
+#### Environment Variables
 
 API Server (`api/.env`):
 
@@ -137,17 +133,10 @@ Frontend (`.env`):
 
 - `VITE_API_BASE_URL` - API server URL (default: http://localhost:8000)
 
-**API Endpoints:**
+#### API Endpoints
 
 - `POST /ai-chat` - AI chat completions
 - `GET /models` - Available OpenRouter models
-
-**Deployment:**
-The API server can be deployed to any platform supporting Deno:
-
-- Deno Deploy
-- Docker containers
-- VPS with Deno runtime
 
 ## Engineering mindset
 
@@ -191,9 +180,10 @@ x?.Y(); // Y is optional because ...
 - `as` operator -> use Zod
 - `console.error` -> `logError`
 - `JSX.Element` -> `React.JSX.Element`
-- In test `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
-- In test `getAllBy*()[*]` -> `getByTestId` or `getByText`
-- In test `() => {}` empty mock -> `vi.fn()`
+- `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
+- `getAllBy*()[*]` -> `getByTestId` or `getByText`
+- `() => {}` empty mock -> `vi.fn()`
+- `fireEvent` -> `userEvent`
 - `vi.mock` -> never mock imported code, we write integration test and should not mock any decendant imports.
 
 ## Planning and task management
