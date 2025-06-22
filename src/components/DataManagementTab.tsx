@@ -100,7 +100,7 @@ const DataManagementTab = (): React.JSX.Element => {
       const rawData = JSON.parse(text);
       const importedData = z
         .looseObject({
-          chatSettings: z.record(z.string(), z.object({})).optional(),
+          chatSettings: z.record(z.string(), z.looseObject({})).optional(),
           conversations: z.array(z.unknown()).optional(),
           globalSettings: z.looseObject({}).optional(),
           settings: z.unknown().optional(),
