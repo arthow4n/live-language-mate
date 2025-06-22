@@ -34,6 +34,23 @@ const mockGlobalSettings = {
   theme: 'system' as const,
 };
 
+const mockConversationSettings = {
+  apiKey: 'test-api-key',
+  chatMateBackground: 'young professional',
+  chatMatePersonality: 'friendly',
+  culturalContext: true,
+  editorMateExpertise: '10+ years',
+  editorMatePersonality: 'patient teacher',
+  enableReasoning: true,
+  feedbackStyle: 'encouraging' as const,
+  model: 'google/gemini-2.5-flash',
+  progressiveComplexity: true,
+  reasoningExpanded: true,
+  streaming: true,
+  targetLanguage: 'Swedish',
+  theme: 'system' as const,
+};
+
 describe('UnifiedSettingsDialog Integration Tests', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -105,7 +122,53 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
       screen.getByLabelText('Reasoning expanded by default')
     ).toBeInTheDocument();
   });
-  test.todo('displays chat settings dialog with limited tabs');
+  test('displays chat settings dialog with limited tabs', () => {
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          conversationTitle="Test Conversation"
+          initialSettings={mockConversationSettings}
+          mode="chat"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Should display main dialog with chat-specific title
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(
+      screen.getByText('Chat Settings - Test Conversation')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Customize the AI personalities and behaviors for this specific conversation.'
+      )
+    ).toBeInTheDocument();
+
+    // Should display only two tabs for chat mode (General and AI Personalities)
+    expect(screen.getByRole('tab', { name: 'General' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: 'AI Personalities' })
+    ).toBeInTheDocument();
+
+    // Should NOT display UI and Data tabs (global-only)
+    expect(screen.queryByRole('tab', { name: 'UI' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Data' })).not.toBeInTheDocument();
+
+    // Should display action buttons
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Save Changes')).toBeInTheDocument();
+
+    // General tab should be active by default and show its content
+    expect(screen.getByText('Target Language')).toBeInTheDocument();
+    expect(screen.getByText('OpenRouter API Key')).toBeInTheDocument();
+    expect(screen.getByText('AI Model')).toBeInTheDocument();
+  });
   test.todo('tab navigation switches content correctly');
   test.todo('form controls update settings state');
   test.todo('conversation-specific settings for chat mode');
