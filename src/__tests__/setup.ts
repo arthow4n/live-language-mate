@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom/vitest';
+// eslint-disable-next-line testing-library/no-manual-cleanup -- here it's test setup.
+import { cleanup } from '@testing-library/react';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { z } from 'zod/v4';
@@ -51,6 +53,7 @@ beforeAll(() => {
 afterEach(() => {
   // Reset handlers after each test
   server.resetHandlers();
+  cleanup();
 });
 
 afterAll(() => {
