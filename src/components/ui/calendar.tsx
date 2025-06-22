@@ -22,7 +22,7 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   ...props
-}: CalendarProps) {
+}: CalendarProps): React.JSX.Element {
   return (
     <DayPicker
       className={cn('p-3', className)}
