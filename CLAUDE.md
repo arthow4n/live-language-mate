@@ -4,15 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Lint and test
-
-- Project-wide commands
-  - `npm run check:all` - Automatically apply auto-fixable lint and type fixes, then run linter and type check all files in both frontend and backend. This command doesn't take any arguments.
-  - `npm run test:frontend` - Run frontend test (Vitest), this will also type check the frontend files. If no file paths are given, it'll run all frontend tests.
-  - `npm run test:backend` - Run backend test (Deno), this will also type check the backend files. If no file paths are given, it'll run all frontend tests.
 - Focused single/multiple file commands
-  - `npm run lint:fix file [...files]` - Run lint only on the specified files.
-  - `npm run test:frontend file [...files]` - Run frontend test only on the specified test files.
+  - `npm run test:frontend file [...files]` - Type check and run frontend test only on the specified test files, or tests related to a non-test file.
   - `npm run test:backend file [...files]` - Run backend test only on the specified test files.
 
 ### API Server (backend)
@@ -145,9 +138,6 @@ The API server can be deployed to any platform supporting Deno:
 ## Engineering mindset
 
 - Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
-- When writing test, write integration test.
-- Write test to cover business logic, if something can be clicked, input or be interacted in any other ways by the user, it should be covered by a test.
-- When writing test, focus on testing the component/function's integrated behaviour, for example, if the import tree looks like A -> B -> C, you should not mock any of A/B/C, instead you should focus on testing if interacting with A as a whole gives you the expected result; in B's test you should not mock B/C and instead test interacting with B; and so on.
 - Use TDD/BDD as much as possible.
 - For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
 
@@ -172,23 +162,44 @@ The API server can be deployed to any platform supporting Deno:
 - In test `getAllBy*()[*]` -> `getByTestId` or `getByText`
 - `vi.mock` -> never mock imported code, we write integration test and should not mock any decendant imports.
 
-## Claude Code operations
+## Planning
 
-- You are meant to work on your own unattended once the user has approved your initial work plan.
+- You are meant to work on your own unattended once the user has approved your initial work plan, you should plan ahead for working autonomously.
 - When planning, the plan is always for yourself to be able to follow the plan and work on the task immediately after the plan is approved by the user.
 - When planning, automatically break down the task into smaller tasks and utilise the TodoRead & TodoWrite tools.
 - When planning, plan ahead to see if you need to update any tests.
 - When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutelyv relevant and needed chagnes.
+
+## Git
+
 - The environment is covered with git, leverage git commands during your work.
-- Unless otherwise specified by the user, when doing tasks and when you are done with tasks, be proactive to make small git commits with descriptive messages, and then git push, if the git push fails, you should try to rebase and fix the issue, if the fix was not succesful, ask the user to help.
-- After you finish all the edits in the task, make sure to `npm run check:all` then fix the lint type errors, and `npm run test` then fix all the test errors.
+- Unless otherwise specified by the user, when making progress in your task, be proactive to make small git commits with descriptive messages, and then git push.
+- When you make commit, there's a pre-commit hook which will lint and test staged files.
 - If you make a git commit, prefix you commit message with `(Claude Code) ` and add a line at the end of commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
+
+## Tool
+
 - Prioritise to use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
+- If there's a tool instead of command, use the tool, for example, use your own Read/Search tool.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
-- If there's a tool instead of command, use the tool, for example, use your own Read tool instead of running commands to read file.
+
+## Test
+
+- When writing test, write integration test.
+- Write test to cover business logic, if something can be clicked, input or be interacted in any other ways by the user, it should be covered by a test.
+- When writing test, focus on testing the component/function's integrated behaviour, for example, if the import tree looks like A -> B -> C, you should not mock any of A/B/C, instead you should focus on testing if interacting with A as a whole gives you the expected result; in B's test you should not mock B/C and instead test interacting with B; and so on.
 - You should not update any config files, unless that's the only way or the best way to fix things, if you must update a config file, pause and ask the user for feedback.
+
+## Test
+
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
+
+## Lint
+
 - If you would eslint disable anything, think again and see if there's a better approach to fix it, if you still need to eslint disable, make sure you add -- comment after it to explain why you chose to disable.
+
+## Bash command
+
 - Don't `grep` the lint result or test result or count errors, if you need to run a focused check, just use the focused commands.
 - If you need to `rg` or `grep`, add more context lines.
 
