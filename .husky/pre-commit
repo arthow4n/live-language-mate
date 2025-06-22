@@ -2,17 +2,4 @@
 
 # Make sure you have setup nvm in https://typicode.github.io/husky/how-to.html#startup-files
 
-# Lint and ignore warning, mainly to ignore "File ignored because no matching configuration was supplied".
-git diff --cached --name-only --diff-filter=ACMR -z | \
-xargs -r -0 npx eslint --fix --quiet
-
-git diff --cached --name-only --diff-filter=ACMR -z | \
-xargs -r -0 npx prettier --write --ignore-unknown --log-level=silent
-
-git diff --cached --name-only --diff-filter=ACMR -z | \
-grep -z src/ | \
-grep -z .test. | \
-grep -z -v __tests__ | \
-xargs -r -0 npm run test:frontend
-
-git update-index --again
+npx lint-staged --quiet --no-stash --concurrent false

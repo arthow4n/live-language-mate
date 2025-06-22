@@ -99,6 +99,7 @@
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "kill-port": "^2.0.1",
+    "lint-staged": "^16.1.2",
     "lovable-tagger": "^1.1.7",
     "msw": "^2.10.2",
     "postcss": "^8.4.47",

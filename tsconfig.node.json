@@ -20,5 +20,5 @@
     "strictNullChecks": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "eslint.config.js", "lint-staged.config.js"]
 }

@@ -13,13 +13,13 @@ export default tseslint.config(
   js.configs.recommended,
   prettierConfig,
   comments.recommended,
-  jsdoc.configs['flat/recommended-typescript-error'],
   testingLibrary.configs['flat/react'],
   reactHooks.configs['recommended-latest'],
   {
     extends: [
       tseslint.configs.strictTypeChecked,
       tseslint.configs.stylisticTypeChecked,
+      jsdoc.configs['flat/recommended-typescript-error'],
     ],
     files: ['**/*.{ts,tsx}'],
     // Leave Deno for Deno lint
