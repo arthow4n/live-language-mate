@@ -1,11 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll } from 'vitest';
-import { z } from 'zod';
-import { errorMap } from 'zod-validation-error';
+import { z, ZodError } from 'zod';
+import { errorMap, fromError } from 'zod-validation-error';
 
 import { apiHandlers } from './mocks/handlers';
 
+// TODO: Replace with zod v4 https://zod.dev/error-formatting?id=zprettifyerror
 z.setErrorMap(errorMap);
 
 // Setup MSW server with our API handlers
@@ -59,3 +60,16 @@ afterAll(() => {
   // Clean up after all tests
   server.close();
 });
+
+// @ts-expect-error -- hack to reduce LLM context usage.
+ZodError.prototype.toJSON = function (): {
+  message: string;
+  name: string;
+  stack: string | undefined;
+} {
+  return {
+    message: fromError(this).toString(),
+    name: this.name,
+    stack: this.stack,
+  };
+};

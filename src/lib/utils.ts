@@ -15,6 +15,7 @@ export function cn(...inputs: ClassValue[]): string {
  * @param args
  */
 export function logError(...args: unknown[]): void {
+  // TODO: Replace with zod v4 https://zod.dev/error-formatting?id=zprettifyerror
   console.error(
     ...args.map((x) => (isZodErrorLike(x) ? fromError(x).toString() : x))
   );
