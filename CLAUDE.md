@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 - Focused single/multiple file commands
-  - `npm run test:frontend file [...files]` - Type check and run frontend test only on the specified test files, or tests related to a non-test file.
+  - `npm run test:frontend [--test-name-pattern=""] file [...files]` - Type check and run frontend test only on the specified test files, or tests related to a non-test file. The command is a faster wrapper of `vitest related --run`.
   - `npm run test:backend file [...files]` - Run backend test only on the specified test files.
 
 ### API Server (backend)
@@ -145,40 +145,61 @@ The API server can be deployed to any platform supporting Deno:
 
 - Prefer named import/export over default import/export.
 - Early return, early throw.
-- Use Zod to validate and cast type, this includes but not limit to handling the following scenarios:
-  - result from `JSON.parse()`, fetch `response.json()`.
-  - `unknown`, `DefaultBodyType`
-- Never use `any`, `as` type assertion or `!` non-null assertion operator, you should instead use type narrowing, for example in test you can use `toBeTruthy`, `toBeInstanceOf`, and outside of test `instanceof` or do a proper object validation with Zod.
-- Only use `?.` when the logic is really optional, if the object before `?.` should not be null, do a proper null check beforehand and throw if the object is null.
-- If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
-- Avoid default values, optional Zod property, `null` or `undefined` in the type, if you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it.
 - In frontend Vitest test files, import explicitly the test helpers e.g. `import { describe, it, expect, beforeEach } from 'vitest';`.
+- Use Zod to validate and cast type as early as possible, this includes but not limit to handling the following scenarios: `JSON.parse()`, `response.json()`, `any`, `unknown`, `DefaultBodyType`.
+- Never use `any`, `as` type assertion or `!` non-null assertion operator, you should instead use type narrowing, for example in test you can use `expectToBeInstanceOf`, `expectToNotBeNull`, `expectToNotBeUndefined`, and outside of test `instanceof` or do a proper object validation with Zod.
+- If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
+- Avoid optional function parameter, optional property, and default values. If you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it. Default values should only be used when it's absolutely necessary.
+- Throw if a logic not really optional:
+
+```ts
+// Bad: Is Y optional?
+if (x instaceof X) { x.Y(); }
+
+// Bad: Is Y optional?
+x?.Y();
+
+// Good: Type narrowing and early throw
+if (!x instanceof X) { throw new Error(); }
+x.Y();
+
+// Best: Zod type narrowing and early throw, prefer .parse over .safeParse when possible.
+zodSchema.parse(x);
+x.Y();
+
+// Compromise: Explain why Y is optional if Y is really optional.
+x?.Y(); // Y is optional because ...
+```
 
 ### In fronted, instead of X use Y
 
+- `as` operator -> use Zod
 - `console.error` -> `logError`
 - `JSX.Element` -> `React.JSX.Element`
 - In test `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
 - In test `getAllBy*()[*]` -> `getByTestId` or `getByText`
 - `vi.mock` -> never mock imported code, we write integration test and should not mock any decendant imports.
 
-## Planning
+## Planning and task management
 
-- You are meant to work on your own unattended once the user has approved your initial work plan, you should plan ahead for working autonomously.
+- You are meant to work on your own unattended once the user has approved your initial work plan, you should plan ahead for working on your own.
 - When planning, the plan is always for yourself to be able to follow the plan and work on the task immediately after the plan is approved by the user.
 - When planning, automatically break down the task into smaller tasks and utilise the TodoRead & TodoWrite tools.
 - When planning, plan ahead to see if you need to update any tests.
-- When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutelyv relevant and needed chagnes.
+- When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutely relevant and needed chagnes. You need to review your own plan at least review 2 times.
+- You should keep working until your todo is empty.
+- Do not spawn subagents unless the user asked you to do so.
 
 ## Git
 
 - The environment is covered with git, leverage git commands during your work.
 - Unless otherwise specified by the user, when making progress in your task, be proactive to make small git commits with descriptive messages, and then git push.
 - When you make commit, there's a pre-commit hook which will lint and test staged files.
-- If you make a git commit, prefix you commit message with `(Claude Code) ` and add a line at the end of commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
+- If you make a git commit, prefix you commit message title with `(Claude Code) ` and add a footer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>"`.
 
 ## Tool
 
+- Plan ahead your tool calls and batch them as much as possible.
 - Prioritise to use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
 - If there's a tool instead of command, use the tool, for example, use your own Read/Search tool.
 - You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
@@ -186,17 +207,19 @@ The API server can be deployed to any platform supporting Deno:
 ## Test
 
 - When writing test, write integration test.
-- Write test to cover business logic, if something can be clicked, input or be interacted in any other ways by the user, it should be covered by a test.
+- Write integration test to cover business logic, if something can be clicked, input or be interacted in any other ways by the user, it should be covered by a test.
 - When writing test, focus on testing the component/function's integrated behaviour, for example, if the import tree looks like A -> B -> C, you should not mock any of A/B/C, instead you should focus on testing if interacting with A as a whole gives you the expected result; in B's test you should not mock B/C and instead test interacting with B; and so on.
-- You should not update any config files, unless that's the only way or the best way to fix things, if you must update a config file, pause and ask the user for feedback.
-
-## Test
-
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
+- If you are only editing test, you should not change the existing code logic that in the test. If refactoring would make writing test easier, explain to the user and wait for feedback.
+- Before you write or change any test code, make sure you get a full picture first by reading through the related code paths and understanding how the code and data flows.
 
 ## Lint
 
 - If you would eslint disable anything, think again and see if there's a better approach to fix it, if you still need to eslint disable, make sure you add -- comment after it to explain why you chose to disable.
+
+## Config
+
+- You should not update any config files. If you believe you need to, explain to the user and wait for feedback.
 
 ## Bash command
 
@@ -206,8 +229,8 @@ The API server can be deployed to any platform supporting Deno:
 ### Instead of command X, use Y
 
 - `rg`, `grep` -> use Search tool
-- `find` -> `git ls-files`
-- `rm` -> `git rm`
-- `head` -> read the file with tool instead
+- `find` -> `git ls-files` or your own List tool
+- `rm` -> try `git rm` first, if fail then try `git clean`
+- `head`/`tail`/`cat` -> read the file with tool instead
 - `npx tsc` -> `npm run typecheck`
-- Don't chain or pipe commands.
+- Don't chain or pipe commands, chained and piped commands will be denied.
