@@ -25,10 +25,10 @@ import EnhancedChatMessage from './EnhancedChatMessage';
 interface EnhancedChatInterfaceProps {
   conversationId: null | string;
   editorMatePrompt?: string;
-  onAskInterfaceOpen?: () => void;
   onChatSettingsOpen?: () => void;
   onConversationCreated: (id: string) => void;
   onConversationUpdate: () => void;
+  onEditorMatePanelOpen?: () => void;
   onTextSelect: (text: string) => void;
   selectedText?: string;
   targetLanguage: string;
@@ -37,9 +37,9 @@ interface EnhancedChatInterfaceProps {
 const EnhancedChatInterface = ({
   conversationId,
   editorMatePrompt,
-  onAskInterfaceOpen,
   onConversationCreated,
   onConversationUpdate,
+  onEditorMatePanelOpen,
   onTextSelect,
   targetLanguage,
 }: EnhancedChatInterfaceProps): React.JSX.Element => {
@@ -1128,10 +1128,10 @@ const EnhancedChatInterface = ({
               rows={1}
               value={inputMessage}
             />
-            {isMobile && onAskInterfaceOpen && (
+            {isMobile && onEditorMatePanelOpen && (
               <Button
                 className="h-10 w-10 flex-shrink-0"
-                onClick={onAskInterfaceOpen}
+                onClick={onEditorMatePanelOpen}
                 size="icon"
                 title="Open Ask Interface"
                 variant="outline"

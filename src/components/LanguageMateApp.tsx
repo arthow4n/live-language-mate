@@ -25,8 +25,8 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-import AskInterface from './AskInterface';
 import ChatSidebar from './ChatSidebar';
+import EditorMatePanel from './EditorMatePanel';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import UnifiedSettingsDialog from './UnifiedSettingsDialog';
 
@@ -40,7 +40,7 @@ const LanguageMateApp = (): React.JSX.Element => {
   const [selectionSource, setSelectionSource] = useState<
     'ask-interface' | 'main-chat'
   >('main-chat');
-  const [askInterfaceOpen, setAskInterfaceOpen] = useState(false);
+  const [editorMatePanelOpen, setEditorMatePanelOpen] = useState(false);
 
   const {
     createConversationSettings,
@@ -123,11 +123,11 @@ const LanguageMateApp = (): React.JSX.Element => {
     setSelectedText(text);
     setSelectionSource(source);
     if (isMobile && text.trim()) {
-      setAskInterfaceOpen(true);
+      setEditorMatePanelOpen(true);
     }
   };
 
-  const handleAskInterfaceTextSelect = (text: string): void => {
+  const handleEditorMatePanelTextSelect = (text: string): void => {
     handleTextSelect(text, 'ask-interface');
   };
 
@@ -189,7 +189,7 @@ const LanguageMateApp = (): React.JSX.Element => {
               <Button
                 className="flex items-center gap-2"
                 onClick={() => {
-                  setAskInterfaceOpen(true);
+                  setEditorMatePanelOpen(true);
                 }}
                 size="sm"
                 variant="outline"
@@ -233,11 +233,11 @@ const LanguageMateApp = (): React.JSX.Element => {
                     defaultSize={getDefaultPanelSizes()[1]}
                     minSize={20}
                   >
-                    <AskInterface
+                    <EditorMatePanel
                       editorMatePrompt={
                         getCurrentChatSettings().editorMatePersonality
                       }
-                      onTextSelect={handleAskInterfaceTextSelect}
+                      onTextSelect={handleEditorMatePanelTextSelect}
                       selectedText={selectedText}
                       selectionSource={selectionSource}
                       targetLanguage={globalSettings.targetLanguage}
@@ -262,23 +262,23 @@ const LanguageMateApp = (): React.JSX.Element => {
 
                 {/* Editor Mate Drawer for Mobile */}
                 <Drawer
-                  onOpenChange={setAskInterfaceOpen}
-                  open={askInterfaceOpen}
+                  onOpenChange={setEditorMatePanelOpen}
+                  open={editorMatePanelOpen}
                 >
                   <DrawerContent className="h-[80vh]">
                     <DrawerHeader>
                       <DrawerTitle>Editor Mate</DrawerTitle>
                     </DrawerHeader>
                     <div className="flex-1 overflow-hidden">
-                      <AskInterface
+                      <EditorMatePanel
                         editorMatePrompt={
                           getCurrentChatSettings().editorMatePersonality
                         }
                         hideHeader={true}
                         onClose={() => {
-                          setAskInterfaceOpen(false);
+                          setEditorMatePanelOpen(false);
                         }}
-                        onTextSelect={handleAskInterfaceTextSelect}
+                        onTextSelect={handleEditorMatePanelTextSelect}
                         selectedText={selectedText}
                         selectionSource={selectionSource}
                         targetLanguage={globalSettings.targetLanguage}

@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import { server } from '../__tests__/setup';
-import AskInterface from './AskInterface';
+import EditorMatePanel from './EditorMatePanel';
 
 // Test wrapper with provider
 const TestWrapper = ({
@@ -25,7 +25,7 @@ describe('Text Selection Workflow Integration Tests', () => {
     server.resetHandlers();
   });
 
-  test('AskInterface initializes with selected text and processes user question', async () => {
+  test('EditorMatePanel initializes with selected text and processes user question', async () => {
     const user = userEvent.setup();
     const selectedText = 'Jag är glad';
     const mockQuestion = 'What does this mean?';
@@ -69,7 +69,7 @@ describe('Text Selection Workflow Integration Tests', () => {
 
     render(
       <TestWrapper>
-        <AskInterface
+        <EditorMatePanel
           data-testid="ask-interface"
           selectedText={selectedText}
           selectionSource="main-chat"
@@ -107,14 +107,14 @@ describe('Text Selection Workflow Integration Tests', () => {
     ).resolves.toBeInTheDocument();
   });
 
-  test('AskInterface handles empty selection gracefully', () => {
+  test('EditorMatePanel handles empty selection gracefully', () => {
     const selectedText = '';
 
     // Should not throw any errors when rendering with empty selection
     expect(() => {
       render(
         <TestWrapper>
-          <AskInterface
+          <EditorMatePanel
             data-testid="ask-interface-empty"
             selectedText={selectedText}
             selectionSource="ask-interface"

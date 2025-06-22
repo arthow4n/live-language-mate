@@ -53,7 +53,7 @@ z.looseObject({ name: z.string() });
 
 - `LanguageMateApp.tsx` - Root component managing layout and state
 - `EnhancedChatInterface.tsx` - Main chat interface
-- `AskInterface.tsx` - Editor Mate panel for language help
+- `EditorMatePanel.tsx` - Editor Mate panel for language help
 - `ChatSidebar.tsx` - Conversation management sidebar
 - `UnifiedSettingsDialog.tsx` - Settings management
 
