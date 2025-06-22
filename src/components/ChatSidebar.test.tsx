@@ -173,7 +173,79 @@ describe('ChatSidebar Integration Tests', () => {
     // Should call onConversationSelect with the conversation ID
     expect(mockProps.onConversationSelect).toHaveBeenCalledWith('conv-1');
   });
-  test.todo('conversation highlighting for current selection');
+  test('conversation highlighting for current selection', () => {
+    // Set up test conversations
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-01T00:00:00.000Z',
+            id: 'conv-1',
+            language: 'Swedish',
+            messages: [],
+            title: 'Test Conversation 1',
+            updated_at: '2023-01-01T00:00:00.000Z',
+          },
+          {
+            ai_mode: 'dual',
+            created_at: '2023-01-02T00:00:00.000Z',
+            id: 'conv-2',
+            language: 'Swedish',
+            messages: [],
+            title: 'Test Conversation 2',
+            updated_at: '2023-01-02T00:00:00.000Z',
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          chatMateBackground: 'young professional',
+          chatMatePersonality: 'friendly',
+          culturalContext: true,
+          editorMateExpertise: '10+ years',
+          editorMatePersonality: 'patient teacher',
+          enableReasoning: true,
+          feedbackStyle: 'encouraging',
+          model: 'google/gemini-2.5-flash',
+          progressiveComplexity: true,
+          reasoningExpanded: true,
+          streaming: true,
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
+    );
+
+    // Render with conv-1 as current conversation
+    render(
+      <TestWrapper>
+        <ChatSidebar {...mockProps} currentConversationId="conv-1" />
+      </TestWrapper>
+    );
+
+    // Get conversation items
+    const conv1Item = screen.getByTestId('conversation-item-conv-1');
+    const conv2Item = screen.getByTestId('conversation-item-conv-2');
+
+    // Check that conv-1 has highlighting classes
+    expect(conv1Item).toHaveClass('bg-primary/90');
+    expect(conv1Item).toHaveClass('text-primary-foreground');
+    expect(conv1Item).toHaveClass('shadow-sm');
+    expect(conv1Item).toHaveClass('border-l-4');
+    expect(conv1Item).toHaveClass('font-medium');
+
+    // Check that conv-2 does not have highlighting classes
+    expect(conv2Item).not.toHaveClass('bg-primary/90');
+    expect(conv2Item).not.toHaveClass('text-primary-foreground');
+    expect(conv2Item).not.toHaveClass('shadow-sm');
+    expect(conv2Item).not.toHaveClass('border-l-4');
+    expect(conv2Item).not.toHaveClass('font-medium');
+
+    // Check that conv-2 has the default hover styling instead
+    expect(conv2Item).toHaveClass('hover:bg-accent/50');
+  });
   test.todo('conversation dropdown menu actions');
   test.todo('rename conversation dialog workflow');
   test.todo('rename dialog enter key saves changes');
