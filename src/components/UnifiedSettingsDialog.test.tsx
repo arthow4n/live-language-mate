@@ -70,6 +70,28 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
         // Empty implementation for testing
       }
     };
+
+    // Mock PointerEvent for Radix Select components
+    /**
+     *
+     */
+    class MockPointerEvent extends Event {
+      button: number;
+      ctrlKey: boolean;
+      pointerType: string;
+
+      constructor(type: string, props: PointerEventInit) {
+        super(type, props);
+        this.button = props.button ?? 0;
+        this.ctrlKey = props.ctrlKey ?? false;
+        this.pointerType = props.pointerType ?? 'mouse';
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-unsafe-member-access -- Needed as hack to mock PointerEvent for Radix Select testing
+    (global as any).PointerEvent = MockPointerEvent;
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+    window.HTMLElement.prototype.hasPointerCapture = vi.fn();
   });
 
   test('displays global settings dialog with all tabs', () => {
@@ -254,8 +276,18 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
       </TestWrapper>
     );
 
-    // TODO: Test target language selection - skipped due to complex Select component structure
-    // Need to investigate how Radix Select component renders in tests
+    // Test target language selection with PointerEvent mocks
+    const allComboboxes = screen.getAllByRole('combobox');
+    const targetLanguageSelect = allComboboxes.find((el) =>
+      el.textContent?.includes('Swedish')
+    );
+    if (!targetLanguageSelect)
+      throw new Error('Target language select not found');
+    await user.click(targetLanguageSelect);
+
+    // Select a different language
+    const spanishOption = screen.getByRole('option', { name: 'Spanish' });
+    await user.click(spanishOption);
 
     // Test API key input
     const apiKeyInput = screen.getByDisplayValue('test-api-key');
@@ -293,6 +325,7 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
         enableReasoning: false,
         reasoningExpanded: false,
         streaming: false,
+        targetLanguage: 'Spanish',
       })
     );
 
