@@ -61,7 +61,7 @@ z.looseObject({ name: z.string() });
 
 - `SettingsContext.tsx` - Global and per-chat settings
 - `LocalStorageContext.tsx` - Chat data persistence
-- Settings are split between global (cross-chat) and chat-specific
+- There are 2 types of settings: global (global only settings + template for new chat-specific settings) and chat-specific settings. When a new chat is created, it'll create a new chat-specific setting object based on the template. The chat-specific settings is disconnected from the global one.
 
 **AI Characters System:**
 The app implements a dual-AI system:
@@ -193,6 +193,7 @@ x?.Y(); // Y is optional because ...
 - `JSX.Element` -> `React.JSX.Element`
 - In test `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
 - In test `getAllBy*()[*]` -> `getByTestId` or `getByText`
+- In test `() => {}` empty mock -> `vi.fn()`
 - `vi.mock` -> never mock imported code, we write integration test and should not mock any decendant imports.
 
 ## Planning and task management
