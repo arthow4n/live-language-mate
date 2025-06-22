@@ -44,7 +44,7 @@ const SidebarContext = React.createContext<null | SidebarContext>(null);
 /**
  *
  */
-function useSidebar() {
+function useSidebar(): SidebarContext {
   const context = React.useContext(SidebarContext);
   if (!context) {
     throw new Error('useSidebar must be used within a SidebarProvider.');
@@ -106,7 +106,7 @@ const SidebarProvider = React.forwardRef<
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
+      const handleKeyDown = (event: KeyboardEvent): void => {
         if (
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
           (event.metaKey || event.ctrlKey)
@@ -117,7 +117,7 @@ const SidebarProvider = React.forwardRef<
       };
 
       window.addEventListener('keydown', handleKeyDown);
-      return () => {
+      return (): void => {
         window.removeEventListener('keydown', handleKeyDown);
       };
     }, [toggleSidebar]);
@@ -485,14 +485,16 @@ SidebarGroupAction.displayName = 'SidebarGroupAction';
 const SidebarGroupContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'div'>
->(({ className, ...props }, ref) => (
-  <div
-    className={cn('w-full text-sm', className)}
-    data-sidebar="group-content"
-    ref={ref}
-    {...props}
-  />
-));
+>(
+  ({ className, ...props }, ref): React.JSX.Element => (
+    <div
+      className={cn('w-full text-sm', className)}
+      data-sidebar="group-content"
+      ref={ref}
+      {...props}
+    />
+  )
+);
 SidebarGroupContent.displayName = 'SidebarGroupContent';
 
 const SidebarMenu = React.forwardRef<
@@ -660,7 +662,7 @@ const SidebarMenuSkeleton = React.forwardRef<
   React.ComponentProps<'div'> & {
     showIcon?: boolean;
   }
->(({ className, showIcon = false, ...props }, ref) => {
+>(({ className, showIcon = false, ...props }, ref): React.JSX.Element => {
   // Random width between 50 to 90%.
   const width = React.useMemo(() => {
     return `${(Math.floor(Math.random() * 40) + 50).toString()}%`;
