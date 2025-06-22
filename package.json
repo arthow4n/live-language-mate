@@ -18,7 +18,7 @@
     "typecheck:with-projects": "tsc --build",
     "preview": "vite preview",
     "test": "concurrently --group --names frontend-test,backend-deno-test 'npm run test:frontend' 'npm run test:backend'",
-    "test:frontend": "npm run typecheck && vitest related --run --exclude=\"api/**\"",
+    "test:frontend": "npm run typecheck && vitest run --exclude=\"api/**\"",
     "test:frontend:watch": "vitest --exclude=\"api/**\"",
     "test:backend": "cd api && deno test --allow-net --allow-env",
     "prepare": "husky"

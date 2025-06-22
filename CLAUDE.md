@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 - Focused single/multiple file commands
-  - `npm run test:frontend [--test-name-pattern=""] file [...files]` - Type check and run frontend test only on the specified test files, or tests related to a non-test file. The command is a faster wrapper of `vitest related --run`.
+  - `npm run test:frontend [--test-name-pattern=""] file [...files]` - Type check and run frontend test only on the specified test files, or tests related to a non-test file. The command is a faster wrapper of `vitest run`.
   - `npm run test:backend file [...files]` - Run backend test only on the specified test files.
 
 ### API Server (backend)
