@@ -298,7 +298,67 @@ describe('EnhancedChatMessage Integration Tests', () => {
     await user.click(screen.getByText('Regenerate'));
     expect(mockOnRegenerateMessage).toHaveBeenCalledWith('chat-mate-message-1');
   });
-  test.todo('text selection triggers onTextSelect callback');
+  test('text selection triggers onTextSelect callback', async () => {
+    const user = userEvent.setup();
+    const mockOnTextSelect = vi.fn();
+
+    const testMessage: Message = {
+      content: 'This is a test message with selectable text content.',
+      id: 'test-message-1',
+      timestamp: new Date('2022-01-01T00:00:00Z'),
+      type: 'chat-mate',
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatMessage
+          message={testMessage}
+          onTextSelect={mockOnTextSelect}
+        />
+      </TestWrapper>
+    );
+
+    // Find the message content element
+    const messageContent = screen.getByText(
+      'This is a test message with selectable text content.'
+    );
+    expect(messageContent).toBeInTheDocument();
+
+    // Create a mock selection
+    const mockSelection = {
+      toString: vi.fn().mockReturnValue('selectable text'),
+    };
+
+    // Mock window.getSelection to return our mock selection
+    const originalGetSelection = window.getSelection;
+    window.getSelection = vi.fn().mockReturnValue(mockSelection);
+
+    // Simulate mouseup event on the message content to trigger text selection
+    await user.pointer({ keys: '[MouseLeft>]', target: messageContent });
+
+    // Trigger the mouseup event manually since pointer doesn't trigger it in all cases
+    messageContent.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+
+    // Should call onTextSelect with the selected text
+    expect(mockOnTextSelect).toHaveBeenCalledWith('selectable text');
+
+    // Test that empty selection doesn't trigger callback
+    mockOnTextSelect.mockClear();
+    mockSelection.toString.mockReturnValue('');
+
+    messageContent.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    expect(mockOnTextSelect).not.toHaveBeenCalled();
+
+    // Test that whitespace-only selection doesn't trigger callback
+    mockOnTextSelect.mockClear();
+    mockSelection.toString.mockReturnValue('   ');
+
+    messageContent.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    expect(mockOnTextSelect).not.toHaveBeenCalled();
+
+    // Restore original getSelection
+    window.getSelection = originalGetSelection;
+  });
   test.todo('fork and delete actions trigger correct callbacks');
   test.todo('reasoning section toggle functionality');
   test.todo('streaming indicator displays when message is streaming');
