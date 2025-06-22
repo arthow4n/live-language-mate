@@ -6,7 +6,10 @@ import type { ButtonProps } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
+const Pagination = ({
+  className,
+  ...props
+}: React.ComponentProps<'nav'>): React.JSX.Element => (
   <nav
     aria-label="pagination"
     className={cn('mx-auto flex w-full justify-center', className)}
@@ -49,7 +52,7 @@ const PaginationLink = ({
   isActive,
   size = 'icon',
   ...props
-}: PaginationLinkProps) => (
+}: PaginationLinkProps): React.JSX.Element => (
   <a
     aria-current={isActive ? 'page' : undefined}
     className={cn(
@@ -67,7 +70,7 @@ PaginationLink.displayName = 'PaginationLink';
 const PaginationPrevious = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
+}: React.ComponentProps<typeof PaginationLink>): React.JSX.Element => (
   <PaginationLink
     aria-label="Go to previous page"
     className={cn('gap-1 pl-2.5', className)}
@@ -83,7 +86,7 @@ PaginationPrevious.displayName = 'PaginationPrevious';
 const PaginationNext = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
+}: React.ComponentProps<typeof PaginationLink>): React.JSX.Element => (
   <PaginationLink
     aria-label="Go to next page"
     className={cn('gap-1 pr-2.5', className)}
@@ -99,7 +102,7 @@ PaginationNext.displayName = 'PaginationNext';
 const PaginationEllipsis = ({
   className,
   ...props
-}: React.ComponentProps<'span'>) => (
+}: React.ComponentProps<'span'>): React.JSX.Element => (
   <span
     aria-hidden
     className={cn('flex h-9 w-9 items-center justify-center', className)}
