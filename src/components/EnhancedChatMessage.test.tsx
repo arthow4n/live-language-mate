@@ -15,7 +15,7 @@ interface TestWrapperProps {
   children: React.ReactNode;
 }
 
-const TestWrapper = ({ children }: TestWrapperProps) => (
+const TestWrapper = ({ children }: TestWrapperProps): React.JSX.Element => (
   <UnifiedStorageProvider>{children}</UnifiedStorageProvider>
 );
 
@@ -256,7 +256,7 @@ describe('EnhancedChatMessage Integration Tests', () => {
 
     // Mock window.getSelection with minimal required properties
     const mockSelection = {
-      toString: () => 'selectable text',
+      toString: (): string => 'selectable text',
     };
 
     // Mock getSelection to return our minimal mock
