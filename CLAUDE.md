@@ -145,7 +145,9 @@ The API server can be deployed to any platform supporting Deno:
 ## Engineering mindset
 
 - Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
-- Prefer integration tests over unit tests. Don't mock modules, instead think of how the data flows and mock from the data's source.
+- When writing test, write integration test.
+- Write test to cover business logic, if something can be clicked, input or be interacted in any other ways by the user, it should be covered by a test.
+- When writing test, focus on testing the component/function's integrated behaviour, for example, if the import tree looks like A -> B -> C, you should not mock any of A/B/C, instead you should focus on testing if interacting with A as a whole gives you the expected result; in B's test you should not mock B/C and instead test interacting with B; and so on.
 - Use TDD/BDD as much as possible.
 - For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
 
@@ -167,7 +169,8 @@ The API server can be deployed to any platform supporting Deno:
 - `console.error` -> `logError`
 - `JSX.Element` -> `React.JSX.Element`
 - In test `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
-- In test `getAllBy*()[*]` -> `getByTestId`
+- In test `getAllBy*()[*]` -> `getByTestId` or `getByText`
+- `vi.mock` -> never mock imported code, we write integration test and should not mock any decendant imports.
 
 ## Claude Code operations
 
