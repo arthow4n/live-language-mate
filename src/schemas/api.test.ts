@@ -14,14 +14,16 @@ describe('API Schema Integration Tests', () => {
 
   test('invalid request fails schema validation with expected errors', () => {
     const invalidRequest = createInvalidChatRequest();
-    expect(() => aiChatRequestSchema.parse(invalidRequest)).toThrow(/Required/);
+    expect(() => aiChatRequestSchema.parse(invalidRequest)).toThrow(
+      /, received undefined/
+    );
   });
 
   test('messageType enum validates correctly', () => {
     expect(() => messageTypeSchema.parse('chat-mate-response')).not.toThrow();
     expect(() => messageTypeSchema.parse('title-generation')).not.toThrow();
     expect(() => messageTypeSchema.parse('invalid-type')).toThrow(
-      /Invalid enum value/
+      /Invalid option: expected one of /
     );
   });
 
@@ -46,7 +48,7 @@ describe('API Schema Integration Tests', () => {
 
       expect(() =>
         aiChatRequestSchema.parse(requestWithoutFieldDeleted)
-      ).toThrow(/Required/);
+      ).toThrow(/(Invalid option: expected one of|, received undefined)/);
     });
   });
 });

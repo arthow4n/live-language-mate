@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from 'zod/v4';
 
 /**
  * Creates a strict parser function for a given Zod schema
@@ -6,7 +6,7 @@ import type { z } from 'zod';
  * @param schema
  */
 export const createStrictParser =
-  <T>(schema: z.ZodSchema<T>) =>
+  <T>(schema: z.ZodType<T>) =>
   (data: unknown): T =>
     schema.parse(data);
 
@@ -19,7 +19,7 @@ export const createStrictParser =
  */
 export const parseStoredData = <T>(
   key: string,
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): null | T => {
   const stored = localStorage.getItem(key);
   if (!stored) return null;
@@ -44,7 +44,7 @@ export const parseStoredData = <T>(
  */
 export const validateApiRequest = async <T>(
   req: Request,
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): Promise<T> => {
   try {
     const body: unknown = await req.json();
@@ -65,7 +65,7 @@ export const validateApiRequest = async <T>(
 export const setStoredData = <T>(
   key: string,
   data: T,
-  schema: z.ZodSchema<T>
+  schema: z.ZodType<T>
 ): void => {
   // Validate data before storing
   const validated = schema.parse(data);

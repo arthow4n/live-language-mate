@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // Message types
 export const messageTypeSchema = z.enum(['user', 'chat-mate', 'editor-mate']);

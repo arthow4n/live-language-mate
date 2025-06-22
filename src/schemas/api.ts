@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // Message types for AI chat
 export const messageTypeSchema = z.enum([
@@ -88,7 +88,7 @@ export const modelsResponseSchema = z
   .strict();
 
 // Generic API Response wrapper
-export const apiResponseSchema = <T extends z.ZodTypeAny>(
+export const apiResponseSchema = <T extends z.ZodType>(
   dataSchema: T
 ): z.ZodObject<{ data: z.ZodOptional<T>; error: z.ZodOptional<z.ZodString> }> =>
   z

@@ -26,6 +26,19 @@ This is a React TypeScript language learning application called "Live Language M
 - Tailwind CSS + shadcn/ui components
 - Zustand-like context for state management
 - React Router for navigation
+- Zod 4, therefore the imports should be `from "zod/v4"`, you may fetch `https://zod.dev/v4/changelog` if you are unsure how to write.
+
+```ts
+// Bad: Zod 3
+import { z } from 'zod';
+z.object({ name: z.string() }).strict();
+z.object({ name: z.string() }).passthrough();
+
+// Good: Zod 4
+import { z } from 'zod/v4';
+z.strictObject({ name: z.string() });
+z.looseObject({ name: z.string() });
+```
 
 **Backend:**
 

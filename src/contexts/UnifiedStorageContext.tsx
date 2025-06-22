@@ -7,7 +7,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import type { LocalConversation, LocalMessage } from '@/schemas/messages';
 
@@ -126,7 +126,9 @@ export const UnifiedStorageProvider = ({
           const basicValidation = z
             .object({
               conversations: z.array(z.unknown()).optional(),
-              conversationSettings: z.record(z.unknown()).optional(),
+              conversationSettings: z
+                .record(z.string(), z.unknown())
+                .optional(),
               globalSettings: z.unknown().optional(),
             })
             .safeParse(parsed);
@@ -140,20 +142,17 @@ export const UnifiedStorageProvider = ({
             conversations:
               parsedData.conversations?.map((conv: unknown) => {
                 const convValidation = z
-                  .object({
+                  .looseObject({
                     created_at: z.string(),
                     messages: z
                       .array(
-                        z
-                          .object({
-                            timestamp: z.string(),
-                          })
-                          .passthrough()
+                        z.looseObject({
+                          timestamp: z.string(),
+                        })
                       )
                       .optional(),
                     updated_at: z.string(),
                   })
-                  .passthrough()
                   .safeParse(conv);
 
                 if (!convValidation.success) {
@@ -167,10 +166,9 @@ export const UnifiedStorageProvider = ({
                   messages:
                     validatedConv.messages?.map((msg: unknown) => {
                       const msgValidation = z
-                        .object({
+                        .looseObject({
                           timestamp: z.string(),
                         })
-                        .passthrough()
                         .safeParse(msg);
 
                       if (!msgValidation.success) {

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { localConversationSchema } from './messages';
 import { conversationSettingsSchema, globalSettingsSchema } from './settings';

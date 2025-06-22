@@ -39,7 +39,6 @@ export default tseslint.config(
         'error',
         { ignore: [] },
       ],
-
       '@typescript-eslint/ban-ts-comment': 'error',
       '@typescript-eslint/consistent-type-assertions': [
         'error',
@@ -56,7 +55,6 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'error', // Helps to clarify type for LLM processing
       '@typescript-eslint/no-import-type-side-effects': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
-
       // Configure JSDoc to be less strict for UI components
       'jsdoc/require-jsdoc': [
         'error',
@@ -76,11 +74,18 @@ export default tseslint.config(
           },
         },
       ],
+
       'jsdoc/require-param-description': 'off',
       'jsdoc/require-returns': 'off', // TypeScript provides return type info
       'jsdoc/require-returns-description': 'off',
-
       'no-console': ['error', { allow: ['error'] }],
+      'no-restricted-imports': [
+        'error',
+        {
+          message: '`zod` is for Zod v3, import `zod/v4` instead.',
+          name: 'zod',
+        },
+      ],
     },
   },
   perfectionist.configs['recommended-natural']

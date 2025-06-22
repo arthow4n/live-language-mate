@@ -1,6 +1,6 @@
 import { Download, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import type { GlobalSettings } from '@/schemas/settings';
 
@@ -99,14 +99,13 @@ const DataManagementTab = (): React.JSX.Element => {
       const text = await importFile.text();
       const rawData = JSON.parse(text);
       const importedData = z
-        .object({
-          chatSettings: z.record(z.object({}).passthrough()).optional(),
+        .looseObject({
+          chatSettings: z.record(z.string(), z.object({})).optional(),
           conversations: z.array(z.unknown()).optional(),
-          globalSettings: z.object({}).passthrough().optional(),
+          globalSettings: z.looseObject({}).optional(),
           settings: z.unknown().optional(),
           version: z.string().optional(),
         })
-        .passthrough()
         .parse(rawData);
 
       // Handle different export formats for backwards compatibility
@@ -149,7 +148,7 @@ const DataManagementTab = (): React.JSX.Element => {
           // Try to migrate settings to new structure
           const oldSettings = importedData.settings;
           const settingsParseResult = z
-            .record(z.unknown())
+            .record(z.string(), z.unknown())
             .safeParse(oldSettings);
           if (
             settingsParseResult.success &&
