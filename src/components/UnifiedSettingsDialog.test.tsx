@@ -332,7 +332,104 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Dialog should close after saving
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
-  test.todo('conversation-specific settings for chat mode');
+  test('conversation-specific settings for chat mode', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          conversationTitle="Test Chat"
+          initialSettings={mockConversationSettings}
+          mode="chat"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Should display chat-specific title and description
+    expect(screen.getByText('Chat Settings - Test Chat')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Customize the AI personalities and behaviors for this specific conversation.'
+      )
+    ).toBeInTheDocument();
+
+    // Should show Advanced Settings section with conversation-specific controls
+    expect(screen.getByText('Advanced Settings')).toBeInTheDocument();
+
+    // Chat-specific fields should be present and editable
+    expect(screen.getByLabelText('Chat Mate Background')).toBeInTheDocument();
+    expect(screen.getByLabelText('Editor Mate Expertise')).toBeInTheDocument();
+    expect(screen.getByText('Feedback Style')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Include cultural context')
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Progressive complexity')).toBeInTheDocument();
+
+    // Test Chat Mate Background input
+    const chatMateBackgroundInput = screen.getByLabelText(
+      'Chat Mate Background'
+    );
+    await user.clear(chatMateBackgroundInput);
+    await user.type(chatMateBackgroundInput, 'experienced traveler');
+
+    // Test Editor Mate Expertise input
+    const editorMateExpertiseInput = screen.getByLabelText(
+      'Editor Mate Expertise'
+    );
+    await user.clear(editorMateExpertiseInput);
+    await user.type(editorMateExpertiseInput, '15+ years linguistics');
+
+    // Test cultural context toggle
+    const culturalContextSwitch = screen.getByLabelText(
+      'Include cultural context'
+    );
+    expect(culturalContextSwitch).toBeChecked();
+    await user.click(culturalContextSwitch);
+
+    // Test progressive complexity toggle
+    const progressiveComplexitySwitch = screen.getByLabelText(
+      'Progressive complexity'
+    );
+    expect(progressiveComplexitySwitch).toBeChecked();
+    await user.click(progressiveComplexitySwitch);
+
+    // Test feedback style select with PointerEvent mocks
+    const allComboboxes = screen.getAllByRole('combobox');
+    const feedbackStyleSelect = allComboboxes.find((el) =>
+      el.textContent?.includes('Encouraging')
+    );
+    if (!feedbackStyleSelect)
+      throw new Error('Feedback style select not found');
+    await user.click(feedbackStyleSelect);
+
+    // Select a different feedback style
+    const gentleOption = screen.getByRole('option', { name: 'Gentle' });
+    await user.click(gentleOption);
+
+    // Save changes
+    const saveButton = screen.getByText('Save Changes');
+    await user.click(saveButton);
+
+    // Verify the save callback was called with updated conversation-specific settings
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
+    expect(mockOnSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chatMateBackground: 'experienced traveler',
+        culturalContext: false,
+        editorMateExpertise: '15+ years linguistics',
+        feedbackStyle: 'gentle',
+        progressiveComplexity: false,
+      })
+    );
+
+    // Dialog should close after saving
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+  });
   test.todo('AI personalities tab functionality');
   test.todo('model selector integration');
   test.todo('cancel button closes dialog without saving');
