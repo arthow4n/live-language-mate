@@ -527,7 +527,76 @@ describe('ChatSidebar Integration Tests', () => {
     expect(screen.getByText('Original Title')).toBeInTheDocument();
     expect(screen.queryByText('Changed But Not Saved')).not.toBeInTheDocument();
   });
-  test.todo('fork conversation creates duplicate');
+  test('fork conversation creates duplicate', async () => {
+    const user = userEvent.setup();
+
+    // Set up test conversations
+    localStorage.setItem(
+      'language-mate-data',
+      JSON.stringify({
+        conversations: [
+          {
+            ai_mode: 'dual',
+            chat_mate_prompt: 'Chat mate prompt',
+            created_at: '2023-01-01T00:00:00.000Z',
+            editor_mate_prompt: 'Editor mate prompt',
+            id: 'conv-1',
+            language: 'Swedish',
+            messages: [],
+            title: 'Original Conversation',
+            updated_at: '2023-01-01T00:00:00.000Z',
+          },
+        ],
+        conversationSettings: {},
+        globalSettings: {
+          apiKey: '',
+          chatMateBackground: 'young professional',
+          chatMatePersonality: 'friendly',
+          culturalContext: true,
+          editorMateExpertise: '10+ years',
+          editorMatePersonality: 'patient teacher',
+          enableReasoning: true,
+          feedbackStyle: 'encouraging',
+          model: 'google/gemini-2.5-flash',
+          progressiveComplexity: true,
+          reasoningExpanded: true,
+          streaming: true,
+          targetLanguage: 'Swedish',
+          theme: 'system',
+        },
+      })
+    );
+
+    render(
+      <TestWrapper>
+        <ChatSidebar {...mockProps} />
+      </TestWrapper>
+    );
+
+    // Verify only original conversation exists initially
+    expect(screen.getByText('Original Conversation')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Forked: Original Conversation')
+    ).not.toBeInTheDocument();
+
+    // Open dropdown menu and click fork
+    const menuButton = screen.getByTestId('conversation-menu-conv-1');
+    await user.click(menuButton);
+    const forkItem = screen.getByTestId('fork-conv-1');
+    await user.click(forkItem);
+
+    // Verify both conversations now exist
+    expect(screen.getByText('Original Conversation')).toBeInTheDocument();
+    expect(
+      screen.getByText('Forked: Original Conversation')
+    ).toBeInTheDocument();
+
+    // Verify onConversationSelect was called (indicating fork created new conversation)
+    expect(mockProps.onConversationSelect).toHaveBeenCalledTimes(1);
+
+    // Verify success toast
+    expect(screen.getByText('Conversation forked')).toBeInTheDocument();
+  });
   test.todo('delete conversation removes from list');
   test.todo('conversations sorted by updated_at timestamp');
 });
