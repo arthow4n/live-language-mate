@@ -615,6 +615,93 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
     expect(mockOnSave).not.toHaveBeenCalled();
   });
-  test.todo('settings reset when dialog reopens');
+  test('settings reset when dialog reopens', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    const { rerender } = render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Make some changes to settings (change target language)
+    const languageSelectors = screen.getAllByRole('combobox');
+    const languageSelector = languageSelectors.find((combobox) =>
+      combobox.textContent?.includes('Swedish')
+    );
+    if (!languageSelector) throw new Error('Language selector not found');
+
+    await user.click(languageSelector);
+    const englishOption = screen.getByText('English');
+    await user.click(englishOption);
+
+    // Verify the change was applied in the UI
+    expect(languageSelector).toHaveTextContent('English');
+
+    // Cancel to close dialog without saving
+    const cancelButton = screen.getByText('Cancel');
+    await user.click(cancelButton);
+
+    // Verify dialog closed
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+
+    // Simulate closing and reopening the dialog by unmounting and remounting
+    mockOnOpenChange.mockClear();
+
+    // First, rerender with open=false to close the dialog
+    rerender(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={false}
+        />
+      </TestWrapper>
+    );
+
+    // Then reopen the dialog
+    rerender(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Verify settings have reset to original values (Swedish, not English)
+    // Wait for the component to render properly
+    await waitFor(() => {
+      expect(screen.getByText('Target Language')).toBeInTheDocument();
+    });
+
+    const reopenedLanguageSelectors = screen.getAllByRole('combobox');
+    // Find the target language selector (should have default value Swedish)
+    const reopenedLanguageSelector = reopenedLanguageSelectors.find(
+      (combobox) => combobox.textContent?.includes('Swedish')
+    );
+
+    if (!reopenedLanguageSelector) {
+      throw new Error(
+        'Language selector not found - comboboxes: ' +
+          reopenedLanguageSelectors.map((cb) => cb.textContent).join(', ')
+      );
+    }
+
+    expect(reopenedLanguageSelector).toHaveTextContent('Swedish');
+  });
   test.todo('reasoning expanded toggle dependency');
 });
