@@ -83,7 +83,6 @@ describe('DataManagementTab Integration Tests', () => {
     const testData = {
       conversations: [
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-01T00:00:00.000Z'),
           id: '1',
           language: 'Swedish',
@@ -278,7 +277,6 @@ describe('DataManagementTab Integration Tests', () => {
     const deleteTestData = {
       conversations: [
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-01T00:00:00.000Z'),
           id: '1',
           language: 'Swedish',
@@ -287,7 +285,6 @@ describe('DataManagementTab Integration Tests', () => {
           updated_at: new Date('2023-01-01T00:00:00.000Z'),
         },
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-02T00:00:00.000Z'),
           id: '2',
           language: 'Swedish',
@@ -348,7 +345,6 @@ describe('DataManagementTab Integration Tests', () => {
     const cancelTestData = {
       conversations: [
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-01T00:00:00.000Z'),
           id: '1',
           language: 'Swedish',
@@ -357,7 +353,6 @@ describe('DataManagementTab Integration Tests', () => {
           updated_at: new Date('2023-01-01T00:00:00.000Z'),
         },
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-02T00:00:00.000Z'),
           id: '2',
           language: 'Swedish',
@@ -451,7 +446,6 @@ describe('DataManagementTab Integration Tests', () => {
     const deleteAllTestData = {
       conversations: [
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-01T00:00:00.000Z'),
           id: '1',
           language: 'Swedish',

@@ -342,7 +342,6 @@ export const UnifiedStorageProvider = ({
     data: Partial<LocalConversation>
   ): LocalConversation => {
     const newConversation: LocalConversation = {
-      ai_mode: data.ai_mode ?? 'dual',
       chat_mate_prompt: data.chat_mate_prompt,
       created_at: new Date(),
       editor_mate_prompt: data.editor_mate_prompt,

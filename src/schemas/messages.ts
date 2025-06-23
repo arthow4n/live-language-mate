@@ -40,7 +40,6 @@ export const localMessageSchema = messageSchema;
 // Conversation schema - STRICT, no defaults
 export const conversationSchema = z
   .object({
-    ai_mode: aiModeSchema,
     chat_mate_prompt: z.string().optional(),
     created_at: z.date(),
     editor_mate_prompt: z.string().optional(),

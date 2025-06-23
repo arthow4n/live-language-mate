@@ -13,7 +13,6 @@ import ChatSidebar from './ChatSidebar';
 // Helper to create test data with proper typing
 const createTestConversationData = (
   conversations: {
-    ai_mode?: 'dual';
     chat_mate_prompt?: string;
     created_at: string;
     editor_mate_prompt?: string;
@@ -23,7 +22,6 @@ const createTestConversationData = (
   }[]
 ): LocalAppData => ({
   conversations: conversations.map((conv) => ({
-    ai_mode: 'dual' as const,
     created_at: new Date(conv.created_at),
     id: conv.id,
     language: 'Swedish',
@@ -160,7 +158,6 @@ describe('ChatSidebar Integration Tests', () => {
     const conversationTestData = {
       conversations: [
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-01T00:00:00.000Z'),
           id: 'conv-1',
           language: 'Swedish',
@@ -169,7 +166,6 @@ describe('ChatSidebar Integration Tests', () => {
           updated_at: new Date('2023-01-01T00:00:00.000Z'),
         },
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-02T00:00:00.000Z'),
           id: 'conv-2',
           language: 'Swedish',
@@ -225,7 +221,6 @@ describe('ChatSidebar Integration Tests', () => {
     const highlightingTestData = {
       conversations: [
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-01T00:00:00.000Z'),
           id: 'conv-1',
           language: 'Swedish',
@@ -234,7 +229,6 @@ describe('ChatSidebar Integration Tests', () => {
           updated_at: new Date('2023-01-01T00:00:00.000Z'),
         },
         {
-          ai_mode: 'dual' as const,
           created_at: new Date('2023-01-02T00:00:00.000Z'),
           id: 'conv-2',
           language: 'Swedish',
@@ -344,7 +338,6 @@ describe('ChatSidebar Integration Tests', () => {
       JSON.stringify({
         conversations: [
           {
-            ai_mode: 'dual',
             created_at: '2023-01-01T00:00:00.000Z',
             id: 'conv-1',
             language: 'Swedish',
@@ -422,7 +415,6 @@ describe('ChatSidebar Integration Tests', () => {
       JSON.stringify({
         conversations: [
           {
-            ai_mode: 'dual',
             created_at: '2023-01-01T00:00:00.000Z',
             id: 'conv-1',
             language: 'Swedish',
@@ -491,7 +483,6 @@ describe('ChatSidebar Integration Tests', () => {
       JSON.stringify({
         conversations: [
           {
-            ai_mode: 'dual',
             created_at: '2023-01-01T00:00:00.000Z',
             id: 'conv-1',
             language: 'Swedish',
@@ -560,7 +551,6 @@ describe('ChatSidebar Integration Tests', () => {
       JSON.stringify({
         conversations: [
           {
-            ai_mode: 'dual',
             chat_mate_prompt: 'Chat mate prompt',
             created_at: '2023-01-01T00:00:00.000Z',
             editor_mate_prompt: 'Editor mate prompt',
@@ -630,7 +620,6 @@ describe('ChatSidebar Integration Tests', () => {
       JSON.stringify({
         conversations: [
           {
-            ai_mode: 'dual',
             created_at: '2023-01-01T00:00:00.000Z',
             id: 'conv-1',
             language: 'Swedish',
@@ -639,7 +628,6 @@ describe('ChatSidebar Integration Tests', () => {
             updated_at: '2023-01-01T00:00:00.000Z',
           },
           {
-            ai_mode: 'dual',
             created_at: '2023-01-02T00:00:00.000Z',
             id: 'conv-2',
             language: 'Swedish',
@@ -703,7 +691,6 @@ describe('ChatSidebar Integration Tests', () => {
       JSON.stringify({
         conversations: [
           {
-            ai_mode: 'dual',
             created_at: '2023-01-01T00:00:00.000Z',
             id: 'conv-1',
             language: 'Swedish',
@@ -712,7 +699,6 @@ describe('ChatSidebar Integration Tests', () => {
             updated_at: '2023-01-01T00:00:00.000Z',
           },
           {
-            ai_mode: 'dual',
             created_at: '2023-01-02T00:00:00.000Z',
             id: 'conv-2',
             language: 'Swedish',
@@ -721,7 +707,6 @@ describe('ChatSidebar Integration Tests', () => {
             updated_at: '2023-01-03T00:00:00.000Z',
           },
           {
-            ai_mode: 'dual',
             created_at: '2023-01-01T12:00:00.000Z',
             id: 'conv-3',
             language: 'Swedish',
