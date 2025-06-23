@@ -576,7 +576,45 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Dialog should close after saving
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
-  test.todo('cancel button closes dialog without saving');
+  test('cancel button closes dialog without saving', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Verify dialog is open
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Make some changes to settings (change target language)
+    const languageSelectors = screen.getAllByRole('combobox');
+    const languageSelector = languageSelectors.find((combobox) =>
+      combobox.textContent?.includes('Swedish')
+    );
+    if (!languageSelector) throw new Error('Language selector not found');
+
+    await user.click(languageSelector);
+    const englishOption = screen.getByText('English');
+    await user.click(englishOption);
+
+    // Click cancel button instead of save
+    const cancelButton = screen.getByText('Cancel');
+    await user.click(cancelButton);
+
+    // Verify the dialog closes without saving
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+    expect(mockOnSave).not.toHaveBeenCalled();
+  });
   test.todo('settings reset when dialog reopens');
   test.todo('reasoning expanded toggle dependency');
 });
