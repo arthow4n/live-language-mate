@@ -183,6 +183,7 @@ x?.Y(); // Y is optional because ...
 - `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
 - `getAllBy*()[*]` -> `getByTestId` or `getByText`
 - `() => {}` empty mock -> `vi.fn()`
+- `JSON.stringify(x)` if x is not typed -> `const x: X = {}; JSON.stringify(x)` or `JSON.stringify({} satisfies X)`
 - `fireEvent` -> `userEvent`
 - `vi.mock` -> never mock imported code, we write integration test and should not mock any decendant imports.
 
