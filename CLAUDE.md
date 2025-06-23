@@ -193,8 +193,9 @@ x?.Y(); // Y is optional because ...
 - When planning, automatically break down the task into smaller tasks and utilise the TodoRead & TodoWrite tools.
 - When planning, plan ahead to see if you need to update any tests.
 - When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutely relevant and needed chagnes. You need to review your own plan at least review 2 times.
-- You should keep working until your todo is empty.
 - Do not spawn subagents unless the user asked you to do so.
+- You should keep working until your todo is empty.
+- Before you start working, make sure to step back and break down the plan into smaller todo items.
 
 ## Git
 
@@ -219,6 +220,7 @@ x?.Y(); // Y is optional because ...
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
 - If you are only editing test, you should not change the existing code logic that in the test. If refactoring would make writing test easier, explain to the user and wait for feedback.
 - Before you write or change any test code, make sure you get a full picture first by reading through the related code paths and understanding how the code and data flows.
+- Instead of fixing many test cases in one go, focus on fixing 1 test at a time, each test case should have its own todo item.
 
 ## Lint
 
