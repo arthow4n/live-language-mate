@@ -13,9 +13,7 @@ import ChatSidebar from './ChatSidebar';
 // Helper to create test data with proper typing
 const createTestConversationData = (
   conversations: {
-    chat_mate_prompt?: string;
     created_at: string;
-    editor_mate_prompt?: string;
     id: string;
     title: string;
     updated_at: string;
@@ -28,10 +26,6 @@ const createTestConversationData = (
     messages: [],
     title: conv.title,
     updated_at: new Date(conv.updated_at),
-    ...(conv.chat_mate_prompt && { chat_mate_prompt: conv.chat_mate_prompt }),
-    ...(conv.editor_mate_prompt && {
-      editor_mate_prompt: conv.editor_mate_prompt,
-    }),
   })),
   conversationSettings: {},
   globalSettings: {
@@ -551,9 +545,7 @@ describe('ChatSidebar Integration Tests', () => {
       JSON.stringify({
         conversations: [
           {
-            chat_mate_prompt: 'Chat mate prompt',
             created_at: '2023-01-01T00:00:00.000Z',
-            editor_mate_prompt: 'Editor mate prompt',
             id: 'conv-1',
             language: 'Swedish',
             messages: [],

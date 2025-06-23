@@ -12,7 +12,10 @@ import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { logError } from '@/lib/utils';
-import { aiChatStreamResponseSchema, messageTypeSchema } from '@/schemas/api';
+import {
+  aiChatStreamResponseSchema,
+  apiMessageTypeSchema,
+} from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts';
 import { generateChatTitle } from '@/utils/chatTitleGenerator';
@@ -70,10 +73,7 @@ const EnhancedChatInterface = ({
   } = useUnifiedStorage();
   const isMobile = useIsMobile();
 
-  // Get current conversation and settings
-  const currentConversation = conversationId
-    ? getConversation(conversationId)
-    : null;
+  // Get current conversation settings
   const chatSettings = conversationId
     ? getConversationSettings(conversationId)
     : null;
@@ -83,11 +83,9 @@ const EnhancedChatInterface = ({
   const effectiveApiKey = chatSettings?.apiKey ?? globalSettings.apiKey;
 
   const chatMatePrompt =
-    currentConversation?.chat_mate_prompt ??
     chatSettings?.chatMatePersonality ??
     'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
   const currentEditorMatePrompt =
-    currentConversation?.editor_mate_prompt ??
     editorMatePrompt ??
     chatSettings?.editorMatePersonality ??
     'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
@@ -395,7 +393,7 @@ const EnhancedChatInterface = ({
           : 'editor-mate-chatmate-comment';
       }
 
-      const parseResult = messageTypeSchema.safeParse(messageType);
+      const parseResult = apiMessageTypeSchema.safeParse(messageType);
       if (!parseResult.success) {
         throw new Error('Invalid message type');
       }
@@ -624,8 +622,6 @@ const EnhancedChatInterface = ({
 
       // Create a new conversation
       const newConversation = createConversation({
-        chat_mate_prompt: chatMatePrompt,
-        editor_mate_prompt: currentEditorMatePrompt,
         language: targetLanguage.toLowerCase(),
         title: `Forked Chat - ${targetLanguage}`,
       });
@@ -784,8 +780,6 @@ const EnhancedChatInterface = ({
   const createNewConversation = (): string => {
     try {
       const newConversation = createConversation({
-        chat_mate_prompt: chatMatePrompt,
-        editor_mate_prompt: currentEditorMatePrompt,
         language: targetLanguage.toLowerCase(),
         title: `${targetLanguage} Chat`, // Better initial title that will be replaced
       });

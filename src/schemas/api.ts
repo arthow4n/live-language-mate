@@ -1,13 +1,16 @@
 import { z } from 'zod/v4';
 
-// Message types for AI chat
-export const messageTypeSchema = z.enum([
+// Message types for AI chat API requests
+export const apiMessageTypeSchema = z.enum([
   'chat-mate-response',
   'editor-mate-response',
   'editor-mate-user-comment',
   'editor-mate-chatmate-comment',
   'title-generation',
 ]);
+
+// Backward compatibility alias - TODO: Remove after migration
+export const messageTypeSchema = apiMessageTypeSchema;
 
 // Feedback styles
 export const feedbackStyleSchema = z.enum([
@@ -37,7 +40,7 @@ export const aiChatRequestSchema = z
     enableReasoning: z.boolean(),
     feedbackStyle: feedbackStyleSchema,
     message: z.string().min(1),
-    messageType: messageTypeSchema,
+    messageType: apiMessageTypeSchema,
     model: z.string().min(1),
     progressiveComplexity: z.boolean(),
     streaming: z.boolean(),
@@ -123,6 +126,11 @@ export type AiChatStreamResponse = z.infer<typeof aiChatStreamResponseSchema>;
  *
  */
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
+// Export type helpers for better DX
+/**
+ *
+ */
+export type ApiMessageType = z.infer<typeof apiMessageTypeSchema>;
 /**
  *
  */
@@ -131,11 +139,10 @@ export type ChatMessage = z.infer<typeof chatMessageSchema>;
  *
  */
 export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
-// Export type helpers for better DX
 /**
- *
+ * @deprecated Use ApiMessageType instead
  */
-export type MessageType = z.infer<typeof messageTypeSchema>;
+export type MessageType = ApiMessageType;
 /**
  *
  */

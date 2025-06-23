@@ -1,10 +1,16 @@
-import { aiChatRequestSchema } from '../../src/schemas/api.ts';
+import {
+  aiChatRequestSchema,
+  type AiChatRequest,
+} from '../../src/schemas/api.ts';
 import { validateApiRequest } from '../../src/utils/validation.ts';
 
 export async function aiChatHandler(req: Request): Promise<Response> {
   try {
     // Strict validation with no defaults - BREAKING CHANGE
-    const requestData = await validateApiRequest(req, aiChatRequestSchema);
+    const requestData = (await validateApiRequest(
+      req,
+      aiChatRequestSchema
+    )) as AiChatRequest;
 
     const {
       message,

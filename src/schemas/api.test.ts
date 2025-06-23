@@ -4,7 +4,7 @@ import {
   createInvalidChatRequest,
   createRealChatRequest,
 } from '../__tests__/factories';
-import { aiChatRequestSchema, messageTypeSchema } from './api';
+import { aiChatRequestSchema, apiMessageTypeSchema } from './api';
 
 describe('API Schema Integration Tests', () => {
   test('real chat request passes schema validation', () => {
@@ -19,10 +19,12 @@ describe('API Schema Integration Tests', () => {
     );
   });
 
-  test('messageType enum validates correctly', () => {
-    expect(() => messageTypeSchema.parse('chat-mate-response')).not.toThrow();
-    expect(() => messageTypeSchema.parse('title-generation')).not.toThrow();
-    expect(() => messageTypeSchema.parse('invalid-type')).toThrow(
+  test('apiMessageType enum validates correctly', () => {
+    expect(() =>
+      apiMessageTypeSchema.parse('chat-mate-response')
+    ).not.toThrow();
+    expect(() => apiMessageTypeSchema.parse('title-generation')).not.toThrow();
+    expect(() => apiMessageTypeSchema.parse('invalid-type')).toThrow(
       /Invalid option: expected one of /
     );
   });

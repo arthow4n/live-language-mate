@@ -132,8 +132,6 @@ const ChatSidebar = ({
       if (!originalConversation) return;
 
       const forkedConversation = createConversation({
-        chat_mate_prompt: originalConversation.chat_mate_prompt,
-        editor_mate_prompt: originalConversation.editor_mate_prompt,
         language: originalConversation.language,
         title: `Forked: ${originalConversation.title}`,
       });

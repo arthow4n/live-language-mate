@@ -342,9 +342,7 @@ export const UnifiedStorageProvider = ({
     data: Partial<LocalConversation>
   ): LocalConversation => {
     const newConversation: LocalConversation = {
-      chat_mate_prompt: data.chat_mate_prompt,
       created_at: new Date(),
-      editor_mate_prompt: data.editor_mate_prompt,
       id: `conv_${Date.now().toString()}_${Math.random().toString(36).substring(2)}`,
       language: data.language ?? globalSettings.targetLanguage,
       messages: [],

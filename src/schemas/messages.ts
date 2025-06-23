@@ -1,14 +1,7 @@
 import { z } from 'zod/v4';
 
-// Message types
-export const messageTypeSchema = z.enum(['user', 'chat-mate', 'editor-mate']);
-
-// AI modes for conversations
-export const aiModeSchema = z.enum([
-  'dual',
-  'chat-mate-only',
-  'editor-mate-only',
-]);
+// Message types for UI/storage
+export const uiMessageTypeSchema = z.enum(['user', 'chat-mate', 'editor-mate']);
 
 // Message metadata schema
 export const messageMetadataSchema = z
@@ -30,7 +23,7 @@ export const messageSchema = z
     parentMessageId: z.string().optional(),
     reasoning: z.string().optional(),
     timestamp: z.date(),
-    type: messageTypeSchema,
+    type: uiMessageTypeSchema,
   })
   .strict();
 
@@ -40,9 +33,7 @@ export const localMessageSchema = messageSchema;
 // Conversation schema - STRICT, no defaults
 export const conversationSchema = z
   .object({
-    chat_mate_prompt: z.string().optional(),
     created_at: z.date(),
-    editor_mate_prompt: z.string().optional(),
     id: z.string().min(1),
     language: z.string().min(1),
     messages: z.array(localMessageSchema),
@@ -81,10 +72,6 @@ export const conversationUpdateSchema = conversationSchema.partial();
 /**
  *
  */
-export type AiMode = z.infer<typeof aiModeSchema>;
-/**
- *
- */
 export type Conversation = z.infer<typeof conversationSchema>;
 /**
  *
@@ -114,12 +101,12 @@ export type MessageCreate = z.infer<typeof messageCreateSchema>;
  *
  */
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
-// Export type helpers
-/**
- *
- */
-export type MessageType = z.infer<typeof messageTypeSchema>;
 /**
  *
  */
 export type MessageUpdate = z.infer<typeof messageUpdateSchema>;
+// Export type helpers
+/**
+ *
+ */
+export type UiMessageType = z.infer<typeof uiMessageTypeSchema>;
