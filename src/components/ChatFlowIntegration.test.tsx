@@ -249,4 +249,59 @@ describe('Chat Flow Integration Tests', () => {
       userLabels.length + editorMateLabels.length + chatMateLabels.length;
     expect(totalMessages).toBe(4);
   });
+
+  test('chat flow handles AI response failures gracefully', async () => {
+    const user = userEvent.setup();
+
+    // Mock API to return errors for AI responses
+    server.use(
+      http.post('http://*/ai-chat', () => {
+        return HttpResponse.json(
+          { error: 'AI service temporarily unavailable' },
+          { status: 503 }
+        );
+      })
+    );
+
+    const mockOnConversationCreated = (): void => {
+      // Mock function for test
+    };
+    const mockOnConversationUpdate = (): void => {
+      // Mock function for test
+    };
+    const mockOnTextSelect = (): void => {
+      // Mock function for test
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId="test-conversation-error"
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    // Type a message
+    const messageInput = screen.getByTestId('message-input');
+    await user.type(messageInput, 'Test error handling');
+
+    // Send the message
+    const sendButton = screen.getByTestId('send-button');
+    await user.click(sendButton);
+
+    // Should show error toast message
+    await waitFor(() => {
+      expect(screen.getByText('Error')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('AI service temporarily unavailable')
+      ).toBeInTheDocument();
+    });
+  });
 });
