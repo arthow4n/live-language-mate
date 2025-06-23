@@ -703,5 +703,64 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
 
     expect(reopenedLanguageSelector).toHaveTextContent('Swedish');
   });
-  test.todo('reasoning expanded toggle dependency');
+  test('reasoning toggles work independently', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    // Start with both reasoning toggles disabled
+    const settingsWithReasoningDisabled = {
+      ...mockGlobalSettings,
+      enableReasoning: false,
+      reasoningExpanded: false,
+    };
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={settingsWithReasoningDisabled}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Find both toggles
+    const enableReasoningToggle = screen.getByLabelText(
+      'Enable reasoning tokens'
+    );
+    const reasoningExpandedToggle = screen.getByLabelText(
+      'Reasoning expanded by default'
+    );
+
+    // Both should be unchecked initially
+    expect(enableReasoningToggle).not.toBeChecked();
+    expect(reasoningExpandedToggle).not.toBeChecked();
+
+    // Toggle reasoning expanded first (should work independently)
+    await user.click(reasoningExpandedToggle);
+    expect(reasoningExpandedToggle).toBeChecked();
+    expect(enableReasoningToggle).not.toBeChecked(); // Should remain unchanged
+
+    // Toggle enable reasoning
+    await user.click(enableReasoningToggle);
+    expect(enableReasoningToggle).toBeChecked();
+    expect(reasoningExpandedToggle).toBeChecked(); // Should remain checked
+
+    // Toggle reasoning expanded off
+    await user.click(reasoningExpandedToggle);
+    expect(reasoningExpandedToggle).not.toBeChecked();
+    expect(enableReasoningToggle).toBeChecked(); // Should remain unchanged
+
+    // Toggle enable reasoning off
+    await user.click(enableReasoningToggle);
+    expect(enableReasoningToggle).not.toBeChecked();
+    expect(reasoningExpandedToggle).not.toBeChecked(); // Should remain unchecked
+
+    // Verify both toggles are never disabled (no dependency)
+    expect(enableReasoningToggle).not.toBeDisabled();
+    expect(reasoningExpandedToggle).not.toBeDisabled();
+  });
 });
