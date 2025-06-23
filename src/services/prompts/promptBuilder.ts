@@ -5,7 +5,24 @@ import type {
 } from './promptTypes';
 
 import { createPromptTemplate } from './promptTypes';
-import { promptDefaults, promptTemplates } from './templates';
+import {
+  chatMatePromptDefaults,
+  chatMateTemplates,
+} from './templates/chatMateTemplates';
+import {
+  editorMatePromptDefaults,
+  editorMateTemplates,
+} from './templates/editorMateTemplates';
+
+const promptTemplates = {
+  ...chatMateTemplates,
+  ...editorMateTemplates,
+};
+
+const promptDefaults = {
+  ...chatMatePromptDefaults,
+  ...editorMatePromptDefaults,
+};
 
 /**
  *

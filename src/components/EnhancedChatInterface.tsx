@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod/v4';
 
 import type { Message, MessageMetadata } from '@/schemas/messages';
-import type { PromptVariables } from '@/services/prompts';
-import type { MessageType as PromptMessageType } from '@/services/prompts';
+import type {
+  MessageType as PromptMessageType,
+  PromptVariables,
+} from '@/services/prompts/promptTypes';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,7 +19,7 @@ import {
   apiMessageTypeSchema,
 } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
-import { buildPrompt } from '@/services/prompts';
+import { buildPrompt } from '@/services/prompts/promptBuilder';
 import { generateChatTitle } from '@/utils/chatTitleGenerator';
 
 import EnhancedChatMessage from './EnhancedChatMessage';

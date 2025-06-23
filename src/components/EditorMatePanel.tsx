@@ -10,7 +10,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 
 import type { Message } from '@/schemas/messages';
-import type { PromptVariables } from '@/services/prompts';
+import type { PromptVariables } from '@/services/prompts/promptTypes';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,7 @@ import {
   aiChatStreamResponseSchema,
 } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
-import { buildPrompt } from '@/services/prompts';
+import { buildPrompt } from '@/services/prompts/promptBuilder';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 
