@@ -204,25 +204,18 @@ x?.Y(); // Y is optional because ...
 - When making progress in your task, be proactive to make small git commit with descriptive messages, and then git push.
 - When you make commit, there's a pre-commit hook which will lint and test staged files.
 - YOU SHOULD NEVER RUN `git commit --no-verify`. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
-- You must fix the test errors from pre-commit hook because they are caused by you.
+- All the lint, type, test errors from pre-commit hook are caused by you and related to what you are doing, you must fix them.
 - When `git commit`, wrap commit message with single quote instead of double quote, prefix you commit message title with `(Claude Code) ` and add a footer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>`.
 - Never amend commit, change git history or force push.
-
-## Tool
-
-- Plan ahead your tool calls and batch them as much as possible.
-- Prioritise to use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
-- If there's a tool instead of command, use the tool, for example, use your own Read/Search tool.
-- You should not run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
 
 ## Test
 
 - When writing test, write integration test.
 - Write integration test to cover business logic, if something can be clicked, input or be interacted in any other ways by the user, it should be covered by a test.
-- When writing test, focus on testing the component/function's integrated behaviour, for example, if the import tree looks like A -> B -> C, you should not mock any of A/B/C, instead you should focus on testing if interacting with A as a whole gives you the expected result; in B's test you should not mock B/C and instead test interacting with B; and so on.
+- Focus on testing the component/function's integrated behaviour, for example, if the import tree looks like A -> B -> C, you should not mock any of A/B/C, instead you should focus on testing if interacting with A as a whole gives you the expected result; in B's test you should not mock B/C and instead test interacting with B; and so on.
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
-- If you are only editing test, you should not change the existing code logic that in the test. If refactoring would make writing test easier, explain to the user and wait for feedback.
-- Before you write or change any test code, make sure you get a full picture first by reading through the related code paths and understanding how the code and data flows.
+- If you are only editing test, you should not change the existing code logic that in the test. If refactoring would make writing test easier, explain to the user and wait for feedback. You may add testid yourself if needed.
+- Before you write or change any test code, make sure you step back and get a full picture first, by reading through the related code paths from beginning to end, and understanding how the code and data flows.
 - Instead of fixing many test cases in one go, focus on fixing 1 test at a time, each test case should have its own todo item.
 
 ## Lint
@@ -233,10 +226,17 @@ x?.Y(); // Y is optional because ...
 
 - You should not update any config files. If you believe you need to, explain to the user and wait for feedback.
 
+## Tool
+
+- USE YOUR OWN Search TOOL.
+- Batch your tool calls, use many tools at once.
+- Use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
+- Never run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
+
 ## Bash command
 
 - Don't `grep` the lint result or test result or count errors, if you need to run a focused check, just use the focused commands.
-- If you need to `rg` or `grep`, add more context lines.
+- Use your own search tool instead of `rg` or `grep`, add more context lines.
 
 ### Instead of command X, use Y
 
