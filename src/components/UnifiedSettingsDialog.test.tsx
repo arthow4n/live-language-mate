@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -503,7 +503,79 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Dialog should close after saving
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
-  test.todo('model selector integration');
+  test('model selector integration', async () => {
+    const user = userEvent.setup();
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    // Mock the apiClient.getModels() function
+    const mockApiClient = await import('@/services/apiClient');
+    vi.spyOn(mockApiClient.apiClient, 'getModels').mockResolvedValue({
+      models: [
+        { id: 'anthropic/claude-3-5-sonnet', name: 'Claude 3.5 Sonnet' },
+        { id: 'anthropic/claude-3-5-haiku', name: 'Claude 3.5 Haiku' },
+        { id: 'openai/gpt-4o', name: 'GPT-4o' },
+        { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+      ],
+    });
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Should display AI Model label
+    expect(screen.getByText('AI Model')).toBeInTheDocument();
+
+    // Find the model selector combobox (should be the one that's not the language selector)
+    const allComboboxes = screen.getAllByRole('combobox');
+    const modelSelectorButton = allComboboxes.find(
+      (combobox) =>
+        !combobox.textContent?.includes('Swedish') &&
+        combobox.textContent?.trim() !== ''
+    );
+    if (!modelSelectorButton)
+      throw new Error('Model selector button not found');
+
+    // Click to open the model selector dropdown
+    await user.click(modelSelectorButton);
+
+    // Wait for models to load in the dropdown
+    await expect(
+      screen.findByText('Claude 3.5 Sonnet')
+    ).resolves.toBeInTheDocument();
+
+    // Select Claude 3.5 Sonnet
+    const claudeOption = screen.getByText('Claude 3.5 Sonnet');
+    await user.click(claudeOption);
+
+    // Verify the model selector now shows the selected model
+    await waitFor(() => {
+      expect(modelSelectorButton).toHaveTextContent('Claude 3.5 Sonnet');
+    });
+
+    // Save changes
+    const saveButton = screen.getByText('Save Changes');
+    await user.click(saveButton);
+
+    // Verify the save callback was called with updated model
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
+    expect(mockOnSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'anthropic/claude-3-5-sonnet',
+      })
+    );
+
+    // Dialog should close after saving
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+  });
   test.todo('cancel button closes dialog without saving');
   test.todo('settings reset when dialog reopens');
   test.todo('reasoning expanded toggle dependency');
