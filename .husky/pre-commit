@@ -2,4 +2,4 @@
 
 # Make sure you have setup nvm in https://typicode.github.io/husky/how-to.html#startup-files
 
-npx lint-staged --quiet --no-stash --concurrent false
+npx lint-staged --quiet --no-stash --no-revert --concurrent false
