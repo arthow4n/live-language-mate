@@ -1,3 +1,5 @@
+import type { ApiMessageType } from '@/schemas/api';
+
 /**
  *
  */
@@ -9,13 +11,10 @@ export interface BuiltPrompt {
 }
 
 /**
- *
+ * Message types that can be used with the prompt system
+ * (excludes 'title-generation' which doesn't use templates)
  */
-export type MessageType =
-  | 'chat-mate-response'
-  | 'editor-mate-chatmate-comment'
-  | 'editor-mate-response'
-  | 'editor-mate-user-comment';
+export type MessageType = Exclude<ApiMessageType, 'title-generation'>;
 
 /**
  *

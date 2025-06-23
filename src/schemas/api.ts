@@ -9,9 +9,6 @@ export const apiMessageTypeSchema = z.enum([
   'title-generation',
 ]);
 
-// Backward compatibility alias - TODO: Remove after migration
-export const messageTypeSchema = apiMessageTypeSchema;
-
 // Feedback styles
 export const feedbackStyleSchema = z.enum([
   'encouraging',
@@ -139,10 +136,6 @@ export type ChatMessage = z.infer<typeof chatMessageSchema>;
  *
  */
 export type FeedbackStyle = z.infer<typeof feedbackStyleSchema>;
-/**
- * @deprecated Use ApiMessageType instead
- */
-export type MessageType = ApiMessageType;
 /**
  *
  */
