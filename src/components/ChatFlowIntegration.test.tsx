@@ -304,4 +304,73 @@ describe('Chat Flow Integration Tests', () => {
       ).toBeInTheDocument();
     });
   });
+
+  test('user can cancel chat flow during AI generation', async () => {
+    const user = userEvent.setup();
+
+    // Mock API with delayed response to allow cancellation
+    server.use(
+      http.post('http://*/ai-chat', async () => {
+        // Delay for 2 seconds to allow cancellation
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return HttpResponse.json({
+          reasoning: undefined,
+          response: 'This should not appear if cancelled',
+        });
+      })
+    );
+
+    const mockOnConversationCreated = (): void => {
+      // Mock function for test
+    };
+    const mockOnConversationUpdate = (): void => {
+      // Mock function for test
+    };
+    const mockOnTextSelect = (): void => {
+      // Mock function for test
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId="test-conversation-cancel"
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    // Type and send a message
+    const messageInput = screen.getByTestId('message-input');
+    const sendButton = screen.getByTestId('send-button');
+
+    await user.type(messageInput, 'Test cancellation');
+    await user.click(sendButton);
+
+    // Wait for loading state and cancel button to appear
+    await waitFor(() => {
+      expect(screen.getByText('Getting responses...')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Stop generating')).toBeInTheDocument();
+    });
+
+    // Click the stop generating button
+    const cancelButton = screen.getByText('Stop generating');
+    await user.click(cancelButton);
+
+    // Should show cancellation message
+    await waitFor(() => {
+      expect(screen.getByText(/cancel/i)).toBeInTheDocument();
+    });
+
+    // The delayed response should not appear
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(
+      screen.queryByText('This should not appear if cancelled')
+    ).not.toBeInTheDocument();
+  });
 });
