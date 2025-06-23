@@ -1,11 +1,10 @@
-import type { MessageType, PromptTemplate } from '../promptTypes';
+import type { MessageType } from '../promptTypes';
 
-export const chatMateTemplates = {
-  'chat-mate-response': {
-    description: 'Template for Chat Mate responses in natural conversation',
-    id: 'chat-mate-response',
-    name: 'Chat Mate Response',
-    template: `You are {chatMatePersonality}, a friendly native speaker of {targetLanguage} talking with [user]. {chatMatePrompt}
+import { createPromptTemplate } from '../promptTypes';
+
+/** Template for Chat Mate responses in natural conversation */
+const chatMateResponseTemplate =
+  `You are {chatMatePersonality}, a friendly native speaker of {targetLanguage} talking with [user]. {chatMatePrompt}
 
 Background: {chatMateBackground}
 
@@ -23,17 +22,13 @@ Important guidelines:
 - Keep responses engaging and maintain the flow of conversation
 - Respond as if you're chatting with a friend, not teaching a lesson
 
-Remember: You're having a casual conversation, not giving a language lesson. Be natural, friendly, and authentic in your {targetLanguage} responses.`,
-    variables: [
-      'targetLanguage',
-      'chatMatePersonality',
-      'chatMatePrompt',
-      'chatMateBackground',
-      'culturalContextInstructions',
-      'progressiveComplexityInstructions',
-    ],
-  },
-} satisfies Partial<Record<MessageType, PromptTemplate>>;
+Remember: You're having a casual conversation, not giving a language lesson. Be natural, friendly, and authentic in your {targetLanguage} responses.` as const;
+
+export const chatMateTemplates = {
+  'chat-mate-response': createPromptTemplate(chatMateResponseTemplate),
+} satisfies Partial<
+  Record<MessageType, ReturnType<typeof createPromptTemplate>>
+>;
 
 export const chatMatePromptDefaults = {
   chatMatePrompt:

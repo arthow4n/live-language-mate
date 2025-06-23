@@ -1,12 +1,10 @@
-import type { MessageType, PromptTemplate } from '../promptTypes';
+import type { MessageType } from '../promptTypes';
 
-export const editorMateTemplates = {
-  'editor-mate-chatmate-comment': {
-    description:
-      'Template for Editor Mate providing example responses and language notes',
-    id: 'editor-mate-chatmate-comment',
-    name: 'Editor Mate ChatMate Comment',
-    template: `You are {editorMatePersonality}, an expert {targetLanguage} language teacher helping the user understand the Chat Mate's response and providing guidance. {editorMateExpertise}
+import { createPromptTemplate } from '../promptTypes';
+
+/** Template for Editor Mate providing example responses and language notes */
+const editorMateChatmateCommentTemplate =
+  `You are {editorMatePersonality}, an expert {targetLanguage} language teacher helping the user understand the Chat Mate's response and providing guidance. {editorMateExpertise}
 
 Your teaching style is {feedbackStyleDescription}, so provide {feedbackStyleTone} explanations and guidance.
 
@@ -25,22 +23,11 @@ Help the user understand:
 - Cultural references or context
 - How they might respond naturally in {targetLanguage}
 
-Keep explanations clear and educational while maintaining an encouraging tone.`,
-    variables: [
-      'targetLanguage',
-      'editorMatePersonality',
-      'editorMateExpertise',
-      'feedbackStyleDescription',
-      'feedbackStyleTone',
-      'culturalContextInstructions',
-    ],
-  },
+Keep explanations clear and educational while maintaining an encouraging tone.` as const;
 
-  'editor-mate-response': {
-    description: 'Template for direct chat with Editor Mate in Ask Interface',
-    id: 'editor-mate-response',
-    name: 'Editor Mate Direct Response',
-    template: `You are {editorMatePersonality}, an expert {targetLanguage} language teacher and cultural guide. {editorMateExpertise}
+/** Template for direct chat with Editor Mate in Ask Interface */
+const editorMateResponseTemplate =
+  `You are {editorMatePersonality}, an expert {targetLanguage} language teacher and cultural guide. {editorMateExpertise}
 
 Your teaching approach is {feedbackStyleDescription}. You provide clear, helpful guidance while being {feedbackStyleTone}.
 
@@ -53,22 +40,11 @@ When the user asks questions or seeks help:
 - Offer practice suggestions when appropriate
 - Be encouraging and supportive in your teaching style
 
-Format your responses clearly with examples, explanations, and helpful tips for learning {targetLanguage}.`,
-    variables: [
-      'targetLanguage',
-      'editorMatePersonality',
-      'editorMateExpertise',
-      'feedbackStyleDescription',
-      'feedbackStyleTone',
-      'culturalContextInstructions',
-    ],
-  },
+Format your responses clearly with examples, explanations, and helpful tips for learning {targetLanguage}.` as const;
 
-  'editor-mate-user-comment': {
-    description: 'Template for Editor Mate commenting on user messages',
-    id: 'editor-mate-user-comment',
-    name: 'Editor Mate User Comment',
-    template: `You are {editorMatePersonality}, an expert {targetLanguage} language teacher providing feedback on the user's {targetLanguage} writing. {editorMateExpertise}
+/** Template for Editor Mate commenting on user messages */
+const editorMateUserCommentTemplate =
+  `You are {editorMatePersonality}, an expert {targetLanguage} language teacher providing feedback on the user's {targetLanguage} writing. {editorMateExpertise}
 
 Your feedback style is {feedbackStyleDescription}, so be {feedbackStyleTone} in your corrections and suggestions.
 
@@ -87,17 +63,19 @@ Analyze the user's message for:
 - Cultural appropriateness
 - Overall communication effectiveness
 
-Keep feedback concise but helpful, focusing on the most important improvements while acknowledging what they did well.`,
-    variables: [
-      'targetLanguage',
-      'editorMatePersonality',
-      'editorMateExpertise',
-      'feedbackStyleDescription',
-      'feedbackStyleTone',
-      'culturalContextInstructions',
-    ],
-  },
-} satisfies Partial<Record<MessageType, PromptTemplate>>;
+Keep feedback concise but helpful, focusing on the most important improvements while acknowledging what they did well.` as const;
+
+export const editorMateTemplates = {
+  'editor-mate-chatmate-comment': createPromptTemplate(
+    editorMateChatmateCommentTemplate
+  ),
+  'editor-mate-response': createPromptTemplate(editorMateResponseTemplate),
+  'editor-mate-user-comment': createPromptTemplate(
+    editorMateUserCommentTemplate
+  ),
+} satisfies Partial<
+  Record<MessageType, ReturnType<typeof createPromptTemplate>>
+>;
 
 export const editorMatePromptDefaults = {
   culturalContextInstructions: {

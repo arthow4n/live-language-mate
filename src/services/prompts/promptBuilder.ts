@@ -1,10 +1,10 @@
 import type {
   BuiltPrompt,
   PromptBuildRequest,
-  PromptTemplate,
   PromptVariables,
 } from './promptTypes';
 
+import { createPromptTemplate } from './promptTypes';
 import { promptDefaults, promptTemplates } from './templates';
 
 /**
@@ -20,7 +20,7 @@ export function buildPrompt(request: PromptBuildRequest): BuiltPrompt {
 
   return {
     systemPrompt,
-    templateId: template.id,
+    templateKey: request.messageType,
     timestamp: new Date(),
     variables: request.variables,
   };
@@ -70,22 +70,10 @@ function buildTemplateVariables(
  *
  * @param customTemplate
  */
-function createCustomTemplate(customTemplate: string): PromptTemplate {
-  return {
-    id: 'custom',
-    name: 'Custom Template',
-    template: customTemplate,
-    variables: extractVariables(customTemplate),
-  };
-}
-
-/**
- *
- * @param template
- */
-function extractVariables(template: string): string[] {
-  const matches = template.match(/\{([^}]+)\}/g) ?? [];
-  return matches.map((match) => match.slice(1, -1));
+function createCustomTemplate(
+  customTemplate: string
+): ReturnType<typeof createPromptTemplate> {
+  return createPromptTemplate(customTemplate);
 }
 
 /**
@@ -114,7 +102,7 @@ function getProgressiveComplexityInstructions(currentLevel?: string): string {
  * @param variables
  */
 function processTemplate(
-  template: PromptTemplate,
+  template: ReturnType<typeof createPromptTemplate>,
   variables: PromptVariables
 ): string {
   let result = template.template;
