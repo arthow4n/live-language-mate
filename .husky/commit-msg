@@ -18,6 +18,23 @@ if [ -n "$IS_CLAUDE_CODE" ]; then
         failed=1
     fi
 
+    commit_key_file="$(dirname "$0")/../node_modules/.claude_code_last_commit_review_guard_key"
+    new_commit_key="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 8)"
+    commit_key_policy="[POLICY] Before you make commit, please review your changes and think if you fully implemented what you were instructed to do, and your code complies with the principles in CLAUDE.md. Once you've reviewd, your commit message should contain 'Commit key: $new_commit_key' before the footer."
+
+    if [ ! -f "$commit_key_file" ]; then
+        echo "$commit_key_policy"
+        echo "$new_commit_key" > "$commit_key_file"
+        failed=1
+    else
+        last_commit_key="$(cat "$commit_key_file")"
+        if ! grep -q "$last_commit_key" "$message_file"; then
+            echo "$commit_key_policy"
+            echo "$new_commit_key" > "$commit_key_file"
+            failed=1
+        fi
+    fi
+
     if [ "$failed" -ne 0 ]; then
         exit 1
     fi
