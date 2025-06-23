@@ -13,8 +13,8 @@
     "prettier": "prettier --log-level warn --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "@comment typecheck": "run a faster frontend check for quicker feedback loop in agentic coding, ",
-    "typecheck": "tsgo --project tsconfig.app.json",
+    "@comment typecheck": "Run a faster frontend check for quicker feedback loop in agentic coding, using Biome lint to auto fix ts6133 unused var.",
+    "typecheck": "(biome lint --write --unsafe > /dev/null) && tsgo --project tsconfig.app.json",
     "typecheck:with-projects": "tsc --build",
     "preview": "vite preview",
     "test": "concurrently --group --names frontend-test,backend-deno-test 'npm run test:frontend' 'npm run test:backend'",
@@ -77,6 +77,7 @@
     "zod-validation-error": "^3.5.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.0.5",
     "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
     "@eslint/js": "^9.29.0",
     "@tailwindcss/typography": "^0.5.15",
