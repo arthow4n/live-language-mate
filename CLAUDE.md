@@ -201,7 +201,6 @@ x?.Y(); // Y is optional because ...
 - Unless otherwise specified by the user, when making progress in your task, be proactive to make small git commits with descriptive messages, and then git push.
 - When you make commit, there's a pre-commit hook which will lint and test staged files.
 - YOU SHOULD NEVER RUN `git commit --no-verify`. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
-- Before you `git commit`, make sure you've git added the files you just edited, otherwise the pre-commit linter might rollback your edits.
 - When `git commit`, wrap commit message with single quote instead of double quote, prefix you commit message title with `(Claude Code) ` and add a footer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>`.
 - Never amend commit, change git history or force push.
 
