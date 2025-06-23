@@ -3,6 +3,7 @@ import {
   type AiChatRequest,
 } from '../../src/schemas/api.ts';
 import { validateApiRequest } from '../../src/utils/validation.ts';
+import { systemPrompts } from '../../src/services/prompts/templates/systemPrompts.ts';
 
 export async function aiChatHandler(req: Request): Promise<Response> {
   try {
@@ -56,8 +57,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
       // Some jailbreak prompts to reduce strange behaviours.
       {
         role: 'system',
-        content:
-          'In your response, you should not repeat the conversation history.',
+        content: systemPrompts.jailbreakPrevention.content,
       },
     ];
 

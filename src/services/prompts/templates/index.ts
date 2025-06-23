@@ -5,6 +5,7 @@ import {
   editorMatePromptDefaults,
   editorMateTemplates,
 } from './editorMateTemplates';
+import { systemPrompts } from './systemPrompts';
 
 export const promptTemplates = {
   ...chatMateTemplates,
@@ -16,4 +17,4 @@ export const promptDefaults = {
   ...editorMatePromptDefaults,
 };
 
-export { chatMateTemplates, editorMateTemplates };
+export { chatMateTemplates, editorMateTemplates, systemPrompts };

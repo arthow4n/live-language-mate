@@ -1,5 +1,6 @@
 import { logError } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
+import { systemPrompts } from '@/services/prompts/templates/systemPrompts';
 
 export const generateChatTitle = async (
   conversationHistory: { content: string; message_type: string }[],
@@ -25,6 +26,12 @@ export const generateChatTitle = async (
     });
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    // Build message using the system prompt template
+    const titleTemplate = systemPrompts.titleGeneration;
+    const message = titleTemplate.userMessageTemplate
+      .replace('{targetLanguage}', targetLanguage)
+      .replace('{contextMessages}', contextMessages);
+
     const response = await apiClient.aiChat({
       chatMateBackground: 'N/A',
       chatMatePrompt: 'N/A',
@@ -35,13 +42,12 @@ export const generateChatTitle = async (
       editorMatePrompt: 'N/A',
       enableReasoning: false,
       feedbackStyle: 'encouraging',
-      message: `Based on this conversation in ${targetLanguage}, generate a very short (2-4 words) chat title that summarizes the topic. Only return the title, nothing else: ${contextMessages}`,
+      message,
       messageType: 'title-generation',
       model,
       progressiveComplexity: false,
       streaming: false,
-      systemPrompt:
-        'You are a helpful assistant that generates short, concise chat titles.',
+      systemPrompt: titleTemplate.systemPrompt,
       targetLanguage,
       userTimezone,
     });
