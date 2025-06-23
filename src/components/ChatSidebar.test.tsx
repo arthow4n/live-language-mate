@@ -2,11 +2,57 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import type { LocalAppData } from '@/schemas/storage';
+
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import ChatSidebar from './ChatSidebar';
+
+// Helper to create test data with proper typing
+const createTestConversationData = (
+  conversations: {
+    ai_mode?: 'dual';
+    chat_mate_prompt?: string;
+    created_at: string;
+    editor_mate_prompt?: string;
+    id: string;
+    title: string;
+    updated_at: string;
+  }[]
+): LocalAppData => ({
+  conversations: conversations.map((conv) => ({
+    ai_mode: 'dual' as const,
+    created_at: new Date(conv.created_at),
+    id: conv.id,
+    language: 'Swedish',
+    messages: [],
+    title: conv.title,
+    updated_at: new Date(conv.updated_at),
+    ...(conv.chat_mate_prompt && { chat_mate_prompt: conv.chat_mate_prompt }),
+    ...(conv.editor_mate_prompt && {
+      editor_mate_prompt: conv.editor_mate_prompt,
+    }),
+  })),
+  conversationSettings: {},
+  globalSettings: {
+    apiKey: '',
+    chatMateBackground: 'young professional',
+    chatMatePersonality: 'friendly',
+    culturalContext: true,
+    editorMateExpertise: '10+ years',
+    editorMatePersonality: 'patient teacher',
+    enableReasoning: true,
+    feedbackStyle: 'encouraging' as const,
+    model: 'google/gemini-2.5-flash',
+    progressiveComplexity: true,
+    reasoningExpanded: true,
+    streaming: true,
+    targetLanguage: 'Swedish',
+    theme: 'system' as const,
+  },
+});
 
 const TestWrapper = ({
   children,
@@ -111,47 +157,48 @@ describe('ChatSidebar Integration Tests', () => {
     const user = userEvent.setup();
 
     // Set up test conversations
+    const conversationTestData = {
+      conversations: [
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-01T00:00:00.000Z'),
+          id: 'conv-1',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Conversation 1',
+          updated_at: new Date('2023-01-01T00:00:00.000Z'),
+        },
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-02T00:00:00.000Z'),
+          id: 'conv-2',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Conversation 2',
+          updated_at: new Date('2023-01-02T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional',
+        chatMatePersonality: 'friendly',
+        culturalContext: true,
+        editorMateExpertise: '10+ years',
+        editorMatePersonality: 'patient teacher',
+        enableReasoning: true,
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: true,
+        streaming: true,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    } satisfies LocalAppData;
     localStorage.setItem(
       'language-mate-data',
-      JSON.stringify({
-        conversations: [
-          {
-            ai_mode: 'dual',
-            created_at: '2023-01-01T00:00:00.000Z',
-            id: 'conv-1',
-            language: 'Swedish',
-            messages: [],
-            title: 'Test Conversation 1',
-            updated_at: '2023-01-01T00:00:00.000Z',
-          },
-          {
-            ai_mode: 'dual',
-            created_at: '2023-01-02T00:00:00.000Z',
-            id: 'conv-2',
-            language: 'Swedish',
-            messages: [],
-            title: 'Test Conversation 2',
-            updated_at: '2023-01-02T00:00:00.000Z',
-          },
-        ],
-        conversationSettings: {},
-        globalSettings: {
-          apiKey: '',
-          chatMateBackground: 'young professional',
-          chatMatePersonality: 'friendly',
-          culturalContext: true,
-          editorMateExpertise: '10+ years',
-          editorMatePersonality: 'patient teacher',
-          enableReasoning: true,
-          feedbackStyle: 'encouraging',
-          model: 'google/gemini-2.5-flash',
-          progressiveComplexity: true,
-          reasoningExpanded: true,
-          streaming: true,
-          targetLanguage: 'Swedish',
-          theme: 'system',
-        },
-      })
+      JSON.stringify(conversationTestData)
     );
 
     render(
@@ -175,47 +222,48 @@ describe('ChatSidebar Integration Tests', () => {
   });
   test('conversation highlighting for current selection', () => {
     // Set up test conversations
+    const highlightingTestData = {
+      conversations: [
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-01T00:00:00.000Z'),
+          id: 'conv-1',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Conversation 1',
+          updated_at: new Date('2023-01-01T00:00:00.000Z'),
+        },
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-02T00:00:00.000Z'),
+          id: 'conv-2',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Conversation 2',
+          updated_at: new Date('2023-01-02T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional',
+        chatMatePersonality: 'friendly',
+        culturalContext: true,
+        editorMateExpertise: '10+ years',
+        editorMatePersonality: 'patient teacher',
+        enableReasoning: true,
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: true,
+        streaming: true,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    } satisfies LocalAppData;
     localStorage.setItem(
       'language-mate-data',
-      JSON.stringify({
-        conversations: [
-          {
-            ai_mode: 'dual',
-            created_at: '2023-01-01T00:00:00.000Z',
-            id: 'conv-1',
-            language: 'Swedish',
-            messages: [],
-            title: 'Test Conversation 1',
-            updated_at: '2023-01-01T00:00:00.000Z',
-          },
-          {
-            ai_mode: 'dual',
-            created_at: '2023-01-02T00:00:00.000Z',
-            id: 'conv-2',
-            language: 'Swedish',
-            messages: [],
-            title: 'Test Conversation 2',
-            updated_at: '2023-01-02T00:00:00.000Z',
-          },
-        ],
-        conversationSettings: {},
-        globalSettings: {
-          apiKey: '',
-          chatMateBackground: 'young professional',
-          chatMatePersonality: 'friendly',
-          culturalContext: true,
-          editorMateExpertise: '10+ years',
-          editorMatePersonality: 'patient teacher',
-          enableReasoning: true,
-          feedbackStyle: 'encouraging',
-          model: 'google/gemini-2.5-flash',
-          progressiveComplexity: true,
-          reasoningExpanded: true,
-          streaming: true,
-          targetLanguage: 'Swedish',
-          theme: 'system',
-        },
-      })
+      JSON.stringify(highlightingTestData)
     );
 
     // Render with conv-1 as current conversation
@@ -250,39 +298,15 @@ describe('ChatSidebar Integration Tests', () => {
     const user = userEvent.setup();
 
     // Set up test conversations
-    localStorage.setItem(
-      'language-mate-data',
-      JSON.stringify({
-        conversations: [
-          {
-            ai_mode: 'dual',
-            created_at: '2023-01-01T00:00:00.000Z',
-            id: 'conv-1',
-            language: 'Swedish',
-            messages: [],
-            title: 'Test Conversation 1',
-            updated_at: '2023-01-01T00:00:00.000Z',
-          },
-        ],
-        conversationSettings: {},
-        globalSettings: {
-          apiKey: '',
-          chatMateBackground: 'young professional',
-          chatMatePersonality: 'friendly',
-          culturalContext: true,
-          editorMateExpertise: '10+ years',
-          editorMatePersonality: 'patient teacher',
-          enableReasoning: true,
-          feedbackStyle: 'encouraging',
-          model: 'google/gemini-2.5-flash',
-          progressiveComplexity: true,
-          reasoningExpanded: true,
-          streaming: true,
-          targetLanguage: 'Swedish',
-          theme: 'system',
-        },
-      })
-    );
+    const testData = createTestConversationData([
+      {
+        created_at: '2023-01-01T00:00:00.000Z',
+        id: 'conv-1',
+        title: 'Test Conversation 1',
+        updated_at: '2023-01-01T00:00:00.000Z',
+      },
+    ]);
+    localStorage.setItem('language-mate-data', JSON.stringify(testData));
 
     render(
       <TestWrapper>

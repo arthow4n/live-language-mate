@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { z } from 'zod/v4';
 
+import type { LocalAppData } from '@/schemas/storage';
+
 import { Toaster } from '@/components/ui/toaster';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
@@ -78,12 +80,39 @@ describe('DataManagementTab Integration Tests', () => {
     const user = userEvent.setup();
 
     // Set up some test data in localStorage
-    localStorage.setItem(
-      'language-mate-data',
-      JSON.stringify({
-        conversations: [{ id: '1', messages: [], title: 'Test Chat' }],
-      })
-    );
+    const testData = {
+      conversations: [
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-01T00:00:00.000Z'),
+          id: '1',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Chat',
+          updated_at: new Date('2023-01-01T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional, loves local culture',
+        chatMatePersonality:
+          'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+        culturalContext: true,
+        editorMateExpertise: '10+ years teaching experience',
+        editorMatePersonality:
+          'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+        enableReasoning: true,
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: true,
+        streaming: true,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    } satisfies LocalAppData;
+    localStorage.setItem('language-mate-data', JSON.stringify(testData));
 
     // Mock only the essential browser APIs that fail in test environment
     // We need to mock these globally before component loads
@@ -137,6 +166,12 @@ describe('DataManagementTab Integration Tests', () => {
         targetLanguage: 'French',
       },
       version: '1.0.0',
+    } satisfies {
+      chatSettings: Record<string, unknown>;
+      conversations: { id: string; messages: unknown[]; title: string }[];
+      exportDate: string;
+      globalSettings: { apiKey: string; targetLanguage: string };
+      version: string;
     };
 
     const file = new File(
@@ -240,15 +275,48 @@ describe('DataManagementTab Integration Tests', () => {
     const user = userEvent.setup();
 
     // Set up some test data in localStorage
-    localStorage.setItem(
-      'language-mate-data',
-      JSON.stringify({
-        conversations: [
-          { id: '1', messages: [], title: 'Test Chat 1' },
-          { id: '2', messages: [], title: 'Test Chat 2' },
-        ],
-      })
-    );
+    const deleteTestData = {
+      conversations: [
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-01T00:00:00.000Z'),
+          id: '1',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Chat 1',
+          updated_at: new Date('2023-01-01T00:00:00.000Z'),
+        },
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-02T00:00:00.000Z'),
+          id: '2',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Chat 2',
+          updated_at: new Date('2023-01-02T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional, loves local culture',
+        chatMatePersonality:
+          'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+        culturalContext: true,
+        editorMateExpertise: '10+ years teaching experience',
+        editorMatePersonality:
+          'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+        enableReasoning: true,
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: true,
+        streaming: true,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    } satisfies LocalAppData;
+    localStorage.setItem('language-mate-data', JSON.stringify(deleteTestData));
 
     render(
       <TestWrapper>
@@ -277,15 +345,48 @@ describe('DataManagementTab Integration Tests', () => {
     const user = userEvent.setup();
 
     // Set up some test data in localStorage
-    localStorage.setItem(
-      'language-mate-data',
-      JSON.stringify({
-        conversations: [
-          { id: '1', messages: [], title: 'Test Chat 1' },
-          { id: '2', messages: [], title: 'Test Chat 2' },
-        ],
-      })
-    );
+    const cancelTestData = {
+      conversations: [
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-01T00:00:00.000Z'),
+          id: '1',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Chat 1',
+          updated_at: new Date('2023-01-01T00:00:00.000Z'),
+        },
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-02T00:00:00.000Z'),
+          id: '2',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Chat 2',
+          updated_at: new Date('2023-01-02T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional, loves local culture',
+        chatMatePersonality:
+          'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+        culturalContext: true,
+        editorMateExpertise: '10+ years teaching experience',
+        editorMatePersonality:
+          'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+        enableReasoning: true,
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: true,
+        streaming: true,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    } satisfies LocalAppData;
+    localStorage.setItem('language-mate-data', JSON.stringify(cancelTestData));
 
     render(
       <TestWrapper>
@@ -347,17 +448,58 @@ describe('DataManagementTab Integration Tests', () => {
     const user = userEvent.setup();
 
     // Set up test data in various localStorage keys
+    const deleteAllTestData = {
+      conversations: [
+        {
+          ai_mode: 'dual' as const,
+          created_at: new Date('2023-01-01T00:00:00.000Z'),
+          id: '1',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test',
+          updated_at: new Date('2023-01-01T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional, loves local culture',
+        chatMatePersonality:
+          'You are a friendly local who loves to chat about daily life, culture, and local experiences.',
+        culturalContext: true,
+        editorMateExpertise: '10+ years teaching experience',
+        editorMatePersonality:
+          'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
+        enableReasoning: true,
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: true,
+        streaming: true,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    } satisfies LocalAppData;
     localStorage.setItem(
       'language-mate-data',
-      JSON.stringify({ conversations: [{ id: '1', title: 'Test' }] })
+      JSON.stringify(deleteAllTestData)
     );
+
+    const globalSettingsData = { apiKey: 'test-key' } satisfies {
+      apiKey: string;
+    };
     localStorage.setItem(
       'language-mate-global-settings',
-      JSON.stringify({ apiKey: 'test-key' })
+      JSON.stringify(globalSettingsData)
     );
+
+    const chatSettingsData = { 'chat-1': {} } satisfies Record<
+      string,
+      Record<string, unknown>
+    >;
     localStorage.setItem(
       'language-mate-chat-settings',
-      JSON.stringify({ 'chat-1': {} })
+      JSON.stringify(chatSettingsData)
     );
 
     render(

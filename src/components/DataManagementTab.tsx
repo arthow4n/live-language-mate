@@ -28,6 +28,7 @@ const DataManagementTab = (): React.JSX.Element => {
   const [importFile, setImportFile] = useState<File | null>(null);
   const {
     conversationSettings,
+    deleteAllChats,
     globalSettings,
     updateConversationSettings,
     updateGlobalSettings,
@@ -229,6 +230,9 @@ const DataManagementTab = (): React.JSX.Element => {
     localStorage.removeItem('language-mate-global-settings');
     localStorage.removeItem('language-mate-chat-settings');
     localStorage.removeItem('language-mate-data');
+
+    // Clear conversations and conversation settings from state
+    deleteAllChats();
 
     // Reset to defaults
     updateGlobalSettings(getDefaultGlobalSettings());
