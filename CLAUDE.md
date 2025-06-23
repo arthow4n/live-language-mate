@@ -195,14 +195,16 @@ x?.Y(); // Y is optional because ...
 - When planning, plan ahead to see if you need to update any tests.
 - When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutely relevant and needed chagnes. You need to review your own plan at least review 2 times.
 - Do not spawn subagents unless the user asked you to do so.
+- Don't skip anything in your todo.
 - You should keep working until your todo is empty.
 - Before you start working, make sure to step back and break down the plan into smaller todo items.
 
 ## Git
 
-- Unless otherwise specified by the user, when making progress in your task, be proactive to make small git commits with descriptive messages, and then git push.
+- When making progress in your task, be proactive to make small git commit with descriptive messages, and then git push.
 - When you make commit, there's a pre-commit hook which will lint and test staged files.
 - YOU SHOULD NEVER RUN `git commit --no-verify`. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
+- You must fix the test errors from pre-commit hook because they are caused by you.
 - When `git commit`, wrap commit message with single quote instead of double quote, prefix you commit message title with `(Claude Code) ` and add a footer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>`.
 - Never amend commit, change git history or force push.
 
