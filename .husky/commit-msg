@@ -24,18 +24,20 @@ if [ -n "$IS_CLAUDE_CODE" ]; then
 
     if [ ! -f "$commit_key_file" ]; then
         echo "$commit_key_policy"
-        echo "$new_commit_key" > "$commit_key_file"
+        echo "$new_commit_key" >"$commit_key_file"
         failed=1
     else
         last_commit_key="$(cat "$commit_key_file")"
         if ! grep -q "$last_commit_key" "$message_file"; then
             echo "$commit_key_policy"
-            echo "$new_commit_key" > "$commit_key_file"
+            echo "$new_commit_key" >"$commit_key_file"
             failed=1
         fi
     fi
 
     if [ "$failed" -ne 0 ]; then
         exit 1
+    else
+        echo "$new_commit_key" >"$commit_key_file"
     fi
 fi
