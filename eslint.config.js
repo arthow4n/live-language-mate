@@ -1,5 +1,6 @@
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import js from '@eslint/js';
+import vitest from '@vitest/eslint-plugin';
 import prettierConfig from 'eslint-config-prettier';
 import jsdoc from 'eslint-plugin-jsdoc';
 import perfectionist from 'eslint-plugin-perfectionist';
@@ -98,6 +99,23 @@ export default tseslint.config(
           name: 'zod-validation-error/v3',
         },
       ],
+    },
+  },
+  {
+    files: ['src/__tests__/**/*.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
+    ...vitest.configs.recommended,
+    rules: {
+      'vitest/consistent-test-it': [
+        'error',
+        {
+          fn: 'test',
+          withinDescribe: 'test',
+        },
+      ],
+      'vitest/no-alias-methods': 'error',
+      'vitest/no-conditional-expect': 'error',
+      'vitest/no-focused-tests': 'error',
+      'vitest/prefer-spy-on': 'error',
     },
   },
   perfectionist.configs['recommended-natural']

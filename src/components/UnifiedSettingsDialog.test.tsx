@@ -89,8 +89,11 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-unsafe-member-access -- Needed as hack to mock PointerEvent for Radix Select testing
     (global as any).PointerEvent = MockPointerEvent;
+    // eslint-disable-next-line vitest/prefer-spy-on -- mock potentially non-existing prototype method
     window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    // eslint-disable-next-line vitest/prefer-spy-on -- mock potentially non-existing prototype method
     window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+    // eslint-disable-next-line vitest/prefer-spy-on -- mock potentially non-existing prototype method
     window.HTMLElement.prototype.hasPointerCapture = vi.fn();
   });
 

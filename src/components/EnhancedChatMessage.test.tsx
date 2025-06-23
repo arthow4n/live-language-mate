@@ -327,11 +327,14 @@ describe('EnhancedChatMessage Integration Tests', () => {
     // Create a mock selection
     const mockSelection = {
       toString: vi.fn().mockReturnValue('selectable text'),
-    };
+    } satisfies Partial<Selection>;
 
     // Mock window.getSelection to return our mock selection
     const originalGetSelection = window.getSelection;
-    window.getSelection = vi.fn().mockReturnValue(mockSelection);
+    vi.spyOn(window, 'getSelection').mockReturnValue(
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- overkill to full mock
+      mockSelection as unknown as Selection
+    );
 
     // Simulate mouseup event on the message content to trigger text selection
     await user.pointer({ keys: '[MouseLeft>]', target: messageContent });

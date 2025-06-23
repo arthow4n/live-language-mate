@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { fromError, isZodErrorLike } from 'zod-validation-error';
+import { fromError, isZodErrorLike } from 'zod-validation-error/v4';
 
 /**
  *
