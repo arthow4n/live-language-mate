@@ -843,10 +843,10 @@ const EnhancedChatInterface = ({
     if (!currentConversationId) {
       try {
         setIsCreatingNewConversation(true);
-        currentConversationId = createNewConversation();
 
-        // Get the effective target language that was set during conversation creation
+        // Store the effective target language before creating conversation
         effectiveTargetLanguage = pendingLanguage ?? targetLanguage;
+        currentConversationId = createNewConversation();
 
         onConversationCreated(currentConversationId);
       } catch {
