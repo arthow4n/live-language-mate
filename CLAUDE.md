@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `npm run test:frontend -- [--test-name-pattern=""] file [...files]` - Type check and run frontend test only on the specified test files, or tests related to a non-test file. The command is a faster wrapper of `vitest run`.
   - `npm run test:backend -- file [...files]` - Run backend test only on the specified test files.
 - For all `npm run` commands, if you would add any args, be sure to add `--` like `npm run x -- [...args]`. Inspect `package.json` to ensure you can really add args to the command.
+- `npm run typecheck` can be used for quickly performing a type check.
 
 ## Architecture Overview
 
