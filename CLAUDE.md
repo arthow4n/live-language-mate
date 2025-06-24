@@ -142,8 +142,11 @@ Frontend (`.env`):
 
 - Follow the existing code style, if you are about to implement something new or write a new test, search for existing files to understand the current style and convention.
 - Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
-- Use TDD/BDD as much as possible.
 - For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
+- Don't leave unnecessary comment, unmaintained comment can become stale and adds confusion. You should only leave comment for explaining the motivation behind the code, not to repeat what the code is doing.
+- Make sure your code can be logically followed, there should not be implicit flow.
+- Make sure the cause and effect in the code flow is deterministic, you should not cause race condition.
+- If you belive something might be caused by a race condition or a timing issue, you should default to step back and read through all the related code paths from beginning to end, and then make a comprehensive argument about why it's really a race condition or timing issue. This is to make sure you don't just blindly guess and fix the wrong problem.
 
 ## TypeScript coding style and conventions
 
@@ -199,6 +202,17 @@ x?.Y(); // Y is optional because ...
 - You should keep working until your todo is empty.
 - Before you start working, make sure to step back and break down the plan into smaller todo items.
 
+## Development process
+
+- You should do TDD:
+  1. Review the code paths that will be tested from beginning to end, then think how to write the correct test case.
+  2. Write a test case that is failing, which will be fixed after correct implementation.
+  3. Start implementation.
+  4. Fix until test passes.
+  5. Commit and push after each task is done.
+- If test is failng more than 3 times in a row, step back and read again the code path from beginning to end, think how to address the issue systematically before you rerun the test again.
+- Question yourself are your soution and test addressing what the user asked for.
+
 ## Git
 
 - When making progress in your task, be proactive to make small git commit with descriptive messages, and then git push.
@@ -212,9 +226,11 @@ x?.Y(); // Y is optional because ...
 
 - When writing test, write integration test.
 - Write integration test to cover business logic, if something can be clicked, input or be interacted in any other ways by the user, it should be covered by a test.
+- When writing new test, make sure the test is genuinely new and not testing what another test has already covered. You should look for other existing test cases to understand if the test you are about to write is already covered by another test.
 - Focus on testing the component/function's integrated behaviour, for example, if the import tree looks like A -> B -> C, you should not mock any of A/B/C, instead you should focus on testing if interacting with A as a whole gives you the expected result; in B's test you should not mock B/C and instead test interacting with B; and so on.
 - You should only change a test file if you are fixing lint/type errors, or you made a change that requires update that test file.
 - If you are only editing test, you should not change the existing code logic that in the test. If refactoring would make writing test easier, explain to the user and wait for feedback. You may add testid yourself if needed.
+- If an action will make an API request, you should test whether the API will get the correctly formed request.
 - Before you write or change any test code, make sure you step back and get a full picture first, by reading through the related code paths from beginning to end, and understanding how the code and data flows.
 - Instead of fixing many test cases in one go, focus on fixing 1 test at a time, each test case should have its own todo item.
 
