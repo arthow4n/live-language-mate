@@ -484,7 +484,8 @@ const EnhancedChatInterface = ({
   const handleStreamingResponse = async (
     response: Response,
     messageId: string,
-    startTime: number
+    startTime: number,
+    model: string
   ): Promise<{
     content: string;
     metadata: MessageMetadata;
@@ -554,7 +555,7 @@ const EnhancedChatInterface = ({
                 const metadata = {
                   endTime,
                   generationTime,
-                  model: effectiveModel,
+                  model: model,
                   startTime,
                 };
 
@@ -593,7 +594,7 @@ const EnhancedChatInterface = ({
     const metadata = {
       endTime,
       generationTime,
-      model: effectiveModel,
+      model: model,
       startTime,
     };
 
@@ -692,7 +693,8 @@ const EnhancedChatInterface = ({
     streamingMessageId: string,
     signal: AbortSignal,
     currentConversationId?: string,
-    overrideTargetLanguage?: string
+    overrideTargetLanguage?: string,
+    overrideModel?: string
   ): Promise<{
     content: string;
     metadata: MessageMetadata;
@@ -707,6 +709,13 @@ const EnhancedChatInterface = ({
       (currentConversationId
         ? getConversationSettings(currentConversationId).targetLanguage
         : targetLanguage);
+
+    // Get current model - priority: override > conversation-specific > prop fallback
+    const currentModel =
+      overrideModel ??
+      (currentConversationId
+        ? getConversationSettings(currentConversationId).model
+        : effectiveModel);
     const builtPrompt = buildPrompt({
       messageType: messageType,
       variables: promptVariables,
@@ -749,7 +758,7 @@ const EnhancedChatInterface = ({
         feedbackStyle: promptVariables.feedbackStyle,
         message,
         messageType,
-        model: effectiveModel,
+        model: currentModel,
         progressiveComplexity: promptVariables.progressiveComplexity,
         streaming:
           (conversationId
@@ -775,7 +784,8 @@ const EnhancedChatInterface = ({
       return await handleStreamingResponse(
         response,
         streamingMessageId,
-        startTime
+        startTime,
+        currentModel
       );
     } else {
       const rawData = await response.json();
@@ -790,7 +800,7 @@ const EnhancedChatInterface = ({
       const metadata = {
         endTime,
         generationTime,
-        model: effectiveModel,
+        model: currentModel,
         startTime,
       };
       return { content: data.response, metadata, reasoning: data.reasoning };
@@ -839,13 +849,15 @@ const EnhancedChatInterface = ({
 
     let currentConversationId = conversationId;
     let effectiveTargetLanguage = targetLanguage;
+    let effectiveModelForCall = chatSettings?.model ?? globalSettings.model;
 
     if (!currentConversationId) {
       try {
         setIsCreatingNewConversation(true);
 
-        // Store the effective target language before creating conversation
+        // Store the effective target language and model before creating conversation
         effectiveTargetLanguage = pendingLanguage ?? targetLanguage;
+        effectiveModelForCall = pendingModel ?? effectiveModelForCall;
         currentConversationId = createNewConversation();
 
         onConversationCreated(currentConversationId);
@@ -932,7 +944,8 @@ const EnhancedChatInterface = ({
         editorUserTempId,
         controller.signal,
         currentConversationId,
-        effectiveTargetLanguage
+        effectiveTargetLanguage,
+        effectiveModelForCall
       );
 
       const savedEditorUserMessage = saveMessage(
@@ -981,7 +994,8 @@ const EnhancedChatInterface = ({
         chatMateTempId,
         controller.signal,
         currentConversationId,
-        effectiveTargetLanguage
+        effectiveTargetLanguage,
+        effectiveModelForCall
       );
 
       const savedChatMateMessage = saveMessage(
@@ -1030,7 +1044,8 @@ const EnhancedChatInterface = ({
         editorChatMateTempId,
         controller.signal,
         currentConversationId,
-        effectiveTargetLanguage
+        effectiveTargetLanguage,
+        effectiveModelForCall
       );
 
       const savedEditorChatMateMessage = saveMessage(
