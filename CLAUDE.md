@@ -141,7 +141,8 @@ Frontend (`.env`):
 
 ## Engineering mindset
 
-- Follow the existing code style, if you are about to implement something new or write a new test, search for existing files to understand the current style and convention.
+- You should follow the existing code style, if you are about to implement something new or write a new test, search for existing files to understand the current style and convention.
+- You should actively look for reusing shared function/component/hook etc, and search for another potentially extractable/sharable code to move to shared code.
 - Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
 - For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
 - Don't leave unnecessary comment, unmaintained comment can become stale and adds confusion. You should only leave comment for explaining the motivation behind the code, not to repeat what the code is doing.
@@ -154,7 +155,10 @@ Frontend (`.env`):
 - Prefer named import/export over default import/export.
 - Early return, early throw.
 - In frontend Vitest test files, import explicitly the test helpers e.g. `import { describe, it, expect, beforeEach } from 'vitest';`.
-- Use Zod to validate and cast type as early as possible, this includes but not limit to handling the following scenarios: `JSON.parse()`, `response.json()`, `any`, `unknown`, `DefaultBodyType`.
+- Use Zod to validate and cast type as early as possible, this includes but not limit to handling the following scenarios: `any`, `unknown`, `DefaultBodyType`.
+- Always assign unknown type to `const x: unknown = JSON.parse()`, `cosnt x: unknown = await request.json()`, `cosnt x: unknown = await response.json()`, then validate with Zod.
+- Zod schemas are shared between frontend and backend.
+- Zod schemas are in `src/schemas/`, you should find in there first to see if there's a schema you can reuse. You should not create Zod schemas outside of `src/schemas/`.
 - Never use `any`, `as` type assertion or `!` non-null assertion operator, you should instead use type narrowing, for example in test you can use `expectToBeInstanceOf`, `expectToNotBeNull`, `expectToNotBeUndefined`, and outside of test `instanceof` or do a proper object validation with Zod.
 - If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
 - Avoid optional function parameter, optional property, and default values. If you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it. Default values should only be used when it's absolutely necessary.
