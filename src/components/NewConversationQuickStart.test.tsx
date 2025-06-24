@@ -321,13 +321,18 @@ describe('NewConversationQuickStart', () => {
       expect(screen.getByText('⚡ claude-3-5-sonnet')).toBeInTheDocument();
     });
 
-    test('should not show feedback section when no preferences selected', () => {
+    test('should always show feedback section with defaults when no preferences selected', () => {
       renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
 
-      expect(screen.queryByText('Ready to chat:')).not.toBeInTheDocument();
+      // Should always show the Ready to chat section
+      expect(screen.getByText('Ready to chat:')).toBeInTheDocument();
       expect(
-        screen.queryByText('Type your first message to start the conversation')
-      ).not.toBeInTheDocument();
+        screen.getByText('Type your first message to start the conversation')
+      ).toBeInTheDocument();
+
+      // Should show default language and model
+      expect(screen.getByText('📖 Swedish')).toBeInTheDocument(); // Default language
+      expect(screen.getByText('⚡ gemini-2.5-flash')).toBeInTheDocument(); // Default model
     });
   });
 

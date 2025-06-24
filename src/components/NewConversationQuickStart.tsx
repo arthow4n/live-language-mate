@@ -159,28 +159,22 @@ const NewConversationQuickStart = ({
         <p className="text-sm text-muted-foreground">
           Choose a language and model to get started quickly
         </p>
-        {(Boolean(selectedLanguage) || Boolean(selectedModel)) && (
-          <div className="mt-4 p-3 bg-muted rounded-lg">
-            <p className="text-sm font-medium text-muted-foreground">
-              Ready to chat:
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 mt-2">
-              {selectedLanguage && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-sm">
-                  📖 {selectedLanguage}
-                </span>
-              )}
-              {selectedModel && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary/10 text-secondary-foreground text-sm">
-                  ⚡ {formatModelName(selectedModel)}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Type your first message to start the conversation
-            </p>
+        <div className="mt-4 p-3 bg-muted rounded-lg">
+          <p className="text-sm font-medium text-muted-foreground">
+            Ready to chat:
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 mt-2">
+            <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-sm">
+              📖 {selectedLanguage ?? globalSettings.targetLanguage}
+            </span>
+            <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary/10 text-secondary-foreground text-sm">
+              ⚡ {formatModelName(selectedModel ?? globalSettings.model)}
+            </span>
           </div>
-        )}
+          <p className="text-xs text-muted-foreground mt-2">
+            Type your first message to start the conversation
+          </p>
+        </div>
       </div>
 
       {/* Recent Languages */}
