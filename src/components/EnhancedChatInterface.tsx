@@ -804,7 +804,7 @@ const EnhancedChatInterface = ({
       const finalModel = model ?? pendingModel;
 
       const newConversation = createConversation({
-        language: finalLanguage.toLowerCase(),
+        language: finalLanguage,
         title: `${finalLanguage} Chat`, // Better initial title that will be replaced
       });
 
