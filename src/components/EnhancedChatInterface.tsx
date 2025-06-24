@@ -434,7 +434,8 @@ const EnhancedChatInterface = ({
         parseResult.data,
         conversationHistory,
         messageId,
-        controller.signal
+        controller.signal,
+        conversationId ?? undefined
       );
 
       updateMessage(messageId, {
@@ -689,7 +690,9 @@ const EnhancedChatInterface = ({
       role: 'assistant' | 'system' | 'user';
     }[],
     streamingMessageId: string,
-    signal: AbortSignal
+    signal: AbortSignal,
+    currentConversationId?: string,
+    overrideTargetLanguage?: string
   ): Promise<{
     content: string;
     metadata: MessageMetadata;
@@ -697,6 +700,13 @@ const EnhancedChatInterface = ({
   }> => {
     // Build system prompt using the new prompt system
     const promptVariables = buildPromptVariables();
+
+    // Get current target language - priority: override > conversation-specific > prop fallback
+    const currentTargetLanguage =
+      overrideTargetLanguage ??
+      (currentConversationId
+        ? getConversationSettings(currentConversationId).targetLanguage
+        : targetLanguage);
     const builtPrompt = buildPrompt({
       messageType: messageType,
       variables: promptVariables,
@@ -746,7 +756,7 @@ const EnhancedChatInterface = ({
             ? chatSettings?.streaming
             : globalSettings.streaming) ?? true,
         systemPrompt: builtPrompt.systemPrompt,
-        targetLanguage,
+        targetLanguage: currentTargetLanguage,
         userTimezone,
       },
       { signal }
@@ -828,11 +838,16 @@ const EnhancedChatInterface = ({
     setAbortController(controller);
 
     let currentConversationId = conversationId;
+    let effectiveTargetLanguage = targetLanguage;
 
     if (!currentConversationId) {
       try {
         setIsCreatingNewConversation(true);
         currentConversationId = createNewConversation();
+
+        // Get the effective target language that was set during conversation creation
+        effectiveTargetLanguage = pendingLanguage ?? targetLanguage;
+
         onConversationCreated(currentConversationId);
       } catch {
         toast({
@@ -915,7 +930,9 @@ const EnhancedChatInterface = ({
         'editor-mate-user-comment',
         fullHistory,
         editorUserTempId,
-        controller.signal
+        controller.signal,
+        currentConversationId,
+        effectiveTargetLanguage
       );
 
       const savedEditorUserMessage = saveMessage(
@@ -962,7 +979,9 @@ const EnhancedChatInterface = ({
         'chat-mate-response',
         chatMateHistory,
         chatMateTempId,
-        controller.signal
+        controller.signal,
+        currentConversationId,
+        effectiveTargetLanguage
       );
 
       const savedChatMateMessage = saveMessage(
@@ -1009,7 +1028,9 @@ const EnhancedChatInterface = ({
         'editor-mate-chatmate-comment',
         fullHistory,
         editorChatMateTempId,
-        controller.signal
+        controller.signal,
+        currentConversationId,
+        effectiveTargetLanguage
       );
 
       const savedEditorChatMateMessage = saveMessage(
