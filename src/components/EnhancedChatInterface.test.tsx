@@ -26,6 +26,38 @@ describe('EnhancedChatInterface Integration Tests', () => {
     server.resetHandlers();
   });
 
+  test('shows NewConversationQuickStart component when no conversation is selected', () => {
+    const mockOnConversationCreated = (): void => {
+      // Mock function for test
+    };
+    const mockOnConversationUpdate = (): void => {
+      // Mock function for test
+    };
+    const mockOnTextSelect = (): void => {
+      // Mock function for test
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId={null}
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    // Should show the quick start component for new conversations
+    expect(screen.getByText('Start a new conversation')).toBeInTheDocument();
+    expect(
+      screen.getByText('Choose a language and model to get started quickly')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Recent Languages:')).toBeInTheDocument();
+    expect(screen.getByText('Recent Models:')).toBeInTheDocument();
+  });
+
   test('handles API errors gracefully', async () => {
     const user = userEvent.setup();
 

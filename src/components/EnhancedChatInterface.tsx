@@ -23,6 +23,7 @@ import { buildPrompt } from '@/services/prompts/promptBuilder';
 import { generateChatTitle } from '@/utils/chatTitleGenerator';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
+import NewConversationQuickStart from './NewConversationQuickStart';
 
 /**
  *
@@ -71,6 +72,7 @@ const EnhancedChatInterface = ({
     getMessages,
     globalSettings,
     updateConversation,
+    updateConversationSettings,
     updateMessage,
   } = useUnifiedStorage();
   const isMobile = useIsMobile();
@@ -779,12 +781,17 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const createNewConversation = (): string => {
+  const createNewConversation = (language?: string, model?: string): string => {
     try {
       const newConversation = createConversation({
-        language: targetLanguage.toLowerCase(),
-        title: `${targetLanguage} Chat`, // Better initial title that will be replaced
+        language: (language ?? targetLanguage).toLowerCase(),
+        title: `${language ?? targetLanguage} Chat`, // Better initial title that will be replaced
       });
+
+      // If a specific model was selected, update the conversation settings
+      if (model) {
+        updateConversationSettings(newConversation.id, { model });
+      }
 
       return newConversation.id;
     } catch (error) {
@@ -1055,6 +1062,52 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const handleLanguageSelect = (language: string): void => {
+    try {
+      const newConversationId = createNewConversation(language);
+      onConversationCreated(newConversationId);
+    } catch (error) {
+      logError('Error creating conversation with language:', error);
+      toast({
+        description: 'Failed to create conversation',
+        title: 'Error',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleModelSelect = (model: string): void => {
+    try {
+      const newConversationId = createNewConversation(undefined, model);
+      onConversationCreated(newConversationId);
+    } catch (error) {
+      logError('Error creating conversation with model:', error);
+      toast({
+        description: 'Failed to create conversation',
+        title: 'Error',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleLanguageSelectorOpen = (): void => {
+    // This would open a language selector dialog - for now we'll use a placeholder
+    // TODO: Implement language selector dialog
+    toast({
+      description: 'Language selector not yet implemented',
+      title: 'Info',
+    });
+  };
+
+  const handleModelSelectorOpen = (): void => {
+    // This would open a model selector dialog - for now we'll use a placeholder
+    // TODO: Implement model selector dialog
+    toast({
+      description: 'Model selector not yet implemented',
+      title: 'Info',
+    });
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Messages Area - Scrollable */}
@@ -1063,15 +1116,13 @@ const EnhancedChatInterface = ({
         data-testid="messages-container"
       >
         {messages.length === 0 && (
-          <div
-            className="text-center text-muted-foreground py-8"
-            data-testid="empty-state"
-          >
-            <p className="mb-2">Start a conversation in {targetLanguage}!</p>
-            <p className="text-sm">
-              Chat Mate will respond naturally, and Editor Mate will provide
-              helpful feedback.
-            </p>
+          <div data-testid="empty-state">
+            <NewConversationQuickStart
+              onLanguageSelect={handleLanguageSelect}
+              onLanguageSelectorOpen={handleLanguageSelectorOpen}
+              onModelSelect={handleModelSelect}
+              onModelSelectorOpen={handleModelSelectorOpen}
+            />
           </div>
         )}
 
