@@ -60,6 +60,8 @@ const EnhancedChatInterface = ({
   const [titleGenerationProcessed, setTitleGenerationProcessed] = useState(
     new Set<string>()
   );
+  const [pendingLanguage, setPendingLanguage] = useState<null | string>(null);
+  const [pendingModel, setPendingModel] = useState<null | string>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -195,9 +197,13 @@ const EnhancedChatInterface = ({
   useEffect(() => {
     if (conversationId && !isCreatingNewConversation) {
       loadMessages();
+      // Clear pending selections when we switch to an existing conversation
+      setPendingLanguage(null);
+      setPendingModel(null);
     } else if (!conversationId) {
       setMessages([]);
       setTitleGenerationProcessed(new Set());
+      // Keep pending selections when no conversation is selected
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
   }, [conversationId, isCreatingNewConversation]);
@@ -783,15 +789,30 @@ const EnhancedChatInterface = ({
 
   const createNewConversation = (language?: string, model?: string): string => {
     try {
+      // Use pending selections or provided parameters
+      const finalLanguage = language ?? pendingLanguage ?? targetLanguage;
+      const finalModel = model ?? pendingModel;
+
       const newConversation = createConversation({
-        language: (language ?? targetLanguage).toLowerCase(),
-        title: `${language ?? targetLanguage} Chat`, // Better initial title that will be replaced
+        language: finalLanguage.toLowerCase(),
+        title: `${finalLanguage} Chat`, // Better initial title that will be replaced
       });
 
-      // If a specific model was selected, update the conversation settings
-      if (model) {
-        updateConversationSettings(newConversation.id, { model });
+      // Apply model setting if specified (either pending or provided)
+      if (finalModel) {
+        updateConversationSettings(newConversation.id, { model: finalModel });
       }
+
+      // Apply language setting to target language for AI interactions
+      if (finalLanguage !== targetLanguage) {
+        updateConversationSettings(newConversation.id, {
+          targetLanguage: finalLanguage,
+        });
+      }
+
+      // Clear pending selections after use
+      setPendingLanguage(null);
+      setPendingModel(null);
 
       return newConversation.id;
     } catch (error) {
@@ -1063,31 +1084,22 @@ const EnhancedChatInterface = ({
   };
 
   const handleLanguageSelect = (language: string): void => {
-    try {
-      const newConversationId = createNewConversation(language);
-      onConversationCreated(newConversationId);
-    } catch (error) {
-      logError('Error creating conversation with language:', error);
-      toast({
-        description: 'Failed to create conversation',
-        title: 'Error',
-        variant: 'destructive',
-      });
-    }
+    // Set pending language selection instead of creating conversation immediately
+    setPendingLanguage(language);
+    toast({
+      description: `Selected ${language} for next conversation`,
+      title: 'Language Selected',
+    });
   };
 
   const handleModelSelect = (model: string): void => {
-    try {
-      const newConversationId = createNewConversation(undefined, model);
-      onConversationCreated(newConversationId);
-    } catch (error) {
-      logError('Error creating conversation with model:', error);
-      toast({
-        description: 'Failed to create conversation',
-        title: 'Error',
-        variant: 'destructive',
-      });
-    }
+    // Set pending model selection instead of creating conversation immediately
+    setPendingModel(model);
+    const modelName = model.split('/').pop() ?? model;
+    toast({
+      description: `Selected ${modelName} for next conversation`,
+      title: 'Model Selected',
+    });
   };
 
   const handleLanguageSelectorOpen = (): void => {
@@ -1122,6 +1134,8 @@ const EnhancedChatInterface = ({
               onLanguageSelectorOpen={handleLanguageSelectorOpen}
               onModelSelect={handleModelSelect}
               onModelSelectorOpen={handleModelSelectorOpen}
+              selectedLanguage={pendingLanguage}
+              selectedModel={pendingModel}
             />
           </div>
         )}

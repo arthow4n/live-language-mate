@@ -60,6 +60,8 @@ interface NewConversationQuickStartProps {
   onLanguageSelectorOpen: () => void;
   onModelSelect: (model: string) => void;
   onModelSelectorOpen: () => void;
+  selectedLanguage?: null | string;
+  selectedModel?: null | string;
 }
 
 const NewConversationQuickStart = ({
@@ -67,11 +69,11 @@ const NewConversationQuickStart = ({
   onLanguageSelectorOpen,
   onModelSelect,
   onModelSelectorOpen,
+  selectedLanguage,
+  selectedModel,
 }: NewConversationQuickStartProps): React.JSX.Element => {
   const [languageSelectorOpen, setLanguageSelectorOpen] = useState(false);
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [selectedModel, setSelectedModel] = useState('');
 
   const { conversations, conversationSettings, globalSettings } =
     useUnifiedStorage();
@@ -135,13 +137,11 @@ const NewConversationQuickStart = ({
   };
 
   const handleLanguageSelection = (language: string): void => {
-    setSelectedLanguage(language);
     setLanguageSelectorOpen(false);
     onLanguageSelect(language);
   };
 
   const handleModelSelection = (model: string): void => {
-    setSelectedModel(model);
     setModelSelectorOpen(false);
     onModelSelect(model);
   };
@@ -149,7 +149,7 @@ const NewConversationQuickStart = ({
   // Helper to format model names for display
   const formatModelName = (model: string): string => {
     const parts = model.split('/');
-    return parts[parts.length - 1] || model;
+    return parts[parts.length - 1] ?? model;
   };
 
   return (
@@ -159,6 +159,28 @@ const NewConversationQuickStart = ({
         <p className="text-sm text-muted-foreground">
           Choose a language and model to get started quickly
         </p>
+        {(Boolean(selectedLanguage) || Boolean(selectedModel)) && (
+          <div className="mt-4 p-3 bg-muted rounded-lg">
+            <p className="text-sm font-medium text-muted-foreground">
+              Ready to chat:
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-2">
+              {selectedLanguage && (
+                <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-sm">
+                  📖 {selectedLanguage}
+                </span>
+              )}
+              {selectedModel && (
+                <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary/10 text-secondary-foreground text-sm">
+                  ⚡ {formatModelName(selectedModel)}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Type your first message to start the conversation
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Recent Languages */}
@@ -229,7 +251,7 @@ const NewConversationQuickStart = ({
               <Label htmlFor="language-select">Target Language</Label>
               <Select
                 onValueChange={handleLanguageSelection}
-                value={selectedLanguage}
+                value={selectedLanguage ?? ''}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a language..." />
@@ -259,7 +281,7 @@ const NewConversationQuickStart = ({
               <ModelSelector
                 onValueChange={handleModelSelection}
                 placeholder="Select a model..."
-                value={selectedModel}
+                value={selectedModel ?? ''}
               />
             </div>
           </div>

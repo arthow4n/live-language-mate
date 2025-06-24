@@ -79,6 +79,13 @@ describe('NewConversationQuickStart', () => {
   const mockOnLanguageSelectorOpen = vi.fn();
   const mockOnModelSelectorOpen = vi.fn();
 
+  const defaultProps = {
+    onLanguageSelect: mockOnLanguageSelect,
+    onLanguageSelectorOpen: mockOnLanguageSelectorOpen,
+    onModelSelect: mockOnModelSelect,
+    onModelSelectorOpen: mockOnModelSelectorOpen,
+  };
+
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
@@ -86,14 +93,7 @@ describe('NewConversationQuickStart', () => {
 
   describe('Rendering with no conversation history', () => {
     test('should render fallback language options when no conversations exist', () => {
-      renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />
-      );
+      renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
 
       // Should show language section
       expect(screen.getByText('Recent Languages:')).toBeInTheDocument();
@@ -105,14 +105,7 @@ describe('NewConversationQuickStart', () => {
     });
 
     test('should show current default language as fallback', () => {
-      renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />
-      );
+      renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
 
       // Should show default Swedish language
       expect(
@@ -121,14 +114,7 @@ describe('NewConversationQuickStart', () => {
     });
 
     test('should show current default model as fallback', () => {
-      renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />
-      );
+      renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
 
       // Should show default model button
       expect(
@@ -164,12 +150,7 @@ describe('NewConversationQuickStart', () => {
       ]);
 
       renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />,
+        <NewConversationQuickStart {...defaultProps} />,
         testData
       );
 
@@ -218,12 +199,7 @@ describe('NewConversationQuickStart', () => {
       ]);
 
       renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />,
+        <NewConversationQuickStart {...defaultProps} />,
         testData
       );
 
@@ -254,12 +230,7 @@ describe('NewConversationQuickStart', () => {
       ]);
 
       renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />,
+        <NewConversationQuickStart {...defaultProps} />,
         testData
       );
 
@@ -272,14 +243,7 @@ describe('NewConversationQuickStart', () => {
     test('should call onModelSelect when recent model button is clicked', async () => {
       const user = userEvent.setup();
 
-      renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />
-      );
+      renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
 
       const modelButton = screen.getByRole('button', {
         name: /gemini-2\.5-flash/i,
@@ -292,14 +256,7 @@ describe('NewConversationQuickStart', () => {
     test('should call onLanguageSelectorOpen when "More languages..." is clicked', async () => {
       const user = userEvent.setup();
 
-      renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />
-      );
+      renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
 
       const moreLanguagesButton = screen.getByText('More languages...');
       await user.click(moreLanguagesButton);
@@ -310,19 +267,67 @@ describe('NewConversationQuickStart', () => {
     test('should call onModelSelectorOpen when "More models..." is clicked', async () => {
       const user = userEvent.setup();
 
-      renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />
-      );
+      renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
 
       const moreModelsButton = screen.getByText('More models...');
       await user.click(moreModelsButton);
 
       expect(mockOnModelSelectorOpen).toHaveBeenCalled();
+    });
+  });
+
+  describe('Visual feedback for selected preferences', () => {
+    test('should show selected language in feedback section', () => {
+      renderWithTestData(
+        <NewConversationQuickStart
+          {...defaultProps}
+          selectedLanguage="French"
+        />
+      );
+
+      expect(screen.getByText('Ready to chat:')).toBeInTheDocument();
+      expect(screen.getByText('📖 French')).toBeInTheDocument();
+      expect(
+        screen.getByText('Type your first message to start the conversation')
+      ).toBeInTheDocument();
+    });
+
+    test('should show selected model in feedback section', () => {
+      renderWithTestData(
+        <NewConversationQuickStart
+          {...defaultProps}
+          selectedModel="openai/gpt-4o"
+        />
+      );
+
+      expect(screen.getByText('Ready to chat:')).toBeInTheDocument();
+      expect(screen.getByText('⚡ gpt-4o')).toBeInTheDocument();
+      expect(
+        screen.getByText('Type your first message to start the conversation')
+      ).toBeInTheDocument();
+    });
+
+    test('should show both selected language and model', () => {
+      renderWithTestData(
+        <NewConversationQuickStart
+          {...defaultProps}
+          selectedLanguage="Spanish"
+          selectedModel="anthropic/claude-3-5-sonnet"
+        />
+      );
+
+      expect(screen.getByText('Ready to chat:')).toBeInTheDocument();
+      expect(screen.getByText('📖 Spanish')).toBeInTheDocument();
+      expect(screen.getByText('⚡ claude-3-5-sonnet')).toBeInTheDocument();
+    });
+
+    test('should not show feedback section when no preferences selected', () => {
+      renderWithTestData(<NewConversationQuickStart {...defaultProps} />);
+
+      expect(screen.queryByText('Ready to chat:')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Type your first message to start the conversation')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -360,12 +365,7 @@ describe('NewConversationQuickStart', () => {
       } satisfies LocalAppData;
 
       renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />,
+        <NewConversationQuickStart {...defaultProps} />,
         testData
       );
 
@@ -396,12 +396,7 @@ describe('NewConversationQuickStart', () => {
       ]);
 
       renderWithTestData(
-        <NewConversationQuickStart
-          onLanguageSelect={mockOnLanguageSelect}
-          onLanguageSelectorOpen={mockOnLanguageSelectorOpen}
-          onModelSelect={mockOnModelSelect}
-          onModelSelectorOpen={mockOnModelSelectorOpen}
-        />,
+        <NewConversationQuickStart {...defaultProps} />,
         testData
       );
 

@@ -43,7 +43,6 @@ const LanguageMateApp = (): React.JSX.Element => {
   const [editorMatePanelOpen, setEditorMatePanelOpen] = useState(false);
 
   const {
-    createConversationSettings,
     getConversation,
     getConversationSettings,
     globalSettings,
@@ -77,7 +76,9 @@ const LanguageMateApp = (): React.JSX.Element => {
 
   const handleConversationCreated = (conversationId: string): void => {
     setCurrentConversationId(conversationId);
-    createConversationSettings(conversationId);
+    // Don't call createConversationSettings here as it overwrites any custom settings
+    // that were already set during conversation creation (e.g., custom model/language)
+    // The settings will be created on-demand by getConversationSettings if needed
   };
 
   const handleGlobalSettingsSave = (
@@ -136,6 +137,14 @@ const LanguageMateApp = (): React.JSX.Element => {
       return getConversationSettings(currentConversationId);
     }
     return getConversationSettings('default');
+  };
+
+  const getCurrentTargetLanguage = (): string => {
+    if (currentConversationId) {
+      const chatSettings = getConversationSettings(currentConversationId);
+      return chatSettings.targetLanguage;
+    }
+    return globalSettings.targetLanguage;
   };
 
   const getCombinedGlobalSettings = (): GlobalSettings => {
@@ -222,7 +231,7 @@ const LanguageMateApp = (): React.JSX.Element => {
                       onTextSelect={(text) => {
                         handleTextSelect(text, 'main-chat');
                       }}
-                      targetLanguage={globalSettings.targetLanguage}
+                      targetLanguage={getCurrentTargetLanguage()}
                     />
                   </ResizablePanel>
 
@@ -240,7 +249,7 @@ const LanguageMateApp = (): React.JSX.Element => {
                       onTextSelect={handleEditorMatePanelTextSelect}
                       selectedText={selectedText}
                       selectionSource={selectionSource}
-                      targetLanguage={globalSettings.targetLanguage}
+                      targetLanguage={getCurrentTargetLanguage()}
                     />
                   </ResizablePanel>
                 </ResizablePanelGroup>
@@ -257,7 +266,7 @@ const LanguageMateApp = (): React.JSX.Element => {
                   onTextSelect={(text) => {
                     handleTextSelect(text, 'main-chat');
                   }}
-                  targetLanguage={globalSettings.targetLanguage}
+                  targetLanguage={getCurrentTargetLanguage()}
                 />
 
                 {/* Editor Mate Drawer for Mobile */}
@@ -281,7 +290,7 @@ const LanguageMateApp = (): React.JSX.Element => {
                         onTextSelect={handleEditorMatePanelTextSelect}
                         selectedText={selectedText}
                         selectionSource={selectionSource}
-                        targetLanguage={globalSettings.targetLanguage}
+                        targetLanguage={getCurrentTargetLanguage()}
                       />
                     </div>
                   </DrawerContent>
