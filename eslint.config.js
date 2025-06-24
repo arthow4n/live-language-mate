@@ -79,6 +79,7 @@ export default tseslint.config(
       'jsdoc/require-param-description': 'off',
       'jsdoc/require-returns': 'off', // TypeScript provides return type info
       'jsdoc/require-returns-description': 'off',
+      'max-params': ['error', { max: 2 }],
       'no-console': ['error', { allow: ['error'] }],
       'no-restricted-imports': [
         'error',
