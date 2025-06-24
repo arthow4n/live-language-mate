@@ -6,18 +6,21 @@ import type { ConversationSettings } from '@/schemas/settings';
 import { extractRecentLanguages, extractRecentModels } from './recentDetection';
 
 // Helper function to create test conversations
-const createTestConversation = (
-  id: string,
-  language: string,
-  updatedAt: Date
-): LocalConversation => ({
-  created_at: new Date('2024-01-01'),
-  id,
-  language,
-  messages: [],
-  title: `${language} Chat`,
-  updated_at: updatedAt,
-});
+const createTestConversation = (options: {
+  id: string;
+  language: string;
+  updatedAt: Date;
+}): LocalConversation => {
+  const { id, language, updatedAt } = options;
+  return {
+    created_at: new Date('2024-01-01'),
+    id,
+    language,
+    messages: [],
+    title: `${language} Chat`,
+    updated_at: updatedAt,
+  };
+};
 
 // Helper function to create conversation settings
 const createConversationSettings = (model: string): ConversationSettings => ({
@@ -50,7 +53,11 @@ describe('Recent Detection Utilities', () => {
 
     test('should return single language when only one conversation exists', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-02')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-02'),
+        }),
       ];
 
       const result = extractRecentLanguages(conversations);
@@ -59,10 +66,26 @@ describe('Recent Detection Utilities', () => {
 
     test('should return 2 most recent unique languages', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
-        createTestConversation('conv2', 'French', new Date('2024-01-02')),
-        createTestConversation('conv3', 'Spanish', new Date('2024-01-03')),
-        createTestConversation('conv4', 'German', new Date('2024-01-04')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
+        createTestConversation({
+          id: 'conv2',
+          language: 'French',
+          updatedAt: new Date('2024-01-02'),
+        }),
+        createTestConversation({
+          id: 'conv3',
+          language: 'Spanish',
+          updatedAt: new Date('2024-01-03'),
+        }),
+        createTestConversation({
+          id: 'conv4',
+          language: 'German',
+          updatedAt: new Date('2024-01-04'),
+        }),
       ];
 
       const result = extractRecentLanguages(conversations);
@@ -71,10 +94,26 @@ describe('Recent Detection Utilities', () => {
 
     test('should deduplicate languages and return most recent unique ones', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
-        createTestConversation('conv2', 'French', new Date('2024-01-02')),
-        createTestConversation('conv3', 'Swedish', new Date('2024-01-03')), // Duplicate
-        createTestConversation('conv4', 'Spanish', new Date('2024-01-04')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
+        createTestConversation({
+          id: 'conv2',
+          language: 'French',
+          updatedAt: new Date('2024-01-02'),
+        }),
+        createTestConversation({
+          id: 'conv3',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-03'),
+        }), // Duplicate
+        createTestConversation({
+          id: 'conv4',
+          language: 'Spanish',
+          updatedAt: new Date('2024-01-04'),
+        }),
       ];
 
       const result = extractRecentLanguages(conversations);
@@ -83,12 +122,24 @@ describe('Recent Detection Utilities', () => {
 
     test('should handle conversations with missing language gracefully', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
         {
-          ...createTestConversation('conv2', '', new Date('2024-01-02')),
+          ...createTestConversation({
+            id: 'conv2',
+            language: '',
+            updatedAt: new Date('2024-01-02'),
+          }),
           language: '',
         },
-        createTestConversation('conv3', 'French', new Date('2024-01-03')),
+        createTestConversation({
+          id: 'conv3',
+          language: 'French',
+          updatedAt: new Date('2024-01-03'),
+        }),
       ];
 
       const result = extractRecentLanguages(conversations);
@@ -97,7 +148,11 @@ describe('Recent Detection Utilities', () => {
 
     test('should limit results to maximum 2 languages', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
       ];
 
       const result = extractRecentLanguages(conversations);
@@ -107,28 +162,54 @@ describe('Recent Detection Utilities', () => {
 
   describe('extractRecentModels', () => {
     test('should return empty array when no conversations exist', () => {
-      const result = extractRecentModels([], {});
+      const result = extractRecentModels({
+        conversations: [],
+        conversationSettings: {},
+      });
       expect(result).toEqual([]);
     });
 
     test('should return single model when only one conversation exists', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-02')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-02'),
+        }),
       ];
       const conversationSettings = {
         conv1: createConversationSettings('google/gemini-2.5-flash'),
       };
 
-      const result = extractRecentModels(conversations, conversationSettings);
+      const result = extractRecentModels({
+        conversations,
+        conversationSettings,
+      });
       expect(result).toEqual(['google/gemini-2.5-flash']);
     });
 
     test('should return 2 most recent unique models', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
-        createTestConversation('conv2', 'French', new Date('2024-01-02')),
-        createTestConversation('conv3', 'Spanish', new Date('2024-01-03')),
-        createTestConversation('conv4', 'German', new Date('2024-01-04')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
+        createTestConversation({
+          id: 'conv2',
+          language: 'French',
+          updatedAt: new Date('2024-01-02'),
+        }),
+        createTestConversation({
+          id: 'conv3',
+          language: 'Spanish',
+          updatedAt: new Date('2024-01-03'),
+        }),
+        createTestConversation({
+          id: 'conv4',
+          language: 'German',
+          updatedAt: new Date('2024-01-04'),
+        }),
       ];
       const conversationSettings = {
         conv1: createConversationSettings('google/gemini-2.5-flash'),
@@ -137,7 +218,10 @@ describe('Recent Detection Utilities', () => {
         conv4: createConversationSettings('openai/gpt-4o-mini'),
       };
 
-      const result = extractRecentModels(conversations, conversationSettings);
+      const result = extractRecentModels({
+        conversations,
+        conversationSettings,
+      });
       expect(result).toEqual([
         'openai/gpt-4o-mini',
         'anthropic/claude-3-5-sonnet',
@@ -146,10 +230,26 @@ describe('Recent Detection Utilities', () => {
 
     test('should deduplicate models and return most recent unique ones', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
-        createTestConversation('conv2', 'French', new Date('2024-01-02')),
-        createTestConversation('conv3', 'Spanish', new Date('2024-01-03')),
-        createTestConversation('conv4', 'German', new Date('2024-01-04')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
+        createTestConversation({
+          id: 'conv2',
+          language: 'French',
+          updatedAt: new Date('2024-01-02'),
+        }),
+        createTestConversation({
+          id: 'conv3',
+          language: 'Spanish',
+          updatedAt: new Date('2024-01-03'),
+        }),
+        createTestConversation({
+          id: 'conv4',
+          language: 'German',
+          updatedAt: new Date('2024-01-04'),
+        }),
       ];
       const conversationSettings = {
         conv1: createConversationSettings('google/gemini-2.5-flash'),
@@ -158,7 +258,10 @@ describe('Recent Detection Utilities', () => {
         conv4: createConversationSettings('anthropic/claude-3-5-sonnet'),
       };
 
-      const result = extractRecentModels(conversations, conversationSettings);
+      const result = extractRecentModels({
+        conversations,
+        conversationSettings,
+      });
       expect(result).toEqual([
         'anthropic/claude-3-5-sonnet',
         'google/gemini-2.5-flash',
@@ -167,8 +270,16 @@ describe('Recent Detection Utilities', () => {
 
     test('should use global default when conversation has no specific model setting', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
-        createTestConversation('conv2', 'French', new Date('2024-01-02')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
+        createTestConversation({
+          id: 'conv2',
+          language: 'French',
+          updatedAt: new Date('2024-01-02'),
+        }),
       ];
       const conversationSettings = {
         conv1: createConversationSettings('openai/gpt-4o'),
@@ -178,37 +289,55 @@ describe('Recent Detection Utilities', () => {
         'google/gemini-2.5-flash'
       );
 
-      const result = extractRecentModels(
+      const result = extractRecentModels({
         conversations,
         conversationSettings,
-        globalSettings
-      );
+        globalSettings,
+      });
       expect(result).toEqual(['google/gemini-2.5-flash', 'openai/gpt-4o']);
     });
 
     test('should limit results to maximum 2 models', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
       ];
       const conversationSettings = {
         conv1: createConversationSettings('google/gemini-2.5-flash'),
       };
 
-      const result = extractRecentModels(conversations, conversationSettings);
+      const result = extractRecentModels({
+        conversations,
+        conversationSettings,
+      });
       expect(result.length).toBeLessThanOrEqual(2);
     });
 
     test('should handle empty model strings gracefully', () => {
       const conversations = [
-        createTestConversation('conv1', 'Swedish', new Date('2024-01-01')),
-        createTestConversation('conv2', 'French', new Date('2024-01-02')),
+        createTestConversation({
+          id: 'conv1',
+          language: 'Swedish',
+          updatedAt: new Date('2024-01-01'),
+        }),
+        createTestConversation({
+          id: 'conv2',
+          language: 'French',
+          updatedAt: new Date('2024-01-02'),
+        }),
       ];
       const conversationSettings = {
         conv1: createConversationSettings('openai/gpt-4o'),
         conv2: { ...createConversationSettings(''), model: '' }, // Empty model
       };
 
-      const result = extractRecentModels(conversations, conversationSettings);
+      const result = extractRecentModels({
+        conversations,
+        conversationSettings,
+      });
       expect(result).toEqual(['openai/gpt-4o']); // Should skip empty model
     });
   });

@@ -158,7 +158,11 @@ const ChartTooltipContent = React.forwardRef<
 
       const [item] = payload;
       const key = (labelKey ?? item.dataKey ?? item.name ?? 'value').toString();
-      const itemConfig = getPayloadConfigFromPayload(config, item, key);
+      const itemConfig = getPayloadConfigFromPayload({
+        config,
+        key,
+        payload: item,
+      });
       const value =
         !labelKey && typeof label === 'string'
           ? (config[label].label ?? label)
@@ -210,7 +214,11 @@ const ChartTooltipContent = React.forwardRef<
               item.dataKey ??
               'value'
             ).toString();
-            const itemConfig = getPayloadConfigFromPayload(config, item, key);
+            const itemConfig = getPayloadConfigFromPayload({
+              config,
+              key,
+              payload: item,
+            });
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- Chart library payload types
             const indicatorColor = color ?? item.payload.fill ?? item.color;
@@ -314,7 +322,11 @@ const ChartLegendContent = React.forwardRef<
       >
         {payload.map((item) => {
           const key = (nameKey ?? item.dataKey ?? 'value').toString();
-          const itemConfig = getPayloadConfigFromPayload(config, item, key);
+          const itemConfig = getPayloadConfigFromPayload({
+            config,
+            key,
+            payload: item,
+          });
 
           return (
             <div
@@ -346,16 +358,17 @@ ChartLegendContent.displayName = 'ChartLegend';
 
 // Helper to extract item config from a payload.
 /**
- *
- * @param config
- * @param payload
- * @param key
+ * @param options
+ * @param options.config
+ * @param options.payload
+ * @param options.key
  */
-function getPayloadConfigFromPayload(
-  config: ChartConfig,
-  payload: unknown,
-  key: string
-): ChartConfig[string] | undefined {
+function getPayloadConfigFromPayload(options: {
+  config: ChartConfig;
+  key: string;
+  payload: unknown;
+}): ChartConfig[string] | undefined {
+  const { config, key, payload } = options;
   if (typeof payload !== 'object' || payload === null) {
     return undefined;
   }

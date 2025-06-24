@@ -80,11 +80,11 @@ const NewConversationQuickStart = ({
 
   // Get recent languages and models
   const recentLanguages = extractRecentLanguages(conversations);
-  const recentModels = extractRecentModels(
+  const recentModels = extractRecentModels({
     conversations,
     conversationSettings,
-    globalSettings
-  );
+    globalSettings,
+  });
 
   // Get fallback languages/models when not enough recent history
   const getLanguageButtons = (): string[] => {

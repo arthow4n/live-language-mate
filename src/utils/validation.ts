@@ -58,15 +58,17 @@ export const validateApiRequest = async <T>(
 
 /**
  * Type-safe localStorage setter with schema validation
- * @param key
- * @param data
- * @param schema
+ * @param options
+ * @param options.key
+ * @param options.data
+ * @param options.schema
  */
-export const setStoredData = <T>(
-  key: string,
-  data: T,
-  schema: z.ZodType<T>
-): void => {
+export const setStoredData = <T>(options: {
+  data: T;
+  key: string;
+  schema: z.ZodType<T>;
+}): void => {
+  const { data, key, schema } = options;
   // Validate data before storing
   const validated = schema.parse(data);
   localStorage.setItem(key, JSON.stringify(validated));

@@ -42,16 +42,18 @@ export const extractRecentLanguages = (
 
 /**
  * Extract the 2 most recent unique models from conversation history
- * @param conversations - Array of conversations sorted by most recent first
- * @param conversationSettings - Settings for each conversation by ID
- * @param globalSettings - Global settings to use as fallback for model
+ * @param options
+ * @param options.conversations - Array of conversations sorted by most recent first
+ * @param options.conversationSettings - Settings for each conversation by ID
+ * @param options.globalSettings - Global settings to use as fallback for model
  * @returns Array of up to 2 unique model strings
  */
-export const extractRecentModels = (
-  conversations: LocalConversation[],
-  conversationSettings: Record<string, ConversationSettings>,
-  globalSettings?: ConversationSettings
-): string[] => {
+export const extractRecentModels = (options: {
+  conversations: LocalConversation[];
+  conversationSettings: Record<string, ConversationSettings>;
+  globalSettings?: ConversationSettings;
+}): string[] => {
+  const { conversations, conversationSettings, globalSettings } = options;
   if (conversations.length === 0) {
     return [];
   }

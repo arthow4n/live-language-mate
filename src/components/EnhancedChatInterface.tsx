@@ -133,11 +133,11 @@ const EnhancedChatInterface = ({
         message_type: msg.type,
       }));
 
-      const newTitle = await generateChatTitle(
+      const newTitle = await generateChatTitle({
         conversationHistory,
+        model: effectiveModel,
         targetLanguage,
-        effectiveModel
-      );
+      });
 
       if (newTitle && newTitle !== 'Chat') {
         const conversation = getConversation(convId);
@@ -429,14 +429,14 @@ const EnhancedChatInterface = ({
         );
       }
 
-      const response = await callAI(
-        userMessage,
-        parseResult.data,
-        conversationHistory,
-        messageId,
-        controller.signal,
-        conversationId ?? undefined
-      );
+      const response = await callAI({
+        currentConversationId: conversationId ?? undefined,
+        history: conversationHistory,
+        message: userMessage,
+        messageType: parseResult.data,
+        signal: controller.signal,
+        streamingMessageId: messageId,
+      });
 
       updateMessage(messageId, {
         content: response.content,
@@ -481,16 +481,17 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleStreamingResponse = async (
-    response: Response,
-    messageId: string,
-    startTime: number,
-    model: string
-  ): Promise<{
+  const handleStreamingResponse = async (options: {
+    messageId: string;
+    model: string;
+    response: Response;
+    startTime: number;
+  }): Promise<{
     content: string;
     metadata: MessageMetadata;
     reasoning: string;
   }> => {
+    const { messageId, model, response, startTime } = options;
     if (!response.body) {
       throw new Error('No response body for streaming');
     }
@@ -683,23 +684,33 @@ const EnhancedChatInterface = ({
     };
   };
 
-  const callAI = async (
-    message: string,
-    messageType: PromptMessageType,
+  const callAI = async (options: {
+    currentConversationId?: string;
     history: {
       content: string;
       role: 'assistant' | 'system' | 'user';
-    }[],
-    streamingMessageId: string,
-    signal: AbortSignal,
-    currentConversationId?: string,
-    overrideTargetLanguage?: string,
-    overrideModel?: string
-  ): Promise<{
+    }[];
+    message: string;
+    messageType: PromptMessageType;
+    overrideModel?: string;
+    overrideTargetLanguage?: string;
+    signal: AbortSignal;
+    streamingMessageId: string;
+  }): Promise<{
     content: string;
     metadata: MessageMetadata;
     reasoning: string | undefined;
   }> => {
+    const {
+      currentConversationId,
+      history,
+      message,
+      messageType,
+      overrideModel,
+      overrideTargetLanguage,
+      signal,
+      streamingMessageId,
+    } = options;
     // Build system prompt using the new prompt system
     const promptVariables = buildPromptVariables();
 
@@ -781,12 +792,12 @@ const EnhancedChatInterface = ({
 
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
-      return await handleStreamingResponse(
+      return await handleStreamingResponse({
+        messageId: streamingMessageId,
+        model: currentModel,
         response,
-        streamingMessageId,
         startTime,
-        currentModel
-      );
+      });
     } else {
       const rawData = await response.json();
       const data = z
@@ -937,16 +948,16 @@ const EnhancedChatInterface = ({
 
       setMessages((prev) => [...prev, editorUserMessage]);
 
-      const editorUserResult = await callAI(
-        currentInput,
-        'editor-mate-user-comment',
-        fullHistory,
-        editorUserTempId,
-        controller.signal,
+      const editorUserResult = await callAI({
         currentConversationId,
-        effectiveTargetLanguage,
-        effectiveModelForCall
-      );
+        history: fullHistory,
+        message: currentInput,
+        messageType: 'editor-mate-user-comment',
+        overrideModel: effectiveModelForCall,
+        overrideTargetLanguage: effectiveTargetLanguage,
+        signal: controller.signal,
+        streamingMessageId: editorUserTempId,
+      });
 
       const savedEditorUserMessage = saveMessage(
         {
@@ -987,16 +998,16 @@ const EnhancedChatInterface = ({
 
       setMessages((prev) => [...prev, chatMateMessage]);
 
-      const chatMateResult = await callAI(
-        currentInput,
-        'chat-mate-response',
-        chatMateHistory,
-        chatMateTempId,
-        controller.signal,
+      const chatMateResult = await callAI({
         currentConversationId,
-        effectiveTargetLanguage,
-        effectiveModelForCall
-      );
+        history: chatMateHistory,
+        message: currentInput,
+        messageType: 'chat-mate-response',
+        overrideModel: effectiveModelForCall,
+        overrideTargetLanguage: effectiveTargetLanguage,
+        signal: controller.signal,
+        streamingMessageId: chatMateTempId,
+      });
 
       const savedChatMateMessage = saveMessage(
         {
@@ -1037,16 +1048,16 @@ const EnhancedChatInterface = ({
 
       setMessages((prev) => [...prev, editorChatMateMessage]);
 
-      const editorChatMateResult = await callAI(
-        chatMateResult.content,
-        'editor-mate-chatmate-comment',
-        fullHistory,
-        editorChatMateTempId,
-        controller.signal,
+      const editorChatMateResult = await callAI({
         currentConversationId,
-        effectiveTargetLanguage,
-        effectiveModelForCall
-      );
+        history: fullHistory,
+        message: chatMateResult.content,
+        messageType: 'editor-mate-chatmate-comment',
+        overrideModel: effectiveModelForCall,
+        overrideTargetLanguage: effectiveTargetLanguage,
+        signal: controller.signal,
+        streamingMessageId: editorChatMateTempId,
+      });
 
       const savedEditorChatMateMessage = saveMessage(
         {

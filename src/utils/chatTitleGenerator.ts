@@ -2,11 +2,12 @@ import { logError } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
 import { systemPrompts } from '@/services/prompts/templates/systemPrompts';
 
-export const generateChatTitle = async (
-  conversationHistory: { content: string; message_type: string }[],
-  targetLanguage: string,
-  model: string
-): Promise<string> => {
+export const generateChatTitle = async (options: {
+  conversationHistory: { content: string; message_type: string }[];
+  model: string;
+  targetLanguage: string;
+}): Promise<string> => {
+  const { conversationHistory, model, targetLanguage } = options;
   try {
     // Get the first few messages to understand the conversation context
     const contextMessages = conversationHistory

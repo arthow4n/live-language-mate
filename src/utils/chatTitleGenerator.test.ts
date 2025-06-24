@@ -41,11 +41,11 @@ describe('Chat Title Generator Integration Tests', () => {
       { content: 'You can say "Hej" or "Hallo"', message_type: 'assistant' },
     ];
 
-    const title = await generateChatTitle(
-      history,
-      'Swedish',
-      'google/gemini-2.5-flash'
-    );
+    const title = await generateChatTitle({
+      conversationHistory: history,
+      model: 'google/gemini-2.5-flash',
+      targetLanguage: 'Swedish',
+    });
 
     expect(title).toBe('Swedish Greetings');
 
