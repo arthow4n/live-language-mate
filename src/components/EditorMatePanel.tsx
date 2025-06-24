@@ -18,10 +18,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useToast } from '@/hooks/use-toast';
-import {
-  aiChatNonStreamResponseSchema,
-  aiChatStreamResponseSchema,
-} from '@/schemas/api';
+import { useAIStreaming } from '@/hooks/useAIStreaming';
+import { aiChatNonStreamResponseSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts/promptBuilder';
 
@@ -56,6 +54,37 @@ const AskInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { globalSettings } = useUnifiedStorage();
+
+  // Set up streaming hook with callbacks for conversation updates
+  const { handleStreamingResponse: handleStreamingWithHook } = useAIStreaming({
+    onComplete: ({ messageId, metadata }) => {
+      setConversation((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                isStreaming: false,
+                metadata,
+              }
+            : msg
+        )
+      );
+    },
+    onContentUpdate: ({ content, messageId, reasoning }) => {
+      setConversation((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content,
+                isStreaming: true,
+                reasoning,
+              }
+            : msg
+        )
+      );
+    },
+  });
 
   const scrollToBottom = (): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -121,7 +150,7 @@ const AskInterface = ({
   ): Promise<{
     generationTime?: number;
     model: string;
-    response: ReadableStream<Uint8Array> | string;
+    response: Response | string;
     startTime?: number;
   }> => {
     const conversationHistory = conversation.map((msg) => ({
@@ -204,10 +233,10 @@ const AskInterface = ({
       throw new Error(errorMessage);
     }
 
-    if (globalSettings.streaming && response.body) {
+    if (globalSettings.streaming) {
       return {
         model: globalSettings.model,
-        response: response.body,
+        response,
         startTime,
       };
     } else {
@@ -297,85 +326,13 @@ const AskInterface = ({
           )
         );
       } else {
-        // Streaming response
-        if (!(response instanceof ReadableStream)) {
-          throw new Error('Response is not a ReadableStream');
-        }
-        const reader = response.getReader();
-        const decoder = new TextDecoder();
-        let accumulatedContent = '';
-        let isStreamingComplete = false;
-
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- infinite loop requires explicit break condition
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') {
-                  isStreamingComplete = true;
-                  const endTime = Date.now();
-                  const generationTime = endTime - (startTime ?? Date.now());
-
-                  setConversation((prev) =>
-                    prev.map((msg) =>
-                      msg.id === editorMessageId
-                        ? {
-                            ...msg,
-                            isStreaming: false,
-                            metadata: {
-                              endTime,
-                              generationTime,
-                              model,
-                              startTime,
-                            },
-                          }
-                        : msg
-                    )
-                  );
-                  break;
-                }
-
-                try {
-                  const rawParsed = JSON.parse(data);
-                  const parseResult =
-                    aiChatStreamResponseSchema.safeParse(rawParsed);
-                  if (!parseResult.success) {
-                    continue;
-                  }
-                  const parsed = parseResult.data;
-                  if (parsed.content && typeof parsed.content === 'string') {
-                    const content: string = parsed.content;
-                    accumulatedContent += content;
-                    setConversation((prev) =>
-                      prev.map((msg) =>
-                        msg.id === editorMessageId
-                          ? {
-                              ...msg,
-                              content: accumulatedContent,
-                              isStreaming: true,
-                            }
-                          : msg
-                      )
-                    );
-                  }
-                } catch {
-                  // Skip invalid JSON
-                }
-              }
-            }
-
-            if (isStreamingComplete) break;
-          }
-        } finally {
-          reader.releaseLock();
-        }
+        // Streaming response - use the hook
+        await handleStreamingWithHook({
+          messageId: editorMessageId,
+          model,
+          response,
+          startTime: startTime ?? Date.now(),
+        });
       }
     } catch (error) {
       setConversation((prev) =>

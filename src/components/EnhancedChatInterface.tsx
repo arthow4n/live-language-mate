@@ -13,11 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { useAIStreaming } from '@/hooks/useAIStreaming';
 import { logError } from '@/lib/utils';
-import {
-  aiChatStreamResponseSchema,
-  apiMessageTypeSchema,
-} from '@/schemas/api';
+import { apiMessageTypeSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts/promptBuilder';
 import { generateChatTitle } from '@/utils/chatTitleGenerator';
@@ -78,6 +76,37 @@ const EnhancedChatInterface = ({
     updateMessage,
   } = useUnifiedStorage();
   const isMobile = useIsMobile();
+
+  // Set up streaming hook with callbacks for message updates
+  const { handleStreamingResponse: handleStreamingWithHook } = useAIStreaming({
+    onComplete: ({ messageId, metadata }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                isStreaming: false,
+                metadata,
+              }
+            : msg
+        )
+      );
+    },
+    onContentUpdate: ({ content, messageId, reasoning }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content,
+                isStreaming: true,
+                reasoning,
+              }
+            : msg
+        )
+      );
+    },
+  });
 
   // Get current conversation settings
   const chatSettings = conversationId
@@ -481,152 +510,6 @@ const EnhancedChatInterface = ({
     }
   };
 
-  const handleStreamingResponse = async (options: {
-    messageId: string;
-    model: string;
-    response: Response;
-    startTime: number;
-  }): Promise<{
-    content: string;
-    metadata: MessageMetadata;
-    reasoning: string;
-  }> => {
-    const { messageId, model, response, startTime } = options;
-    if (!response.body) {
-      throw new Error('No response body for streaming');
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullContent = '';
-    let reasoningContent = '';
-    let buffer = '';
-
-    try {
-      while (componentReady) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-
-        buffer = lines.pop() ?? '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const rawData = JSON.parse(line.slice(6));
-              const parseResult = aiChatStreamResponseSchema.safeParse(rawData);
-              if (!parseResult.success) {
-                continue;
-              }
-              const data = parseResult.data;
-
-              if (data.type === 'content' && data.content) {
-                fullContent += data.content;
-
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === messageId
-                      ? {
-                          ...msg,
-                          content: fullContent,
-                          isStreaming: true,
-                        }
-                      : msg
-                  )
-                );
-              } else if (data.type === 'reasoning' && data.content) {
-                reasoningContent += data.content;
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === messageId
-                      ? {
-                          ...msg,
-                          isStreaming: true,
-                          reasoning: reasoningContent,
-                        }
-                      : msg
-                  )
-                );
-              } else if (data.type === 'done') {
-                const endTime = Date.now();
-                const generationTime = endTime - startTime;
-                const metadata = {
-                  endTime,
-                  generationTime,
-                  model: model,
-                  startTime,
-                };
-
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === messageId
-                      ? {
-                          ...msg,
-                          content: fullContent,
-                          isStreaming: false,
-                          metadata,
-                          reasoning: reasoningContent,
-                        }
-                      : msg
-                  )
-                );
-
-                return {
-                  content: fullContent,
-                  metadata,
-                  reasoning: reasoningContent,
-                };
-              }
-            } catch (e) {
-              logError('Error parsing streaming data:', e, 'Line:', line);
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
-
-    const endTime = Date.now();
-    const generationTime = endTime - startTime;
-    const metadata = {
-      endTime,
-      generationTime,
-      model: model,
-      startTime,
-    };
-
-    // Update local state with final content and metadata
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              content: fullContent,
-              isStreaming: false,
-              metadata,
-              reasoning: reasoningContent,
-            }
-          : msg
-      )
-    );
-
-    // Ensure the metadata is persisted to storage after streaming completes
-    setTimeout(() => {
-      updateMessage(messageId, {
-        content: fullContent,
-        isStreaming: false,
-        metadata,
-        reasoning: reasoningContent,
-      });
-    }, 100);
-
-    return { content: fullContent, metadata, reasoning: reasoningContent };
-  };
-
   const forkFromMessage = (messageId: string): void => {
     try {
       // Find the message index
@@ -792,7 +675,7 @@ const EnhancedChatInterface = ({
 
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
-      return await handleStreamingResponse({
+      return await handleStreamingWithHook({
         messageId: streamingMessageId,
         model: currentModel,
         response,
