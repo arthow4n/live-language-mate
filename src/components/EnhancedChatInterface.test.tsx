@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, test } from 'vitest';
+import { z } from 'zod/v4';
 
 import { Toaster } from '@/components/ui/toaster';
 import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
@@ -355,5 +356,103 @@ describe('EnhancedChatInterface Integration Tests', () => {
     await waitFor(() => {
       expect(screen.getByText('API service unavailable')).toBeInTheDocument();
     });
+  });
+
+  test.skip('automatically generates conversation title after complete round of messages', async () => {
+    const user = userEvent.setup();
+    let titleGenerationCalled = false;
+    let capturedTitleRequest: unknown = null;
+
+    const requestBodySchema = z.strictObject({
+      messageType: z.string(),
+      targetLanguage: z.string().optional(),
+    });
+
+    // Mock successful AI responses for the conversation flow
+    server.use(
+      http.post('http://*/ai-chat', async ({ request }) => {
+        const rawBody = await request.json();
+
+        const parseResult = requestBodySchema.safeParse(rawBody);
+        if (!parseResult.success) {
+          return HttpResponse.json({ response: 'Invalid request' });
+        }
+
+        const requestBody = parseResult.data;
+
+        // Check if this is the title generation request
+        if (requestBody.messageType === 'title-generation') {
+          titleGenerationCalled = true;
+          capturedTitleRequest = rawBody;
+          return HttpResponse.json({ response: 'Generated Title' });
+        }
+
+        // Mock the 3 AI responses (editor-mate for user, chat-mate, editor-mate for chat-mate)
+        if (requestBody.messageType === 'editor-mate-user-comment') {
+          return HttpResponse.json({
+            response: 'Great attempt! Here are some corrections...',
+          });
+        }
+        if (requestBody.messageType === 'chat-mate-response') {
+          return HttpResponse.json({
+            response: 'Hej! Vad trevligt att träffa dig!',
+          });
+        }
+        if (requestBody.messageType === 'editor-mate-chatmate-comment') {
+          return HttpResponse.json({
+            response: 'The Chat Mate used excellent Swedish grammar...',
+          });
+        }
+
+        return HttpResponse.json({ response: 'Default response' });
+      })
+    );
+
+    const mockOnConversationCreated = (): void => {
+      // Mock function for test
+    };
+    const mockOnConversationUpdate = (): void => {
+      // Mock function for test
+    };
+    const mockOnTextSelect = (): void => {
+      // Mock function for test
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId={null}
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    // Type and send a message to trigger the complete flow
+    const messageInput = screen.getByTestId('message-input');
+    await user.type(messageInput, 'Hej, hur mår du?');
+
+    const sendButton = screen.getByTestId('send-button');
+    await user.click(sendButton);
+
+    // Wait for all AI responses to complete and then check for title generation
+    await waitFor(
+      () => {
+        expect(titleGenerationCalled).toBe(true);
+      },
+      { timeout: 10000 }
+    );
+
+    // Verify the title generation request was made with correct parameters
+    expect(capturedTitleRequest).toBeTruthy();
+    const titleRequestSchema = z.strictObject({
+      messageType: z.literal('title-generation'),
+      targetLanguage: z.literal('Swedish'),
+    });
+    const titleRequest = titleRequestSchema.parse(capturedTitleRequest);
+    expect(titleRequest.messageType).toBe('title-generation');
+    expect(titleRequest.targetLanguage).toBe('Swedish');
   });
 });

@@ -172,11 +172,4 @@ export function useTitleGeneration(options: UseTitleGenerationOptions): void {
       });
     }
   }, [conversationId]);
-
-  // Expose method to mark title as processed (for loadMessages usage)
-  useEffect(() => {
-    if (conversationId && shouldGenerateTitle(messages, conversationId)) {
-      setTitleGenerationProcessed((prev) => new Set(prev).add(conversationId));
-    }
-  }, [conversationId, messages, shouldGenerateTitle]);
 }
