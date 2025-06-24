@@ -14,11 +14,11 @@ import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { useAIStreaming } from '@/hooks/useAIStreaming';
+import { useTitleGeneration } from '@/hooks/useTitleGeneration';
 import { logError } from '@/lib/utils';
 import { apiMessageTypeSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts/promptBuilder';
-import { generateChatTitle } from '@/utils/chatTitleGenerator';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 import NewConversationQuickStart from './NewConversationQuickStart';
@@ -55,9 +55,6 @@ const EnhancedChatInterface = ({
   const [isCreatingNewConversation, setIsCreatingNewConversation] =
     useState(false);
   const [componentReady, setComponentReady] = useState(false);
-  const [titleGenerationProcessed, setTitleGenerationProcessed] = useState(
-    new Set<string>()
-  );
   const [pendingLanguage, setPendingLanguage] = useState<null | string>(null);
   const [pendingModel, setPendingModel] = useState<null | string>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -117,6 +114,17 @@ const EnhancedChatInterface = ({
   const effectiveModel = chatSettings?.model ?? globalSettings.model;
   const effectiveApiKey = chatSettings?.apiKey ?? globalSettings.apiKey;
 
+  // Set up title generation
+  useTitleGeneration({
+    conversationId,
+    effectiveModel,
+    getConversation,
+    messages,
+    onConversationUpdate,
+    targetLanguage,
+    updateConversation,
+  });
+
   const chatMatePrompt =
     chatSettings?.chatMatePersonality ??
     'You are a friendly local who loves to chat about daily life, culture, and local experiences.';
@@ -124,74 +132,6 @@ const EnhancedChatInterface = ({
     editorMatePrompt ??
     chatSettings?.editorMatePersonality ??
     'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.';
-
-  const shouldGenerateTitle = (
-    messagesList: Message[],
-    convId: null | string
-  ): boolean => {
-    if (!convId || titleGenerationProcessed.has(convId)) return false;
-
-    // Count messages by type
-    const userMessages = messagesList.filter((m) => m.type === 'user').length;
-    const chatMateMessages = messagesList.filter(
-      (m) => m.type === 'chat-mate'
-    ).length;
-    const editorMateMessages = messagesList.filter(
-      (m) => m.type === 'editor-mate'
-    ).length;
-
-    // Generate title after first complete round: 1 user, 1 chat-mate, 2 editor-mate (one for user, one for chat-mate)
-    return (
-      userMessages >= 1 && chatMateMessages >= 1 && editorMateMessages >= 2
-    );
-  };
-
-  const generateAndUpdateTitle = async (
-    messagesList: Message[],
-    convId: string
-  ): Promise<void> => {
-    if (!convId || titleGenerationProcessed.has(convId)) return;
-
-    try {
-      // Mark this conversation as being processed to prevent duplicates
-      setTitleGenerationProcessed((prev) => new Set(prev).add(convId));
-
-      // Convert messages to the format expected by title generator
-      const conversationHistory = messagesList.map((msg) => ({
-        content: msg.content,
-        message_type: msg.type,
-      }));
-
-      const newTitle = await generateChatTitle({
-        conversationHistory,
-        model: effectiveModel,
-        targetLanguage,
-      });
-
-      if (newTitle && newTitle !== 'Chat') {
-        const conversation = getConversation(convId);
-        if (conversation) {
-          updateConversation(convId, {
-            ...conversation,
-            title: newTitle,
-            updated_at: new Date(),
-          });
-          // Force sidebar refresh after title update
-          setTimeout(() => {
-            onConversationUpdate();
-          }, 200);
-        }
-      }
-    } catch (error) {
-      logError('❌ Error in title generation process:', error);
-      // Remove from processed set on error so it can be retried
-      setTitleGenerationProcessed((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(convId);
-        return newSet;
-      });
-    }
-  };
 
   // Mark component as ready and ensure focus
   useEffect(() => {
@@ -231,40 +171,10 @@ const EnhancedChatInterface = ({
       setPendingModel(null);
     } else if (!conversationId) {
       setMessages([]);
-      setTitleGenerationProcessed(new Set());
       // Keep pending selections when no conversation is selected
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
   }, [conversationId, isCreatingNewConversation]);
-
-  // Check for title generation when messages change - with better race condition handling
-  useEffect(() => {
-    if (conversationId && shouldGenerateTitle(messages, conversationId)) {
-      // Use a small delay to ensure all messages are saved before generating title
-      const timeoutId = setTimeout(() => {
-        void generateAndUpdateTitle(messages, conversationId);
-      }, 500);
-
-      return (): void => {
-        clearTimeout(timeoutId);
-      };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
-  }, [messages, conversationId]);
-
-  // Reset title generation tracking when conversation changes
-  useEffect(() => {
-    if (conversationId) {
-      setTitleGenerationProcessed((prev) => {
-        // Keep the current conversation in the set if it's already there
-        const newSet = new Set<string>();
-        if (prev.has(conversationId)) {
-          newSet.add(conversationId);
-        }
-        return newSet;
-      });
-    }
-  }, [conversationId]);
 
   const loadMessages = (): void => {
     if (!conversationId) return;
@@ -284,12 +194,6 @@ const EnhancedChatInterface = ({
       }));
 
       setMessages(formattedMessages);
-
-      if (shouldGenerateTitle(formattedMessages, conversationId)) {
-        setTitleGenerationProcessed((prev) =>
-          new Set(prev).add(conversationId)
-        );
-      }
     } catch (error) {
       logError('Error loading messages:', error);
       toast({
