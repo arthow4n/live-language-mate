@@ -146,35 +146,38 @@ export type Model = z.infer<typeof modelSchema>;
 export type ModelsResponse = z.infer<typeof modelsResponseSchema>;
 
 // OpenRouter API response schemas for external API validation
-export const openRouterStreamingDeltaSchema = z
-  .object({
-    content: z.string().optional(),
-    reasoning: z.string().optional(),
-  })
-  .strict();
+export const openRouterStreamingDeltaSchema = z.looseObject({
+  content: z.string().optional(),
+  reasoning: z.string().optional(),
+  role: z.string().optional(),
+});
 
-export const openRouterStreamingChoiceSchema = z
-  .object({
-    delta: openRouterStreamingDeltaSchema.optional(),
-  })
-  .strict();
+export const openRouterStreamingChoiceSchema = z.looseObject({
+  delta: openRouterStreamingDeltaSchema.optional(),
+  finish_reason: z.string().nullable().optional(),
+  index: z.number().optional(),
+  logprobs: z.unknown().nullable().optional(),
+  native_finish_reason: z.string().nullable().optional(),
+});
 
 export const openRouterStreamingResponseSchema = z.looseObject({
   choices: z.array(openRouterStreamingChoiceSchema).optional(),
 });
 
-export const openRouterMessageSchema = z
-  .object({
-    content: z.string(),
-    reasoning: z.string().optional(),
-  })
-  .strict();
+export const openRouterMessageSchema = z.looseObject({
+  content: z.string(),
+  reasoning: z.string().nullable().optional(),
+  refusal: z.string().nullable().optional(),
+  role: z.string().optional(),
+});
 
-export const openRouterNonStreamingChoiceSchema = z
-  .object({
-    message: openRouterMessageSchema,
-  })
-  .strict();
+export const openRouterNonStreamingChoiceSchema = z.looseObject({
+  finish_reason: z.string().nullable().optional(),
+  index: z.number().optional(),
+  logprobs: z.unknown().nullable().optional(),
+  message: openRouterMessageSchema,
+  native_finish_reason: z.string().nullable().optional(),
+});
 
 export const openRouterNonStreamingResponseSchema = z.looseObject({
   choices: z.array(openRouterNonStreamingChoiceSchema),

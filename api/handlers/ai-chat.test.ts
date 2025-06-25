@@ -66,8 +66,29 @@ Deno.test('AI Chat Handler - validates real frontend requests', async () => {
     if (urlString.includes('openrouter.ai')) {
       return new Response(
         JSON.stringify({
-          choices: [{ message: { content: 'Test response' } }],
-          usage: { total_tokens: 100 },
+          id: 'gen-12345',
+          object: 'chat.completion',
+          created: 1234567890,
+          model: 'google/gemini-2.5-flash',
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: 'Test response',
+                reasoning: null,
+                refusal: null,
+              },
+              logprobs: null,
+              finish_reason: 'stop',
+              native_finish_reason: 'stop',
+              index: 0,
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
         }),
         {
           status: 200,
@@ -143,8 +164,29 @@ Deno.test(
 
         // Return properly typed mock response
         const mockOpenRouterResponse = {
-          choices: [{ message: { content: 'Test response' } }],
-          usage: { total_tokens: 100 },
+          id: 'gen-67890',
+          object: 'chat.completion',
+          created: 1234567890,
+          model: 'google/gemini-2.5-flash',
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: 'Test response',
+                reasoning: null,
+                refusal: null,
+              },
+              logprobs: null,
+              finish_reason: 'stop',
+              native_finish_reason: 'stop',
+              index: 0,
+            },
+          ],
+          usage: {
+            prompt_tokens: 20,
+            completion_tokens: 10,
+            total_tokens: 30,
+          },
         };
 
         return new Response(JSON.stringify(mockOpenRouterResponse), {

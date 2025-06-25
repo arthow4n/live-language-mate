@@ -179,7 +179,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
       const message = data.choices[0].message;
       const aiResponse = message.content;
 
-      const reasoning = message.reasoning || undefined;
+      const reasoning = message.reasoning ? message.reasoning : undefined;
 
       // Validate response before sending - strict validation
       const responseData = {
