@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 import { logError } from '@/lib/utils';
+import { themeSchema } from '@/schemas/settings';
 
 /**
  *
@@ -46,16 +47,16 @@ export function ThemeProvider({
         'language-mate-global-settings'
       );
       if (globalSettings) {
-        const parsed = JSON.parse(globalSettings);
+        const parsed: unknown = JSON.parse(globalSettings);
         if (
           parsed &&
           typeof parsed === 'object' &&
           'theme' in parsed &&
           typeof parsed.theme === 'string'
         ) {
-          const theme = parsed.theme;
-          if (theme === 'dark' || theme === 'light' || theme === 'system') {
-            return theme;
+          const themeParseResult = themeSchema.safeParse(parsed.theme);
+          if (themeParseResult.success) {
+            return themeParseResult.data;
           }
         }
       }
@@ -65,11 +66,11 @@ export function ThemeProvider({
 
     // Fallback to old theme storage
     const stored = localStorage.getItem(storageKey);
-    if (
-      stored &&
-      (stored === 'dark' || stored === 'light' || stored === 'system')
-    ) {
-      return stored;
+    if (stored) {
+      const themeParseResult = themeSchema.safeParse(stored);
+      if (themeParseResult.success) {
+        return themeParseResult.data;
+      }
     }
     return defaultTheme;
   });

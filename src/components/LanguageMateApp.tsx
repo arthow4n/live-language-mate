@@ -24,6 +24,7 @@ import {
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { panelSizesSchema } from '@/schemas/storage';
 
 import ChatSidebar from './ChatSidebar';
 import EditorMatePanel from './EditorMatePanel';
@@ -103,13 +104,9 @@ const LanguageMateApp = (): React.JSX.Element => {
     const saved = localStorage.getItem('languageMate_panelSizes');
     if (saved) {
       try {
-        const sizes = JSON.parse(saved);
-        return Array.isArray(sizes) &&
-          sizes.length === 2 &&
-          typeof sizes[0] === 'number' &&
-          typeof sizes[1] === 'number'
-          ? [sizes[0], sizes[1]]
-          : [70, 30];
+        const sizes: unknown = JSON.parse(saved);
+        const parseResult = panelSizesSchema.safeParse(sizes);
+        return parseResult.success ? parseResult.data : [70, 30];
       } catch {
         return [70, 30];
       }

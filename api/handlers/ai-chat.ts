@@ -1,6 +1,7 @@
 import {
   aiChatRequestSchema,
   type AiChatRequest,
+  type AiChatStreamResponse,
   openRouterNonStreamingResponseSchema,
   openRouterStreamingResponseSchema,
 } from '../../src/schemas/api.ts';
@@ -132,7 +133,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
                       `data: ${JSON.stringify({
                         type: 'content',
                         content: delta.content,
-                      })}\n\n`
+                      } satisfies AiChatStreamResponse)}\n\n`
                     )
                   );
                 }
@@ -143,7 +144,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
                       `data: ${JSON.stringify({
                         type: 'reasoning',
                         content: delta.reasoning,
-                      })}\n\n`
+                      } satisfies AiChatStreamResponse)}\n\n`
                     )
                   );
                 }
@@ -156,7 +157,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
                 new TextEncoder().encode(
                   `data: ${JSON.stringify({
                     type: 'done',
-                  })}\n\n`
+                  } satisfies AiChatStreamResponse)}\n\n`
                 )
               );
               return;

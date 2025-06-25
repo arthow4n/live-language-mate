@@ -2,6 +2,7 @@ import { Download, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
 
 import type { GlobalSettings } from '@/schemas/settings';
+import type { ExportData } from '@/schemas/storage';
 
 import {
   AlertDialog,
@@ -41,7 +42,7 @@ const DataManagementTab = (): React.JSX.Element => {
 
   const handleExportData = (): void => {
     try {
-      const exportData = {
+      const exportData: ExportData = {
         chatSettings: conversationSettings,
         // Include conversations from localStorage for backwards compatibility
         conversations: ((): unknown[] => {

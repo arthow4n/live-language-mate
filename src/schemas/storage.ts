@@ -12,13 +12,8 @@ export const localAppDataSchema = z
   })
   .strict();
 
-// Panel sizes for UI state persistence
-export const panelSizesSchema = z
-  .object({
-    left: z.number().min(0).max(100),
-    right: z.number().min(0).max(100),
-  })
-  .strict();
+// Panel sizes for UI state persistence - array of [left, right] percentages
+export const panelSizesSchema = z.array(z.number().min(0).max(100)).length(2);
 
 // localStorage keys enum for type safety
 export const LocalStorageKeys = {
@@ -80,6 +75,14 @@ export const importDataSchema = z.looseObject({
   version: z.string().optional(),
 });
 
+export const exportDataSchema = z.strictObject({
+  chatSettings: z.record(z.string(), conversationSettingsSchema),
+  conversations: z.array(z.unknown()),
+  exportDate: z.string(),
+  globalSettings: globalSettingsSchema,
+  version: z.string(),
+});
+
 export const legacyExportDataSchema = z
   .object({
     conversations: z.array(z.unknown()),
@@ -90,6 +93,10 @@ export const legacyExportDataSchema = z
 export const legacySettingsRecordSchema = z.record(z.string(), z.unknown());
 
 // Export type helpers
+/**
+ *
+ */
+export type ExportData = z.infer<typeof exportDataSchema>;
 /**
  *
  */
