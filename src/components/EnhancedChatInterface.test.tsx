@@ -455,4 +455,176 @@ describe('EnhancedChatInterface Integration Tests', () => {
     expect(titleRequest.messageType).toBe('title-generation');
     expect(titleRequest.targetLanguage).toBe('Swedish');
   });
+
+  test('sends user message and gets only editor feedback when clicking user-editor button', async () => {
+    const user = userEvent.setup();
+    const capturedApiCalls: string[] = [];
+
+    // Mock API to capture which messageTypes are called
+    server.use(
+      http.post('http://*/ai-chat', async ({ request }) => {
+        const rawBody = await request.json();
+        const requestBodySchema = z.looseObject({
+          chatMateBackground: z.string().optional(),
+          chatMatePrompt: z.string().optional(),
+          editorMatePrompt: z.string().optional(),
+          messageType: z.string().optional(),
+        });
+        const body = requestBodySchema.parse(rawBody);
+
+        // Validate required fields like the successful test
+        const hasRequiredFields = [
+          'chatMatePrompt',
+          'editorMatePrompt',
+          'chatMateBackground',
+        ].every((field) => field in body && body[field]);
+
+        if (!hasRequiredFields) {
+          return HttpResponse.json(
+            { error: 'Missing required fields like chatMatePrompt' },
+            { status: 400 }
+          );
+        }
+
+        if (body.messageType) {
+          capturedApiCalls.push(body.messageType);
+        }
+
+        return HttpResponse.json({
+          reasoning: undefined,
+          response: 'Editor feedback on your message.',
+        });
+      })
+    );
+
+    const mockOnConversationCreated = (): void => {
+      // Mock function for test
+    };
+    const mockOnConversationUpdate = (): void => {
+      // Mock function for test
+    };
+    const mockOnTextSelect = (): void => {
+      // Mock function for test
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId="test-conversation-user-editor"
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    // Type message
+    const messageInput = screen.getByTestId('message-input');
+    await user.type(messageInput, 'Hej, hur mår du?');
+
+    // Click the "user + editor only" button (this will fail initially)
+    const userEditorButton = screen.getByTestId('send-user-editor-button');
+    await user.click(userEditorButton);
+
+    // Verify only editor-mate-user-comment API call was made
+    await waitFor(
+      () => {
+        expect(capturedApiCalls).toEqual(['editor-mate-user-comment']);
+      },
+      { timeout: 5000 }
+    );
+
+    // Verify user message and editor response appear in chat
+    expect(screen.getByText('Hej, hur mår du?')).toBeInTheDocument();
+    expect(
+      screen.getByText('Editor feedback on your message.')
+    ).toBeInTheDocument();
+  });
+
+  test('sends chat mate message and gets editor feedback when clicking chatmate-editor button', async () => {
+    const user = userEvent.setup();
+    const capturedApiCalls: string[] = [];
+
+    server.use(
+      http.post('http://*/ai-chat', async ({ request }) => {
+        const rawBody = await request.json();
+        const requestBodySchema = z.looseObject({
+          chatMateBackground: z.string().optional(),
+          chatMatePrompt: z.string().optional(),
+          editorMatePrompt: z.string().optional(),
+          messageType: z.string().optional(),
+        });
+        const body = requestBodySchema.parse(rawBody);
+
+        // Validate required fields like the successful test
+        const hasRequiredFields = [
+          'chatMatePrompt',
+          'editorMatePrompt',
+          'chatMateBackground',
+        ].every((field) => field in body && body[field]);
+
+        if (!hasRequiredFields) {
+          return HttpResponse.json(
+            { error: 'Missing required fields like chatMatePrompt' },
+            { status: 400 }
+          );
+        }
+
+        if (body.messageType) {
+          capturedApiCalls.push(body.messageType);
+        }
+
+        return HttpResponse.json({
+          reasoning: undefined,
+          response: 'Editor feedback on chat mate response.',
+        });
+      })
+    );
+
+    const mockOnConversationCreated = (): void => {
+      // Mock function for test
+    };
+    const mockOnConversationUpdate = (): void => {
+      // Mock function for test
+    };
+    const mockOnTextSelect = (): void => {
+      // Mock function for test
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId="test-conversation-chatmate-editor"
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    const messageInput = screen.getByTestId('message-input');
+    await user.type(messageInput, 'Hej! Jag mår bra, tack.');
+
+    // Click the "chat mate + editor" button (this will fail initially)
+    const chatMateEditorButton = screen.getByTestId(
+      'send-chatmate-editor-button'
+    );
+    await user.click(chatMateEditorButton);
+
+    // Verify only editor-mate-chatmate-comment API call was made
+    await waitFor(
+      () => {
+        expect(capturedApiCalls).toEqual(['editor-mate-chatmate-comment']);
+      },
+      { timeout: 5000 }
+    );
+
+    // Verify chat mate message and editor response appear
+    expect(screen.getByText('Hej! Jag mår bra, tack.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Editor feedback on chat mate response.')
+    ).toBeInTheDocument();
+  });
 });

@@ -1,4 +1,4 @@
-import { Loader2, MessageSquare, Send, Square } from 'lucide-react';
+import { Bot, Loader2, MessageSquare, Send, Square, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod/v4';
 
@@ -900,6 +900,311 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const handleSendUserOnly = async (): Promise<void> => {
+    if (!inputMessage.trim() || isLoading) return;
+
+    const controller = new AbortController();
+    setAbortController(controller);
+
+    let currentConversationId = conversationId;
+    let effectiveTargetLanguage = targetLanguage;
+    let effectiveModelForCall = chatSettings?.model ?? globalSettings.model;
+
+    if (!currentConversationId) {
+      try {
+        setIsCreatingNewConversation(true);
+
+        // Store the effective target language and model before creating conversation
+        effectiveTargetLanguage = pendingLanguage ?? targetLanguage;
+        effectiveModelForCall = pendingModel ?? effectiveModelForCall;
+        currentConversationId = createNewConversation();
+
+        onConversationCreated(currentConversationId);
+      } catch {
+        toast({
+          description: 'Failed to create conversation',
+          title: 'Error',
+          variant: 'destructive',
+        });
+        setIsCreatingNewConversation(false);
+        return;
+      }
+    }
+
+    const userMessage: Message = {
+      content: inputMessage.trim(),
+      id: `temp-${Date.now().toString()}`,
+      timestamp: new Date(),
+      type: 'user',
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputMessage.trim();
+    setInputMessage('');
+    setIsLoading(true);
+
+    if (!currentConversationId) {
+      logError('❌ Error: No conversation ID available');
+      toast({
+        description: 'Failed to get conversation ID',
+        title: 'Error',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const savedUserMessage = saveMessage(userMessage, currentConversationId);
+      if (savedUserMessage) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === userMessage.id
+              ? { ...msg, id: savedUserMessage.id }
+              : msg
+          )
+        );
+      }
+
+      const fullHistory = messages.map((msg) => ({
+        content: `[${msg.type}]: ${msg.content}`,
+        // Always send as user to prevent the assistant from misunderstanding its role.
+        role: 'user' as const,
+      }));
+
+      const editorUserTempId = `temp-${(Date.now() + 1).toString()}`;
+
+      // Editor Mate comment on user message
+      const editorUserMessage: Message = {
+        content: '',
+        id: editorUserTempId,
+        isStreaming: true,
+        parentMessageId: savedUserMessage?.id ?? userMessage.id,
+        timestamp: new Date(),
+        type: 'editor-mate',
+      };
+
+      setMessages((prev) => [...prev, editorUserMessage]);
+
+      const editorUserResult = await callAI({
+        currentConversationId,
+        history: fullHistory,
+        message: currentInput,
+        messageType: 'editor-mate-user-comment',
+        overrideModel: effectiveModelForCall,
+        overrideTargetLanguage: effectiveTargetLanguage,
+        signal: controller.signal,
+        streamingMessageId: editorUserTempId,
+      });
+
+      const savedEditorUserMessage = saveMessage(
+        {
+          content: editorUserResult.content,
+          metadata: editorUserResult.metadata,
+          parentMessageId: savedUserMessage?.id ?? userMessage.id,
+          reasoning: editorUserResult.reasoning,
+          type: 'editor-mate',
+        },
+        currentConversationId
+      );
+
+      if (savedEditorUserMessage) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === editorUserTempId
+              ? {
+                  ...msg,
+                  content: editorUserResult.content,
+                  id: savedEditorUserMessage.id,
+                  isStreaming: false,
+                  metadata: editorUserResult.metadata,
+                  reasoning: editorUserResult.reasoning,
+                }
+              : msg
+          )
+        );
+      }
+
+      onConversationUpdate();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast({
+          description: 'Message generation was cancelled.',
+          title: 'Cancelled',
+        });
+        setMessages((prev) =>
+          prev.filter((msg) => !msg.isStreaming && !msg.id.startsWith('temp-'))
+        );
+      } else {
+        logError('❌ Error sending message:', error);
+        toast({
+          description:
+            error instanceof Error ? error.message : 'Failed to send message',
+          title: 'Error',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsLoading(false);
+      setIsCreatingNewConversation(false);
+      setAbortController(null);
+    }
+  };
+
+  const handleSendChatMateOnly = async (): Promise<void> => {
+    if (!inputMessage.trim() || isLoading) return;
+
+    const controller = new AbortController();
+    setAbortController(controller);
+
+    let currentConversationId = conversationId;
+    let effectiveTargetLanguage = targetLanguage;
+    let effectiveModelForCall = chatSettings?.model ?? globalSettings.model;
+
+    if (!currentConversationId) {
+      try {
+        setIsCreatingNewConversation(true);
+
+        // Store the effective target language and model before creating conversation
+        effectiveTargetLanguage = pendingLanguage ?? targetLanguage;
+        effectiveModelForCall = pendingModel ?? effectiveModelForCall;
+        currentConversationId = createNewConversation();
+
+        onConversationCreated(currentConversationId);
+      } catch {
+        toast({
+          description: 'Failed to create conversation',
+          title: 'Error',
+          variant: 'destructive',
+        });
+        setIsCreatingNewConversation(false);
+        return;
+      }
+    }
+
+    const chatMateMessage: Message = {
+      content: inputMessage.trim(),
+      id: `temp-${Date.now().toString()}`,
+      timestamp: new Date(),
+      type: 'chat-mate',
+    };
+
+    setMessages((prev) => [...prev, chatMateMessage]);
+    const currentInput = inputMessage.trim();
+    setInputMessage('');
+    setIsLoading(true);
+
+    if (!currentConversationId) {
+      logError('❌ Error: No conversation ID available');
+      toast({
+        description: 'Failed to get conversation ID',
+        title: 'Error',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const savedChatMateMessage = saveMessage(
+        chatMateMessage,
+        currentConversationId
+      );
+      if (savedChatMateMessage) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === chatMateMessage.id
+              ? { ...msg, id: savedChatMateMessage.id }
+              : msg
+          )
+        );
+      }
+
+      const fullHistory = messages.map((msg) => ({
+        content: `[${msg.type}]: ${msg.content}`,
+        // Always send as user to prevent the assistant from misunderstanding its role.
+        role: 'user' as const,
+      }));
+
+      const editorChatMateTempId = `temp-${(Date.now() + 1).toString()}`;
+
+      // Editor Mate comment on Chat Mate message
+      const editorChatMateMessage: Message = {
+        content: '',
+        id: editorChatMateTempId,
+        isStreaming: true,
+        parentMessageId: savedChatMateMessage?.id ?? chatMateMessage.id,
+        timestamp: new Date(),
+        type: 'editor-mate',
+      };
+
+      setMessages((prev) => [...prev, editorChatMateMessage]);
+
+      const editorChatMateResult = await callAI({
+        currentConversationId,
+        history: fullHistory,
+        message: currentInput,
+        messageType: 'editor-mate-chatmate-comment',
+        overrideModel: effectiveModelForCall,
+        overrideTargetLanguage: effectiveTargetLanguage,
+        signal: controller.signal,
+        streamingMessageId: editorChatMateTempId,
+      });
+
+      const savedEditorChatMateMessage = saveMessage(
+        {
+          content: editorChatMateResult.content,
+          metadata: editorChatMateResult.metadata,
+          parentMessageId: savedChatMateMessage?.id ?? chatMateMessage.id,
+          reasoning: editorChatMateResult.reasoning,
+          type: 'editor-mate',
+        },
+        currentConversationId
+      );
+
+      if (savedEditorChatMateMessage) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === editorChatMateTempId
+              ? {
+                  ...msg,
+                  content: editorChatMateResult.content,
+                  id: savedEditorChatMateMessage.id,
+                  isStreaming: false,
+                  metadata: editorChatMateResult.metadata,
+                  reasoning: editorChatMateResult.reasoning,
+                }
+              : msg
+          )
+        );
+      }
+
+      onConversationUpdate();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast({
+          description: 'Message generation was cancelled.',
+          title: 'Cancelled',
+        });
+        setMessages((prev) =>
+          prev.filter((msg) => !msg.isStreaming && !msg.id.startsWith('temp-'))
+        );
+      } else {
+        logError('❌ Error sending message:', error);
+        toast({
+          description:
+            error instanceof Error ? error.message : 'Failed to send message',
+          title: 'Error',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsLoading(false);
+      setIsCreatingNewConversation(false);
+      setAbortController(null);
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -1036,10 +1341,33 @@ const EnhancedChatInterface = ({
             )}
             <Button
               className="h-10 w-10 flex-shrink-0"
+              data-testid="send-user-editor-button"
+              disabled={!inputMessage.trim() || isLoading}
+              onClick={() => void handleSendUserOnly()}
+              size="icon"
+              title="Send as user and get editor feedback only"
+              variant="outline"
+            >
+              <User className="w-4 h-4" />
+            </Button>
+            <Button
+              className="h-10 w-10 flex-shrink-0"
+              data-testid="send-chatmate-editor-button"
+              disabled={!inputMessage.trim() || isLoading}
+              onClick={() => void handleSendChatMateOnly()}
+              size="icon"
+              title="Send as chat mate and get editor feedback"
+              variant="outline"
+            >
+              <Bot className="w-4 h-4" />
+            </Button>
+            <Button
+              className="h-10 w-10 flex-shrink-0"
               data-testid="send-button"
               disabled={!inputMessage.trim() || isLoading}
               onClick={() => void handleSendMessage()}
               size="icon"
+              title="Send message and get full conversation flow"
             >
               <Send className="w-4 h-4" />
             </Button>
