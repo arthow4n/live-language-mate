@@ -1,6 +1,5 @@
 import { Download, Trash2, Upload } from 'lucide-react';
 import { useState } from 'react';
-import { z } from 'zod/v4';
 
 import type { GlobalSettings } from '@/schemas/settings';
 
@@ -23,6 +22,11 @@ import {
   useUnifiedStorage,
 } from '@/contexts/UnifiedStorageContext';
 import { useToast } from '@/hooks/use-toast';
+import {
+  importDataSchema,
+  legacyExportDataSchema,
+  legacySettingsRecordSchema,
+} from '@/schemas/storage';
 
 const DataManagementTab = (): React.JSX.Element => {
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -42,7 +46,7 @@ const DataManagementTab = (): React.JSX.Element => {
         // Include conversations from localStorage for backwards compatibility
         conversations: ((): unknown[] => {
           try {
-            const data = JSON.parse(
+            const data: unknown = JSON.parse(
               localStorage.getItem('language-mate-data') ??
                 '{"conversations": []}'
             );
@@ -98,16 +102,8 @@ const DataManagementTab = (): React.JSX.Element => {
 
     try {
       const text = await importFile.text();
-      const rawData = JSON.parse(text);
-      const importedData = z
-        .looseObject({
-          chatSettings: z.record(z.string(), z.looseObject({})).optional(),
-          conversations: z.array(z.unknown()).optional(),
-          globalSettings: z.looseObject({}).optional(),
-          settings: z.unknown().optional(),
-          version: z.string().optional(),
-        })
-        .parse(rawData);
+      const rawData: unknown = JSON.parse(text);
+      const importedData = importDataSchema.parse(rawData);
 
       // Handle different export formats for backwards compatibility
       if (importedData.version) {
@@ -124,16 +120,11 @@ const DataManagementTab = (): React.JSX.Element => {
         }
         // Handle conversations if present
         if (importedData.conversations) {
-          const rawOldData = JSON.parse(
+          const rawOldData: unknown = JSON.parse(
             localStorage.getItem('language-mate-data') ??
               '{"conversations": [], "settings": {}}'
           );
-          const oldData = z
-            .object({
-              conversations: z.array(z.unknown()),
-              settings: z.unknown(),
-            })
-            .parse(rawOldData);
+          const oldData = legacyExportDataSchema.parse(rawOldData);
           oldData.conversations = importedData.conversations;
           localStorage.setItem('language-mate-data', JSON.stringify(oldData));
         }
@@ -148,9 +139,8 @@ const DataManagementTab = (): React.JSX.Element => {
 
           // Try to migrate settings to new structure
           const oldSettings = importedData.settings;
-          const settingsParseResult = z
-            .record(z.string(), z.unknown())
-            .safeParse(oldSettings);
+          const settingsParseResult =
+            legacySettingsRecordSchema.safeParse(oldSettings);
           if (
             settingsParseResult.success &&
             Object.keys(settingsParseResult.data).length > 0

@@ -144,3 +144,61 @@ export type Model = z.infer<typeof modelSchema>;
  *
  */
 export type ModelsResponse = z.infer<typeof modelsResponseSchema>;
+
+// OpenRouter API response schemas for external API validation
+export const openRouterStreamingDeltaSchema = z
+  .object({
+    content: z.string().optional(),
+    reasoning: z.string().optional(),
+  })
+  .strict();
+
+export const openRouterStreamingChoiceSchema = z
+  .object({
+    delta: openRouterStreamingDeltaSchema.optional(),
+  })
+  .strict();
+
+export const openRouterStreamingResponseSchema = z.looseObject({
+  choices: z.array(openRouterStreamingChoiceSchema).optional(),
+});
+
+export const openRouterMessageSchema = z
+  .object({
+    content: z.string(),
+    reasoning: z.string().optional(),
+  })
+  .strict();
+
+export const openRouterNonStreamingChoiceSchema = z
+  .object({
+    message: openRouterMessageSchema,
+  })
+  .strict();
+
+export const openRouterNonStreamingResponseSchema = z.looseObject({
+  choices: z.array(openRouterNonStreamingChoiceSchema),
+});
+
+/**
+ *
+ */
+export type OpenRouterMessage = z.infer<typeof openRouterMessageSchema>;
+/**
+ *
+ */
+export type OpenRouterNonStreamingResponse = z.infer<
+  typeof openRouterNonStreamingResponseSchema
+>;
+/**
+ *
+ */
+export type OpenRouterStreamingDelta = z.infer<
+  typeof openRouterStreamingDeltaSchema
+>;
+/**
+ *
+ */
+export type OpenRouterStreamingResponse = z.infer<
+  typeof openRouterStreamingResponseSchema
+>;

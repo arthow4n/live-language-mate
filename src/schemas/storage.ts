@@ -45,3 +45,76 @@ export type LocalStorageKeyType = keyof typeof localStorageSchemas;
  *
  */
 export type PanelSizes = z.infer<typeof panelSizesSchema>;
+
+// Backwards compatibility schemas for localStorage parsing
+export const legacyAppDataBasicSchema = z
+  .object({
+    conversations: z.array(z.unknown()).optional(),
+    conversationSettings: z.record(z.string(), z.unknown()).optional(),
+    globalSettings: z.unknown().optional(),
+  })
+  .strict();
+
+export const legacyConversationWithStringDatesSchema = z.looseObject({
+  created_at: z.string(),
+  messages: z
+    .array(
+      z.looseObject({
+        timestamp: z.string(),
+      })
+    )
+    .optional(),
+  updated_at: z.string(),
+});
+
+export const legacyMessageWithStringDateSchema = z.looseObject({
+  timestamp: z.string(),
+});
+
+// Import/export validation schemas
+export const importDataSchema = z.looseObject({
+  chatSettings: z.record(z.string(), z.looseObject({})).optional(),
+  conversations: z.array(z.unknown()).optional(),
+  globalSettings: z.looseObject({}).optional(),
+  settings: z.unknown().optional(),
+  version: z.string().optional(),
+});
+
+export const legacyExportDataSchema = z
+  .object({
+    conversations: z.array(z.unknown()),
+    settings: z.unknown(),
+  })
+  .strict();
+
+export const legacySettingsRecordSchema = z.record(z.string(), z.unknown());
+
+// Export type helpers
+/**
+ *
+ */
+export type ImportData = z.infer<typeof importDataSchema>;
+/**
+ *
+ */
+export type LegacyAppDataBasic = z.infer<typeof legacyAppDataBasicSchema>;
+/**
+ *
+ */
+export type LegacyConversationWithStringDates = z.infer<
+  typeof legacyConversationWithStringDatesSchema
+>;
+/**
+ *
+ */
+export type LegacyExportData = z.infer<typeof legacyExportDataSchema>;
+/**
+ *
+ */
+export type LegacyMessageWithStringDate = z.infer<
+  typeof legacyMessageWithStringDateSchema
+>;
+/**
+ *
+ */
+export type LegacySettingsRecord = z.infer<typeof legacySettingsRecordSchema>;

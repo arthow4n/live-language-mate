@@ -1,6 +1,8 @@
 import {
   aiChatRequestSchema,
   type AiChatRequest,
+  openRouterNonStreamingResponseSchema,
+  openRouterStreamingResponseSchema,
 } from '../../src/schemas/api.ts';
 import { validateApiRequest } from '../../src/utils/validation.ts';
 import { systemPrompts } from '../../src/services/prompts/templates/systemPrompts.ts';
@@ -25,7 +27,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
       enableReasoning,
     } = requestData;
 
-    const model = (originalModel as string).replace(/:thinking$/, '');
+    const model = originalModel.replace(/:thinking$/, '');
 
     const openRouterApiKey = apiKey?.trim()
       ? apiKey.trim()
@@ -115,7 +117,13 @@ export async function aiChatHandler(req: Request): Promise<Response> {
           for (const line of lines) {
             if (line.startsWith('data: ') && line !== 'data: [DONE]') {
               try {
-                const data = JSON.parse(line.slice(6));
+                const rawData: unknown = JSON.parse(line.slice(6));
+                const parseResult =
+                  openRouterStreamingResponseSchema.safeParse(rawData);
+                if (!parseResult.success) {
+                  continue;
+                }
+                const data = parseResult.data;
                 const delta = data.choices?.[0]?.delta;
 
                 if (delta?.content) {
@@ -165,7 +173,8 @@ export async function aiChatHandler(req: Request): Promise<Response> {
         },
       });
     } else {
-      const data = await response.json();
+      const rawData: unknown = await response.json();
+      const data = openRouterNonStreamingResponseSchema.parse(rawData);
       const message = data.choices[0].message;
       const aiResponse = message.content;
 

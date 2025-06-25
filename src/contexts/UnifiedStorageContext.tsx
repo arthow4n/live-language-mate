@@ -7,7 +7,6 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { z } from 'zod/v4';
 
 import type { LocalConversation, LocalMessage } from '@/schemas/messages';
 
@@ -20,7 +19,13 @@ import {
   globalSettingsSchema,
   type GlobalSettingsUpdate,
 } from '@/schemas/settings';
-import { localAppDataSchema, LocalStorageKeys } from '@/schemas/storage';
+import {
+  legacyAppDataBasicSchema,
+  legacyConversationWithStringDatesSchema,
+  legacyMessageWithStringDateSchema,
+  localAppDataSchema,
+  LocalStorageKeys,
+} from '@/schemas/storage';
 
 // Re-export types for components
 export type {
@@ -123,15 +128,7 @@ export const UnifiedStorageProvider = ({
           const parsed: unknown = JSON.parse(stored);
 
           // First, validate the basic structure before processing
-          const basicValidation = z
-            .object({
-              conversations: z.array(z.unknown()).optional(),
-              conversationSettings: z
-                .record(z.string(), z.unknown())
-                .optional(),
-              globalSettings: z.unknown().optional(),
-            })
-            .safeParse(parsed);
+          const basicValidation = legacyAppDataBasicSchema.safeParse(parsed);
 
           if (!basicValidation.success) {
             throw new Error('Invalid localStorage data structure');
@@ -141,19 +138,8 @@ export const UnifiedStorageProvider = ({
           const dataWithDates = {
             conversations:
               parsedData.conversations?.map((conv: unknown) => {
-                const convValidation = z
-                  .looseObject({
-                    created_at: z.string(),
-                    messages: z
-                      .array(
-                        z.looseObject({
-                          timestamp: z.string(),
-                        })
-                      )
-                      .optional(),
-                    updated_at: z.string(),
-                  })
-                  .safeParse(conv);
+                const convValidation =
+                  legacyConversationWithStringDatesSchema.safeParse(conv);
 
                 if (!convValidation.success) {
                   throw new Error('Invalid conversation data');
@@ -165,11 +151,8 @@ export const UnifiedStorageProvider = ({
                   created_at: new Date(validatedConv.created_at),
                   messages:
                     validatedConv.messages?.map((msg: unknown) => {
-                      const msgValidation = z
-                        .looseObject({
-                          timestamp: z.string(),
-                        })
-                        .safeParse(msg);
+                      const msgValidation =
+                        legacyMessageWithStringDateSchema.safeParse(msg);
 
                       if (!msgValidation.success) {
                         throw new Error('Invalid message data');
