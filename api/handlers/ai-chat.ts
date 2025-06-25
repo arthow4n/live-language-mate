@@ -120,12 +120,8 @@ export async function aiChatHandler(req: Request): Promise<Response> {
               try {
                 const rawData: unknown = JSON.parse(line.slice(6));
                 const parseResult =
-                  openRouterStreamingResponseSchema.safeParse(rawData);
-                if (!parseResult.success) {
-                  continue;
-                }
-                const data = parseResult.data;
-                const delta = data.choices?.[0]?.delta;
+                  openRouterStreamingResponseSchema.parse(rawData);
+                const delta = parseResult.choices?.[0]?.delta;
 
                 if (delta?.content) {
                   controller.enqueue(

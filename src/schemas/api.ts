@@ -147,33 +147,33 @@ export type ModelsResponse = z.infer<typeof modelsResponseSchema>;
 
 // OpenRouter API response schemas for external API validation
 export const openRouterStreamingDeltaSchema = z.looseObject({
-  content: z.string().optional(),
-  reasoning: z.string().optional(),
-  role: z.string().optional(),
+  content: z.string().nullable().optional(),
+  reasoning: z.string().nullable().optional(),
+  role: z.string().nullable().optional(),
 });
 
 export const openRouterStreamingChoiceSchema = z.looseObject({
-  delta: openRouterStreamingDeltaSchema.optional(),
+  delta: openRouterStreamingDeltaSchema.nullable().optional(),
   finish_reason: z.string().nullable().optional(),
-  index: z.number().optional(),
+  index: z.number().nullable().optional(),
   logprobs: z.unknown().nullable().optional(),
   native_finish_reason: z.string().nullable().optional(),
 });
 
 export const openRouterStreamingResponseSchema = z.looseObject({
-  choices: z.array(openRouterStreamingChoiceSchema).optional(),
+  choices: z.array(openRouterStreamingChoiceSchema).nullable().optional(),
 });
 
 export const openRouterMessageSchema = z.looseObject({
   content: z.string(),
   reasoning: z.string().nullable().optional(),
   refusal: z.string().nullable().optional(),
-  role: z.string().optional(),
+  role: z.string().nullable().optional(),
 });
 
 export const openRouterNonStreamingChoiceSchema = z.looseObject({
   finish_reason: z.string().nullable().optional(),
-  index: z.number().optional(),
+  index: z.number().nullable().optional(),
   logprobs: z.unknown().nullable().optional(),
   message: openRouterMessageSchema,
   native_finish_reason: z.string().nullable().optional(),
