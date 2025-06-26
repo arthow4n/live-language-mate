@@ -16,6 +16,7 @@ import {
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
+import type { ImageAttachment } from '@/schemas/imageAttachment';
 import type { Message } from '@/schemas/messages';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -34,6 +35,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
+
+import { ImageMessage } from './ImageMessage';
+import { ImageModal } from './ImageModal';
 
 /**
  *
@@ -60,6 +64,10 @@ const EnhancedChatMessage = ({
   const [, setSelectedText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
+  const [modalImage, setModalImage] = useState<null | {
+    attachment: ImageAttachment;
+    imageUrl: string;
+  }>(null);
   const { globalSettings } = useUnifiedStorage();
 
   const handleTextSelection = (): void => {
@@ -250,44 +258,61 @@ const EnhancedChatMessage = ({
               </div>
             </div>
           ) : (
-            <div
-              className="text-sm leading-relaxed select-text prose prose-sm max-w-none dark:prose-invert"
-              onMouseUp={handleTextSelection}
-            >
-              <ReactMarkdown
-                components={{
-                  code: ({ children }) => (
-                    <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
-                      {children}
-                    </code>
-                  ),
-                  em: ({ children }) => <em className="italic">{children}</em>,
-                  li: ({ children }) => (
-                    <li className="leading-relaxed">{children}</li>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="list-decimal list-inside mb-2 space-y-1">
-                      {children}
-                    </ol>
-                  ),
-                  p: ({ children }) => (
-                    <p className="mb-2 last:mb-0">{children}</p>
-                  ),
-                  strong: ({ children }) => (
-                    <strong className="font-semibold">{children}</strong>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="list-disc list-inside mb-2 space-y-1">
-                      {children}
-                    </ul>
-                  ),
-                }}
-              >
-                {message.content}
-              </ReactMarkdown>
-              {message.isStreaming && (
-                <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
+            <div className="space-y-3">
+              {/* Render attached images */}
+              {message.attachments && message.attachments.length > 0 && (
+                <ImageMessage
+                  attachments={message.attachments}
+                  maxPreviewSize="md"
+                  onImageClick={(attachment, imageUrl) => {
+                    setModalImage({ attachment, imageUrl });
+                  }}
+                  showMetadata={true}
+                />
               )}
+
+              {/* Render text content */}
+              <div
+                className="text-sm leading-relaxed select-text prose prose-sm max-w-none dark:prose-invert"
+                onMouseUp={handleTextSelection}
+              >
+                <ReactMarkdown
+                  components={{
+                    code: ({ children }) => (
+                      <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
+                        {children}
+                      </code>
+                    ),
+                    em: ({ children }) => (
+                      <em className="italic">{children}</em>
+                    ),
+                    li: ({ children }) => (
+                      <li className="leading-relaxed">{children}</li>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal list-inside mb-2 space-y-1">
+                        {children}
+                      </ol>
+                    ),
+                    p: ({ children }) => (
+                      <p className="mb-2 last:mb-0">{children}</p>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-semibold">{children}</strong>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc list-inside mb-2 space-y-1">
+                        {children}
+                      </ul>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+                {message.isStreaming && (
+                  <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
+                )}
+              </div>
             </div>
           )}
 
@@ -362,6 +387,16 @@ const EnhancedChatMessage = ({
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        attachment={modalImage?.attachment ?? null}
+        imageUrl={modalImage?.imageUrl ?? null}
+        isOpen={modalImage !== null}
+        onClose={() => {
+          setModalImage(null);
+        }}
+      />
     </div>
   );
 };
