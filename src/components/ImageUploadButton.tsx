@@ -54,9 +54,11 @@ export function ImageUploadButton({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void => {
     const files = Array.from(event.target.files ?? []);
-    
+
     if (files.length === 0) return;
 
     // Validate all files
@@ -119,6 +121,7 @@ export function ImageUploadButton({
         accept="image/png,image/jpeg,image/webp,image/gif"
         aria-hidden="true"
         className="hidden"
+        data-testid="file-input"
         multiple={multiple}
         onChange={handleFileChange}
         ref={fileInputRef}

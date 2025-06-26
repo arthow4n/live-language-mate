@@ -1,8 +1,7 @@
 import '@testing-library/jest-dom/vitest';
-// Polyfill DataTransferItemList, DataTransfer
-import '@atlaskit/pragmatic-drag-and-drop/unit-testing/drag-event-polyfill';
-// Polyfill DOMRect
-import '@atlaskit/pragmatic-drag-and-drop/unit-testing/dom-rect-polyfill';
+// Polyfill DataTransferItemList, DataTransfer, DragEvent, and DOMRect
+import '@atlaskit/pragmatic-drag-and-drop-unit-testing/drag-event-polyfill';
+import '@atlaskit/pragmatic-drag-and-drop-unit-testing/dom-rect-polyfill';
 // eslint-disable-next-line testing-library/no-manual-cleanup -- here it's test setup.
 import { cleanup } from '@testing-library/react';
 import { setupServer } from 'msw/node';

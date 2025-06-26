@@ -106,18 +106,32 @@ export function ImagePreview({
         sizeClasses.container,
         className
       )}
+      data-testid="image-preview-container"
     >
       {/* Loading State */}
       {showLoader && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
-          <Loader2 className={cn('animate-spin text-muted-foreground', sizeClasses.button)} />
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10"
+          data-testid="loading-spinner"
+        >
+          <Loader2
+            className={cn(
+              'animate-spin text-muted-foreground',
+              sizeClasses.button
+            )}
+          />
         </div>
       )}
 
       {/* Error State */}
       {hasError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/10 z-10">
-          <AlertCircle className={cn('text-destructive mb-1', sizeClasses.button)} />
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/10 z-10"
+          data-testid="error-state"
+        >
+          <AlertCircle
+            className={cn('text-destructive mb-1', sizeClasses.button)}
+          />
           {onRetry && (
             <Button
               className={cn('h-6 w-6')}
@@ -150,7 +164,10 @@ export function ImagePreview({
 
       {/* Placeholder when no src */}
       {!src && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-muted"
+          data-testid="image-placeholder"
+        >
           <div className={cn('w-6 h-6 bg-muted-foreground/20 rounded')} />
         </div>
       )}
@@ -174,7 +191,10 @@ export function ImagePreview({
 
       {/* Metadata Overlay */}
       {showMetadata && (
-        <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div
+          className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          data-testid="metadata-overlay"
+        >
           <div className={cn('truncate font-medium', sizeClasses.text)}>
             {image.filename}
           </div>

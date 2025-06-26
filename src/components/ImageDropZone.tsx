@@ -5,7 +5,10 @@ import { cn } from '@/lib/utils.js';
 
 import type { ImageValidationOptions } from '../schemas/imageAttachment.js';
 
-import { getImageFilesFromDataTransfer, validateImageFile } from '../services/imageUtils.js';
+import {
+  getImageFilesFromDataTransfer,
+  validateImageFile,
+} from '../services/imageUtils.js';
 
 /**
  *
@@ -44,90 +47,102 @@ export function ImageDropZone({
   const [dragCounter, setDragCounter] = React.useState(0);
   const dropZoneRef = React.useRef<HTMLDivElement>(null);
 
-  const handleDragEnter = React.useCallback((event: React.DragEvent): void => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (disabled) return;
+  const handleDragEnter = React.useCallback(
+    (event: React.DragEvent): void => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    setDragCounter(prev => prev + 1);
-    
-    // Check if the dragged items contain files
-    if (event.dataTransfer.types.includes('Files')) {
-      setIsDragOver(true);
-    }
-  }, [disabled]);
+      if (disabled) return;
 
-  const handleDragLeave = React.useCallback((event: React.DragEvent): void => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (disabled) return;
+      setDragCounter((prev) => prev + 1);
 
-    setDragCounter(prev => {
-      const newCounter = prev - 1;
-      if (newCounter === 0) {
-        setIsDragOver(false);
+      // Check if the dragged items contain files
+      if (event.dataTransfer.types.includes('Files')) {
+        setIsDragOver(true);
       }
-      return newCounter;
-    });
-  }, [disabled]);
+    },
+    [disabled]
+  );
 
-  const handleDragOver = React.useCallback((event: React.DragEvent): void => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (disabled) return;
+  const handleDragLeave = React.useCallback(
+    (event: React.DragEvent): void => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    // Set the appropriate drop effect
-    if (event.dataTransfer.types.includes('Files')) {
-      event.dataTransfer.dropEffect = 'copy';
-    } else {
-      event.dataTransfer.dropEffect = 'none';
-    }
-  }, [disabled]);
+      if (disabled) return;
 
-  const handleDrop = React.useCallback((event: React.DragEvent): void => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (disabled) return;
+      setDragCounter((prev) => {
+        const newCounter = prev - 1;
+        if (newCounter === 0) {
+          setIsDragOver(false);
+        }
+        return newCounter;
+      });
+    },
+    [disabled]
+  );
 
-    setIsDragOver(false);
-    setDragCounter(0);
+  const handleDragOver = React.useCallback(
+    (event: React.DragEvent): void => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    const files = getImageFilesFromDataTransfer(event.dataTransfer);
-    
-    if (files.length === 0) {
-      if (onError) {
-        onError('No image files found in the dropped items');
-      }
-      return;
-    }
+      if (disabled) return;
 
-    // Validate files
-    const validFiles: File[] = [];
-    const errors: string[] = [];
-
-    for (const file of files) {
-      const validation = validateImageFile(file, validationOptions);
-      if (validation.isValid) {
-        validFiles.push(file);
+      // Set the appropriate drop effect
+      if (event.dataTransfer.types.includes('Files')) {
+        event.dataTransfer.dropEffect = 'copy';
       } else {
-        errors.push(`${file.name}: ${validation.error ?? 'Unknown error'}`);
+        event.dataTransfer.dropEffect = 'none';
       }
-    }
+    },
+    [disabled]
+  );
 
-    // Report errors if any
-    if (errors.length > 0 && onError) {
-      onError(`Invalid files:\n${errors.join('\n')}`);
-    }
+  const handleDrop = React.useCallback(
+    (event: React.DragEvent): void => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    // Pass valid files to handler
-    if (validFiles.length > 0) {
-      onFilesDropped(validFiles);
-    }
-  }, [disabled, onFilesDropped, onError, validationOptions]);
+      if (disabled) return;
+
+      setIsDragOver(false);
+      setDragCounter(0);
+
+      const files = getImageFilesFromDataTransfer(event.dataTransfer);
+
+      if (files.length === 0) {
+        if (onError) {
+          onError('No image files found in the dropped items');
+        }
+        return;
+      }
+
+      // Validate files
+      const validFiles: File[] = [];
+      const errors: string[] = [];
+
+      for (const file of files) {
+        const validation = validateImageFile(file, validationOptions);
+        if (validation.isValid) {
+          validFiles.push(file);
+        } else {
+          errors.push(`${file.name}: ${validation.error ?? 'Unknown error'}`);
+        }
+      }
+
+      // Report errors if any
+      if (errors.length > 0 && onError) {
+        onError(`Invalid files:\n${errors.join('\n')}`);
+      }
+
+      // Pass valid files to handler
+      if (validFiles.length > 0) {
+        onFilesDropped(validFiles);
+      }
+    },
+    [disabled, onFilesDropped, onError, validationOptions]
+  );
 
   // Reset drag state when disabled changes
   React.useEffect(() => {
@@ -147,11 +162,8 @@ export function ImageDropZone({
 
   return (
     <div
-      className={cn(
-        'relative',
-        disabled && 'pointer-events-none',
-        className
-      )}
+      className={cn('relative', disabled && 'pointer-events-none', className)}
+      data-testid="image-drop-zone"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -159,7 +171,7 @@ export function ImageDropZone({
       ref={dropZoneRef}
     >
       {children}
-      
+
       {/* Drop Overlay */}
       {showOverlay && isDragOver && !disabled && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-primary/10 border-2 border-dashed border-primary rounded-lg">
