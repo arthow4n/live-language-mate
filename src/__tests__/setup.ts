@@ -51,6 +51,12 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = (): void => {
     /* Mock implementation */
   };
+
+  // Mock URL methods for image handling
+  global.URL.createObjectURL = (): string => 'blob:test-url';
+  global.URL.revokeObjectURL = (): void => {
+    /* Mock implementation */
+  };
 });
 
 afterEach(() => {

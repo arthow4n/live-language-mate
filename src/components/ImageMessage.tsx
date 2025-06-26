@@ -111,7 +111,7 @@ export function ImageMessage({
     };
 
     void loadImages();
-  }, [attachments, imageUrls, loadingImages]);
+  }, [attachments]);
 
   // Cleanup object URLs on unmount
   React.useEffect(() => {
@@ -151,7 +151,10 @@ export function ImageMessage({
         </div>
       ) : (
         // Multiple images - grid layout
-        <div className="grid grid-cols-2 gap-2 max-w-md">
+        <div
+          className="grid grid-cols-2 gap-2 max-w-md"
+          data-testid="image-grid"
+        >
           {attachments.map((attachment) => (
             <div className="relative group" key={attachment.id}>
               <ImageItem
@@ -213,6 +216,7 @@ function ImageItem({
             'flex items-center justify-center bg-muted animate-pulse',
             sizeClasses.image
           )}
+          data-testid="image-loading"
         >
           <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
         </div>
@@ -225,6 +229,7 @@ function ImageItem({
             'flex flex-col items-center justify-center bg-destructive/10 text-destructive',
             sizeClasses.image
           )}
+          data-testid="image-error"
         >
           <div className="text-center p-2">
             <div className={cn('font-medium', sizeClasses.text)}>
