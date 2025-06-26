@@ -238,6 +238,15 @@ x?.Y(); // Y is optional because ...
 - If an action will make an API request, you should test whether the API will get the correctly formed request.
 - Before you write or change any test code, make sure you step back and get a full picture first, by reading through the related code paths from beginning to end, and understanding how the code and data flows.
 - Instead of fixing many test cases in one go, focus on fixing 1 test at a time, each test case should have its own todo item.
+- `DragEvent`, `DataTransferItemList`, `DataTransfer`, `DOMRect` are polyfilled and can be used in test:
+
+```ts
+const event = new DragEvent('dragenter', {
+  cancelable: true,
+  bubbles: true,
+});
+event.dataTransfer?.items.add('hello world', 'text/plain');
+```
 
 ## Lint
 
