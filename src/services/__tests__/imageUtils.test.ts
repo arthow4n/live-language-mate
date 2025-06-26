@@ -16,19 +16,36 @@ import {
  */
 function createTestDataTransfer(files: File[]): DataTransfer {
   // Mock DataTransfer for testing environment
-  const mockFiles = Object.assign([], files);
+  const mockFiles = Object.assign([], files, {
+    item: (index: number): File | null => files[index] ?? null,
+  });
   Object.defineProperty(mockFiles, 'length', { value: files.length });
 
-  const mockItems = files.map((file) => ({
-    getAsFile: () => file,
-    kind: 'file' as const,
-    type: file.type,
-  }));
+  const mockItems = Object.assign(
+    files.map((file) => ({
+      getAsFile: (): File => file,
+      kind: 'file',
+      type: file.type,
+    })),
+    {
+      add: (): void => undefined,
+      clear: (): void => undefined,
+      remove: (): void => undefined,
+    }
+  );
   Object.defineProperty(mockItems, 'length', { value: files.length });
 
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Required for test mocking
   const dt = {
+    clearData: (): void => undefined,
+    dropEffect: 'none',
+    effectAllowed: 'all',
     files: mockFiles,
+    getData: (): string => '',
     items: mockItems,
+    setData: (): void => undefined,
+    setDragImage: (): void => undefined,
+    types: [],
   } as unknown as DataTransfer;
   return dt;
 }
@@ -36,15 +53,15 @@ function createTestDataTransfer(files: File[]): DataTransfer {
 // Test utilities
 /**
  *
- * @param name
- * @param type
- * @param size
+ * @param options
+ * @param options.name
+ * @param options.type
+ * @param options.size
  */
 function createTestImageFile(
-  name = 'test.jpg',
-  type = 'image/jpeg',
-  size = 1024
+  options: { name?: string; size?: number; type?: string } = {}
 ): File {
+  const { name = 'test.jpg', size = 1024, type = 'image/jpeg' } = options;
   const content = new Uint8Array(size).fill(65);
   return new File([content], name, { type });
 }
@@ -52,7 +69,11 @@ function createTestImageFile(
 describe('ImageUtils Integration Tests', () => {
   describe('convertToBase64DataURL', () => {
     test('should convert a file to base64 data URL', async () => {
-      const file = createTestImageFile('test.jpg', 'image/jpeg', 10);
+      const file = createTestImageFile({
+        name: 'test.jpg',
+        size: 10,
+        type: 'image/jpeg',
+      });
 
       const dataURL = await convertToBase64DataURL(file);
 
@@ -61,9 +82,18 @@ describe('ImageUtils Integration Tests', () => {
     });
 
     test('should handle different image formats', async () => {
-      const jpegFile = createTestImageFile('test.jpg', 'image/jpeg');
-      const pngFile = createTestImageFile('test.png', 'image/png');
-      const webpFile = createTestImageFile('test.webp', 'image/webp');
+      const jpegFile = createTestImageFile({
+        name: 'test.jpg',
+        type: 'image/jpeg',
+      });
+      const pngFile = createTestImageFile({
+        name: 'test.png',
+        type: 'image/png',
+      });
+      const webpFile = createTestImageFile({
+        name: 'test.webp',
+        type: 'image/webp',
+      });
 
       const jpegDataURL = await convertToBase64DataURL(jpegFile);
       const pngDataURL = await convertToBase64DataURL(pngFile);
@@ -99,10 +129,22 @@ describe('ImageUtils Integration Tests', () => {
 
   describe('validateImageFile', () => {
     test('should validate supported image types', () => {
-      const jpegFile = createTestImageFile('test.jpg', 'image/jpeg');
-      const pngFile = createTestImageFile('test.png', 'image/png');
-      const webpFile = createTestImageFile('test.webp', 'image/webp');
-      const gifFile = createTestImageFile('test.gif', 'image/gif');
+      const jpegFile = createTestImageFile({
+        name: 'test.jpg',
+        type: 'image/jpeg',
+      });
+      const pngFile = createTestImageFile({
+        name: 'test.png',
+        type: 'image/png',
+      });
+      const webpFile = createTestImageFile({
+        name: 'test.webp',
+        type: 'image/webp',
+      });
+      const gifFile = createTestImageFile({
+        name: 'test.gif',
+        type: 'image/gif',
+      });
 
       expect(validateImageFile(jpegFile).isValid).toBe(true);
       expect(validateImageFile(pngFile).isValid).toBe(true);
@@ -127,12 +169,16 @@ describe('ImageUtils Integration Tests', () => {
     });
 
     test('should validate file size limits', () => {
-      const smallFile = createTestImageFile('small.jpg', 'image/jpeg', 1024);
-      const largeFile = createTestImageFile(
-        'large.jpg',
-        'image/jpeg',
-        11 * 1024 * 1024
-      );
+      const smallFile = createTestImageFile({
+        name: 'small.jpg',
+        size: 1024,
+        type: 'image/jpeg',
+      });
+      const largeFile = createTestImageFile({
+        name: 'large.jpg',
+        size: 11 * 1024 * 1024,
+        type: 'image/jpeg',
+      });
 
       const smallResult = validateImageFile(smallFile);
       const largeResult = validateImageFile(largeFile);
@@ -141,11 +187,15 @@ describe('ImageUtils Integration Tests', () => {
       expect(largeResult.isValid).toBe(false);
       expect(largeResult.error).toContain('File size too large');
       expectToNotBeNull(largeResult.details);
-      expect(largeResult.details!.actualSize).toBe(11 * 1024 * 1024);
+      expect(largeResult.details?.actualSize).toBe(11 * 1024 * 1024);
     });
 
     test('should respect custom validation options', () => {
-      const file = createTestImageFile('test.jpg', 'image/jpeg', 2048);
+      const file = createTestImageFile({
+        name: 'test.jpg',
+        size: 2048,
+        type: 'image/jpeg',
+      });
 
       const strictResult = validateImageFile(file, {
         allowedTypes: ['image/png'],
@@ -156,6 +206,7 @@ describe('ImageUtils Integration Tests', () => {
     });
 
     test('should handle null/undefined files', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions -- Testing invalid input
       const result = validateImageFile(null as any);
 
       expect(result.isValid).toBe(false);
@@ -165,7 +216,10 @@ describe('ImageUtils Integration Tests', () => {
 
   describe('isImageFile', () => {
     test('should identify image files correctly', () => {
-      const imageFile = createTestImageFile('test.jpg', 'image/jpeg');
+      const imageFile = createTestImageFile({
+        name: 'test.jpg',
+        type: 'image/jpeg',
+      });
       const textFile = new File(['content'], 'test.txt', {
         type: 'text/plain',
       });
@@ -177,8 +231,14 @@ describe('ImageUtils Integration Tests', () => {
 
   describe('getImageFilesFromDataTransfer', () => {
     test('should extract only image files from DataTransfer', () => {
-      const imageFile1 = createTestImageFile('image1.jpg', 'image/jpeg');
-      const imageFile2 = createTestImageFile('image2.png', 'image/png');
+      const imageFile1 = createTestImageFile({
+        name: 'image1.jpg',
+        type: 'image/jpeg',
+      });
+      const imageFile2 = createTestImageFile({
+        name: 'image2.png',
+        type: 'image/png',
+      });
       const textFile = new File(['content'], 'text.txt', {
         type: 'text/plain',
       });
@@ -208,12 +268,15 @@ describe('ImageUtils Integration Tests', () => {
   });
 
   describe('processClipboardImages', () => {
-    test('should extract image files from clipboard data', async () => {
+    test('should extract image files from clipboard data', () => {
       // Create a mock clipboard data transfer
-      const imageFile = createTestImageFile('clipboard.png', 'image/png');
+      const imageFile = createTestImageFile({
+        name: 'clipboard.png',
+        type: 'image/png',
+      });
       const dataTransfer = createTestDataTransfer([imageFile]);
 
-      const images = await processClipboardImages(dataTransfer);
+      const images = processClipboardImages(dataTransfer);
 
       expect(images).toHaveLength(1);
       expect(images[0].name).toBe('clipboard.png');
@@ -234,7 +297,7 @@ describe('ImageUtils Integration Tests', () => {
   });
 
   describe('error handling', () => {
-    test('should throw ImageProcessingError with correct codes', async () => {
+    test('should throw ImageProcessingError with correct codes', () => {
       // Test error handling by checking the error types
       const validFile = createTestImageFile();
 

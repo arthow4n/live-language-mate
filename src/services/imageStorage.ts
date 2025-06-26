@@ -1,4 +1,9 @@
-import { type ImageAttachment, parseImageAttachmentInput, serializeImageAttachment, supportedImageMimeTypes } from '../schemas/imageAttachment.js';
+import {
+  type ImageAttachment,
+  parseImageAttachmentInput,
+  serializeImageAttachment,
+  supportedImageMimeTypes,
+} from '../schemas/imageAttachment.js';
 
 /**
  *
@@ -19,17 +24,17 @@ export interface StorageStats {
  *
  */
 class ImageStorageService {
-  private static instance: ImageStorageService;
+  private static instance: ImageStorageService | undefined;
   private imagesDir: FileSystemDirectoryHandle | null = null;
   private metadataCache = new Map<string, ImageMetadata>();
   private opfsRoot: FileSystemDirectoryHandle | null = null;
 
-  private constructor() {}
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
 
   public static getInstance(): ImageStorageService {
-    if (!ImageStorageService.instance) {
-      ImageStorageService.instance = new ImageStorageService();
-    }
+    ImageStorageService.instance ??= new ImageStorageService();
     return ImageStorageService.instance;
   }
 
@@ -37,7 +42,10 @@ class ImageStorageService {
     await this.ensureInitialized();
 
     if (!this.imagesDir) {
-      throw new ImageStorageError('OPFS not initialized', 'STORAGE_UNAVAILABLE');
+      throw new ImageStorageError(
+        'OPFS not initialized',
+        'STORAGE_UNAVAILABLE'
+      );
     }
 
     const allImages = await this.listImages();
@@ -59,7 +67,10 @@ class ImageStorageService {
     await this.ensureInitialized();
 
     if (!this.imagesDir) {
-      throw new ImageStorageError('OPFS not initialized', 'STORAGE_UNAVAILABLE');
+      throw new ImageStorageError(
+        'OPFS not initialized',
+        'STORAGE_UNAVAILABLE'
+      );
     }
 
     try {
@@ -70,7 +81,7 @@ class ImageStorageService {
 
       const extension = this.getFileExtension(metadata.filename);
       const filename = `${id}${extension}`;
-      
+
       await this.imagesDir.removeEntry(filename);
       await this.deleteMetadata(id);
       this.metadataCache.delete(id);
@@ -91,7 +102,10 @@ class ImageStorageService {
     await this.ensureInitialized();
 
     if (!this.imagesDir) {
-      throw new ImageStorageError('OPFS not initialized', 'STORAGE_UNAVAILABLE');
+      throw new ImageStorageError(
+        'OPFS not initialized',
+        'STORAGE_UNAVAILABLE'
+      );
     }
 
     try {
@@ -104,7 +118,7 @@ class ImageStorageService {
       const filename = `${id}${extension}`;
       const fileHandle = await this.imagesDir.getFileHandle(filename);
       const file = await fileHandle.getFile();
-      
+
       return new File([file], metadata.filename, {
         lastModified: metadata.savedAt.getTime(),
         type: metadata.mimeType,
@@ -128,7 +142,7 @@ class ImageStorageService {
     let usedQuota: number | undefined;
 
     try {
-      if (navigator.storage?.estimate) {
+      if (typeof navigator.storage.estimate === 'function') {
         const estimate = await navigator.storage.estimate();
         availableQuota = estimate.quota;
         usedQuota = estimate.usage;
@@ -149,12 +163,15 @@ class ImageStorageService {
     await this.ensureInitialized();
 
     if (!this.imagesDir) {
-      throw new ImageStorageError('OPFS not initialized', 'STORAGE_UNAVAILABLE');
+      throw new ImageStorageError(
+        'OPFS not initialized',
+        'STORAGE_UNAVAILABLE'
+      );
     }
 
     try {
       const images: ImageMetadata[] = [];
-      
+
       for await (const [name] of this.imagesDir.entries()) {
         if (name.endsWith('.meta.json')) {
           const id = name.replace('.meta.json', '');
@@ -178,10 +195,18 @@ class ImageStorageService {
     await this.ensureInitialized();
 
     if (!this.imagesDir) {
-      throw new ImageStorageError('OPFS not initialized', 'STORAGE_UNAVAILABLE');
+      throw new ImageStorageError(
+        'OPFS not initialized',
+        'STORAGE_UNAVAILABLE'
+      );
     }
 
-    if (!supportedImageMimeTypes.includes(file.type as typeof supportedImageMimeTypes[number])) {
+    if (
+      !supportedImageMimeTypes.includes(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe type check for MIME types
+        file.type as (typeof supportedImageMimeTypes)[number]
+      )
+    ) {
       throw new ImageStorageError(
         `Unsupported file type: ${file.type}`,
         'INVALID_FILE'
@@ -203,7 +228,8 @@ class ImageStorageService {
       const metadata: ImageMetadata = {
         filename: file.name,
         id,
-        mimeType: file.type as typeof supportedImageMimeTypes[number],
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe after type check above
+        mimeType: file.type as (typeof supportedImageMimeTypes)[number],
         savedAt: new Date(),
         size: file.size,
       };
@@ -213,7 +239,10 @@ class ImageStorageService {
 
       return metadata;
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      if (
+        error instanceof DOMException &&
+        error.name === 'QuotaExceededError'
+      ) {
         throw new ImageStorageError(
           'Storage quota exceeded. Please delete some images to free up space.',
           'QUOTA_EXCEEDED'
@@ -249,19 +278,25 @@ class ImageStorageService {
 
   private async getImageMetadata(id: string): Promise<ImageMetadata | null> {
     if (this.metadataCache.has(id)) {
-      return this.metadataCache.get(id)!;
+      const metadata = this.metadataCache.get(id);
+      if (!metadata) {
+        throw new Error('Metadata should exist in cache');
+      }
+      return metadata;
     }
 
     if (!this.imagesDir) return null;
 
     try {
-      const metadataHandle = await this.imagesDir.getFileHandle(`${id}.meta.json`);
+      const metadataHandle = await this.imagesDir.getFileHandle(
+        `${id}.meta.json`
+      );
       const file = await metadataHandle.getFile();
       const text = await file.text();
       const data: unknown = JSON.parse(text);
-      
+
       const metadata = parseImageAttachmentInput(data);
-      
+
       this.metadataCache.set(id, metadata);
       return metadata;
     } catch {
@@ -270,7 +305,7 @@ class ImageStorageService {
   }
 
   private async initializeOPFS(): Promise<void> {
-    if (!navigator.storage?.getDirectory) {
+    if (typeof navigator.storage.getDirectory !== 'function') {
       throw new ImageStorageError(
         'OPFS is not supported in this browser',
         'STORAGE_UNAVAILABLE'
@@ -290,12 +325,18 @@ class ImageStorageService {
     }
   }
 
-  private async saveMetadata(id: string, metadata: ImageMetadata): Promise<void> {
+  private async saveMetadata(
+    id: string,
+    metadata: ImageMetadata
+  ): Promise<void> {
     if (!this.imagesDir) return;
 
-    const metadataHandle = await this.imagesDir.getFileHandle(`${id}.meta.json`, {
-      create: true,
-    });
+    const metadataHandle = await this.imagesDir.getFileHandle(
+      `${id}.meta.json`,
+      {
+        create: true,
+      }
+    );
     const writable = await metadataHandle.createWritable();
     await writable.write(JSON.stringify(serializeImageAttachment(metadata)));
     await writable.close();
@@ -308,7 +349,11 @@ class ImageStorageService {
 export class ImageStorageError extends Error {
   constructor(
     message: string,
-    public code: 'FILE_NOT_FOUND' | 'INVALID_FILE' | 'QUOTA_EXCEEDED' | 'STORAGE_UNAVAILABLE'
+    public code:
+      | 'FILE_NOT_FOUND'
+      | 'INVALID_FILE'
+      | 'QUOTA_EXCEEDED'
+      | 'STORAGE_UNAVAILABLE'
   ) {
     super(message);
     this.name = 'ImageStorageError';

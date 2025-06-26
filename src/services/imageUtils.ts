@@ -38,14 +38,23 @@ export interface ImageValidationResult {
 export class ImageProcessingError extends Error {
   constructor(
     message: string,
-    public code: 'COMPRESSION_FAILED' | 'CONVERSION_FAILED' | 'INVALID_FILE' | 'METADATA_EXTRACTION_FAILED'
+    public code:
+      | 'COMPRESSION_FAILED'
+      | 'CONVERSION_FAILED'
+      | 'INVALID_FILE'
+      | 'METADATA_EXTRACTION_FAILED'
   ) {
     super(message);
     this.name = 'ImageProcessingError';
   }
 }
 
-const SUPPORTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const;
+const SUPPORTED_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+] as const;
 const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const DEFAULT_COMPRESSION_QUALITY = 0.8;
 const DEFAULT_MAX_DIMENSION = 2048;
@@ -60,8 +69,10 @@ export async function compressImage(
   options: CompressionOptions = {}
 ): Promise<File> {
   const {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe format fallback
-    format = file.type.startsWith('image/png') ? 'image/webp' : (file.type as 'image/jpeg' | 'image/webp'),
+    format = file.type.startsWith('image/png')
+      ? 'image/webp'
+      : // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe format fallback
+        (file.type as 'image/jpeg' | 'image/webp'),
     maxHeight = DEFAULT_MAX_DIMENSION,
     maxWidth = DEFAULT_MAX_DIMENSION,
     quality = DEFAULT_COMPRESSION_QUALITY,
@@ -73,7 +84,12 @@ export async function compressImage(
     const img = new Image();
 
     if (!ctx) {
-      reject(new ImageProcessingError('Cannot get canvas context', 'COMPRESSION_FAILED'));
+      reject(
+        new ImageProcessingError(
+          'Cannot get canvas context',
+          'COMPRESSION_FAILED'
+        )
+      );
       return;
     }
 
@@ -92,7 +108,12 @@ export async function compressImage(
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new ImageProcessingError('Canvas toBlob returned null', 'COMPRESSION_FAILED'));
+              reject(
+                new ImageProcessingError(
+                  'Canvas toBlob returned null',
+                  'COMPRESSION_FAILED'
+                )
+              );
               return;
             }
 
@@ -107,15 +128,22 @@ export async function compressImage(
           quality
         );
       } catch (error) {
-        reject(new ImageProcessingError(
-          `Compression failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'COMPRESSION_FAILED'
-        ));
+        reject(
+          new ImageProcessingError(
+            `Compression failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            'COMPRESSION_FAILED'
+          )
+        );
       }
     };
 
     img.onerror = (): void => {
-      reject(new ImageProcessingError('Failed to load image for compression', 'COMPRESSION_FAILED'));
+      reject(
+        new ImageProcessingError(
+          'Failed to load image for compression',
+          'COMPRESSION_FAILED'
+        )
+      );
     };
 
     img.src = URL.createObjectURL(file);
@@ -129,19 +157,29 @@ export async function compressImage(
 export async function convertToBase64DataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
+
     reader.onload = (): void => {
       if (typeof reader.result === 'string') {
         resolve(reader.result);
       } else {
-        reject(new ImageProcessingError('Failed to convert file to base64', 'CONVERSION_FAILED'));
+        reject(
+          new ImageProcessingError(
+            'Failed to convert file to base64',
+            'CONVERSION_FAILED'
+          )
+        );
       }
     };
-    
+
     reader.onerror = (): void => {
-      reject(new ImageProcessingError('FileReader error during base64 conversion', 'CONVERSION_FAILED'));
+      reject(
+        new ImageProcessingError(
+          'FileReader error during base64 conversion',
+          'CONVERSION_FAILED'
+        )
+      );
     };
-    
+
     reader.readAsDataURL(file);
   });
 }
@@ -167,16 +205,23 @@ export async function extractImageMetadata(file: File): Promise<ImageMetadata> {
         URL.revokeObjectURL(img.src);
         resolve(metadata);
       } catch (error) {
-        reject(new ImageProcessingError(
-          `Failed to extract metadata: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'METADATA_EXTRACTION_FAILED'
-        ));
+        reject(
+          new ImageProcessingError(
+            `Failed to extract metadata: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            'METADATA_EXTRACTION_FAILED'
+          )
+        );
       }
     };
 
     img.onerror = (): void => {
       URL.revokeObjectURL(img.src);
-      reject(new ImageProcessingError('Failed to load image for metadata extraction', 'METADATA_EXTRACTION_FAILED'));
+      reject(
+        new ImageProcessingError(
+          'Failed to load image for metadata extraction',
+          'METADATA_EXTRACTION_FAILED'
+        )
+      );
     };
 
     img.src = URL.createObjectURL(file);
@@ -189,12 +234,12 @@ export async function extractImageMetadata(file: File): Promise<ImageMetadata> {
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+
+  return `${String(parseFloat((bytes / Math.pow(k, i)).toFixed(2)))} ${sizes[i] ?? ''}`;
 }
 
 /**
@@ -202,14 +247,22 @@ export function formatFileSize(bytes: number): string {
  * @param file
  * @param size
  */
-export function generateThumbnailDataURL(file: File, size = 200): Promise<string> {
+export function generateThumbnailDataURL(
+  file: File,
+  size = 200
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
     if (!ctx) {
-      reject(new ImageProcessingError('Cannot get canvas context', 'COMPRESSION_FAILED'));
+      reject(
+        new ImageProcessingError(
+          'Cannot get canvas context',
+          'COMPRESSION_FAILED'
+        )
+      );
       return;
     }
 
@@ -237,16 +290,23 @@ export function generateThumbnailDataURL(file: File, size = 200): Promise<string
         URL.revokeObjectURL(img.src);
         resolve(dataURL);
       } catch (error) {
-        reject(new ImageProcessingError(
-          `Thumbnail generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'COMPRESSION_FAILED'
-        ));
+        reject(
+          new ImageProcessingError(
+            `Thumbnail generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            'COMPRESSION_FAILED'
+          )
+        );
       }
     };
 
     img.onerror = (): void => {
       URL.revokeObjectURL(img.src);
-      reject(new ImageProcessingError('Failed to load image for thumbnail', 'COMPRESSION_FAILED'));
+      reject(
+        new ImageProcessingError(
+          'Failed to load image for thumbnail',
+          'COMPRESSION_FAILED'
+        )
+      );
     };
 
     img.src = URL.createObjectURL(file);
@@ -257,15 +317,17 @@ export function generateThumbnailDataURL(file: File, size = 200): Promise<string
  *
  * @param dataTransfer
  */
-export function getImageFilesFromDataTransfer(dataTransfer: DataTransfer): File[] {
+export function getImageFilesFromDataTransfer(
+  dataTransfer: DataTransfer
+): File[] {
   const files: File[] = [];
-  
+
   for (const file of Array.from(dataTransfer.files)) {
     if (isImageFile(file)) {
       files.push(file);
     }
   }
-  
+
   return files;
 }
 
@@ -275,8 +337,10 @@ export function getImageFilesFromDataTransfer(dataTransfer: DataTransfer): File[
  */
 export function isImageFile(file: DataTransferItem | File): boolean {
   const type = file instanceof File ? file.type : file.type;
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe type check for MIME types
-  return SUPPORTED_MIME_TYPES.includes(type as typeof SUPPORTED_MIME_TYPES[number]);
+  return SUPPORTED_MIME_TYPES.includes(
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe type check for MIME types
+    type as (typeof SUPPORTED_MIME_TYPES)[number]
+  );
 }
 
 /**
@@ -285,9 +349,8 @@ export function isImageFile(file: DataTransferItem | File): boolean {
  */
 export function processClipboardImages(clipboardData: DataTransfer): File[] {
   const files: File[] = [];
-  
+
   for (const item of Array.from(clipboardData.items)) {
-    
     if (item.kind === 'file' && isImageFile(item)) {
       const file = item.getAsFile();
       if (file) {
@@ -295,7 +358,7 @@ export function processClipboardImages(clipboardData: DataTransfer): File[] {
       }
     }
   }
-  
+
   return files;
 }
 
@@ -355,10 +418,6 @@ export function validateImageFile(
 
 /**
  *
- * @param originalWidth
- * @param originalHeight
- * @param maxWidth
- * @param maxHeight
  * @param originalDimensions
  * @param originalDimensions.width
  * @param originalDimensions.height
@@ -367,9 +426,9 @@ export function validateImageFile(
  * @param maxDimensions.height
  */
 function calculateDimensions(
-  originalDimensions: { height: number; width: number; },
-  maxDimensions: { height: number; width: number; }
-): { height: number; width: number; } {
+  originalDimensions: { height: number; width: number },
+  maxDimensions: { height: number; width: number }
+): { height: number; width: number } {
   const { height: originalHeight, width: originalWidth } = originalDimensions;
   const { height: maxHeight, width: maxWidth } = maxDimensions;
   let width = originalWidth;
@@ -393,17 +452,15 @@ function calculateDimensions(
 
 /**
  *
- * @param originalWidth
- * @param originalHeight
  * @param originalDimensions
  * @param originalDimensions.width
- * @param maxSize
  * @param originalDimensions.height
+ * @param maxSize
  */
 function calculateSquareThumbnailDimensions(
-  originalDimensions: { height: number; width: number; },
+  originalDimensions: { height: number; width: number },
   maxSize: number
-): { height: number; width: number; } {
+): { height: number; width: number } {
   const { height: originalHeight, width: originalWidth } = originalDimensions;
   const aspectRatio = originalWidth / originalHeight;
   let width: number;

@@ -156,7 +156,6 @@ export function useTitleGeneration(options: UseTitleGenerationOptions): void {
         clearTimeout(timeoutId);
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
   }, [messages, conversationId, shouldGenerateTitle, generateAndUpdateTitle]);
 
   // Reset title generation tracking when conversation changes
