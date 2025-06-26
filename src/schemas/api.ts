@@ -17,9 +17,40 @@ export const feedbackStyleSchema = z.enum([
   'detailed',
 ]);
 
-// Chat message structure
+// OpenRouter content types for multi-modal messages
+export const openRouterTextContentSchema = z.strictObject({
+  text: z.string(),
+  type: z.literal('text'),
+});
+
+export const openRouterImageUrlSchema = z.strictObject({
+  url: z.string(),
+});
+
+export const openRouterImageContentSchema = z.strictObject({
+  image_url: openRouterImageUrlSchema,
+  type: z.literal('image_url'),
+});
+
+export const openRouterContentSchema = z.union([
+  openRouterTextContentSchema,
+  openRouterImageContentSchema,
+]);
+
+export const openRouterMessageContentSchema = z.union([
+  z.string(), // Simple text message
+  z.array(openRouterContentSchema), // Multi-modal content array
+]);
+
+// Chat message structure (backwards compatible)
 export const chatMessageSchema = z.object({
   content: z.string(),
+  role: z.enum(['system', 'user', 'assistant']),
+});
+
+// OpenRouter-compatible chat message structure for API requests
+export const openRouterChatMessageSchema = z.strictObject({
+  content: openRouterMessageContentSchema,
   role: z.enum(['system', 'user', 'assistant']),
 });
 
@@ -186,7 +217,24 @@ export const openRouterNonStreamingResponseSchema = z.looseObject({
 /**
  *
  */
+export type OpenRouterChatMessage = z.infer<typeof openRouterChatMessageSchema>;
+/**
+ *
+ */
+export type OpenRouterContent = z.infer<typeof openRouterContentSchema>;
+/**
+ *
+ */
+export type OpenRouterImageContent = z.infer<typeof openRouterImageContentSchema>;
+/**
+ *
+ */
 export type OpenRouterMessage = z.infer<typeof openRouterMessageSchema>;
+
+/**
+ *
+ */
+export type OpenRouterMessageContent = z.infer<typeof openRouterMessageContentSchema>;
 /**
  *
  */
@@ -205,3 +253,8 @@ export type OpenRouterStreamingDelta = z.infer<
 export type OpenRouterStreamingResponse = z.infer<
   typeof openRouterStreamingResponseSchema
 >;
+// OpenRouter content types
+/**
+ *
+ */
+export type OpenRouterTextContent = z.infer<typeof openRouterTextContentSchema>;

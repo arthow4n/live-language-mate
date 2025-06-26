@@ -1,5 +1,7 @@
 import { z } from 'zod/v4';
 
+import { imageAttachmentSchema } from './imageAttachment.js';
+
 // Message types for UI/storage
 export const uiMessageTypeSchema = z.enum(['user', 'chat-mate', 'editor-mate']);
 
@@ -16,6 +18,7 @@ export const messageMetadataSchema = z
 // Core message schema - STRICT, no defaults
 export const messageSchema = z
   .object({
+    attachments: z.array(imageAttachmentSchema).optional(),
     content: z.string(),
     id: z.string().min(1),
     isStreaming: z.boolean().optional(),
