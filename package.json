@@ -11,7 +11,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "prettier": "prettier --log-level warn --write .",
-    "lint": "eslint",
+    "lint": "eslint --fix",
     "lint:fix": "eslint --fix",
     "@comment typecheck": "Run a faster frontend check for quicker feedback loop in agentic coding, using Biome lint to auto fix ts6133 unused var.",
     "typecheck": "(biome lint --write --unsafe > /dev/null) && tsgo --project tsconfig.app.json",
