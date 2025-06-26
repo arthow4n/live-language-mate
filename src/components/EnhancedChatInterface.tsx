@@ -14,6 +14,7 @@ import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { useAIStreaming } from '@/hooks/useAIStreaming';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { useTitleGeneration } from '@/hooks/useTitleGeneration';
 import { logError } from '@/lib/utils';
 import { apiMessageTypeSchema } from '@/schemas/api';
@@ -21,6 +22,9 @@ import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts/promptBuilder';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
+import { ImageDropZone } from './ImageDropZone';
+import { ImageGrid } from './ImageGrid';
+import { ImageUploadButton } from './ImageUploadButton';
 import NewConversationQuickStart from './NewConversationQuickStart';
 
 /**
@@ -73,6 +77,33 @@ const EnhancedChatInterface = ({
     updateMessage,
   } = useUnifiedStorage();
   const isMobile = useIsMobile();
+
+  // Image upload functionality
+  const {
+    clearImages,
+    getValidImages,
+    images: uploadedImages,
+    isUploading,
+    removeImage,
+    reorderImages,
+    retryImage,
+    uploadImages,
+  } = useImageUpload({
+    maxImages: 5,
+    onError: (error) => {
+      toast({
+        description: error,
+        title: 'Image Upload Error',
+        variant: 'destructive',
+      });
+    },
+    onSuccess: (images) => {
+      toast({
+        description: `Successfully uploaded ${String(images.length)} image${images.length > 1 ? 's' : ''}`,
+        title: 'Upload Complete',
+      });
+    },
+  });
 
   // Set up streaming hook with callbacks for message updates
   const { handleStreamingResponse: handleStreamingWithHook } = useAIStreaming({
@@ -183,6 +214,7 @@ const EnhancedChatInterface = ({
       const conversationMessages = getMessages(conversationId);
 
       const formattedMessages = conversationMessages.map((msg) => ({
+        attachments: msg.attachments,
         content: msg.content,
         id: msg.id,
         isStreaming: msg.isStreaming,
@@ -210,6 +242,7 @@ const EnhancedChatInterface = ({
   ): Message | null => {
     try {
       const savedMessage = addMessage(actualConversationId, {
+        attachments: message.attachments,
         content: message.content,
         metadata: message.metadata,
         parentMessageId: message.parentMessageId,
@@ -670,7 +703,9 @@ const EnhancedChatInterface = ({
       }
     }
 
+    const attachments = getValidImages();
     const userMessage: Message = {
+      attachments: attachments.length > 0 ? attachments : undefined,
       content: inputMessage.trim(),
       id: `temp-${Date.now().toString()}`,
       timestamp: new Date(),
@@ -680,6 +715,8 @@ const EnhancedChatInterface = ({
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = inputMessage.trim();
     setInputMessage('');
+    // Clear uploaded images after adding to message
+    clearImages();
     setIsLoading(true);
 
     if (!currentConversationId) {
@@ -931,7 +968,9 @@ const EnhancedChatInterface = ({
       }
     }
 
+    const attachments = getValidImages();
     const userMessage: Message = {
+      attachments: attachments.length > 0 ? attachments : undefined,
       content: inputMessage.trim(),
       id: `temp-${Date.now().toString()}`,
       timestamp: new Date(),
@@ -941,6 +980,8 @@ const EnhancedChatInterface = ({
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = inputMessage.trim();
     setInputMessage('');
+    // Clear uploaded images after adding to message
+    clearImages();
     setIsLoading(true);
 
     if (!currentConversationId) {
@@ -1092,6 +1133,8 @@ const EnhancedChatInterface = ({
     setMessages((prev) => [...prev, chatMateMessage]);
     const currentInput = inputMessage.trim();
     setInputMessage('');
+    // Clear uploaded images after adding to message
+    clearImages();
     setIsLoading(true);
 
     if (!currentConversationId) {
@@ -1212,6 +1255,24 @@ const EnhancedChatInterface = ({
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent): void => {
+    const clipboardData = e.clipboardData;
+
+    // Check if there are any image files in the clipboard
+    const imageFiles: File[] = [];
+    for (const file of Array.from(clipboardData.files)) {
+      if (file.type.startsWith('image/')) {
+        imageFiles.push(file);
+      }
+    }
+
+    // If we found image files, upload them
+    if (imageFiles.length > 0) {
+      e.preventDefault(); // Prevent default paste behavior
+      void uploadImages(imageFiles);
+    }
+  };
+
   const handleTextSelect = (text: string): void => {
     onTextSelect(text);
   };
@@ -1260,121 +1321,157 @@ const EnhancedChatInterface = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Messages Area - Scrollable */}
-      <div
-        className="flex-1 overflow-y-auto p-4 min-h-0"
-        data-testid="messages-container"
-      >
-        {messages.length === 0 && (
-          <div data-testid="empty-state">
-            <NewConversationQuickStart
-              onLanguageSelect={handleLanguageSelect}
-              onLanguageSelectorOpen={handleLanguageSelectorOpen}
-              onModelSelect={handleModelSelect}
-              onModelSelectorOpen={handleModelSelectorOpen}
-              selectedLanguage={pendingLanguage}
-              selectedModel={pendingModel}
+    <ImageDropZone
+      disabled={isLoading || isUploading}
+      onFilesDropped={(files) => {
+        void uploadImages(files);
+      }}
+    >
+      <div className="flex flex-col h-full">
+        {/* Messages Area - Scrollable */}
+        <div
+          className="flex-1 overflow-y-auto p-4 min-h-0"
+          data-testid="messages-container"
+        >
+          {messages.length === 0 && (
+            <div data-testid="empty-state">
+              <NewConversationQuickStart
+                onLanguageSelect={handleLanguageSelect}
+                onLanguageSelectorOpen={handleLanguageSelectorOpen}
+                onModelSelect={handleModelSelect}
+                onModelSelectorOpen={handleModelSelectorOpen}
+                selectedLanguage={pendingLanguage}
+                selectedModel={pendingModel}
+              />
+            </div>
+          )}
+
+          {messages.map((message) => (
+            <EnhancedChatMessage
+              key={message.id}
+              message={message}
+              onDeleteAllBelow={deleteAllBelow}
+              onDeleteMessage={deleteMessage}
+              onEditMessage={editMessage}
+              onForkFrom={forkFromMessage}
+              onRegenerateMessage={(messageId) =>
+                void regenerateMessage(messageId)
+              }
+              onTextSelect={handleTextSelect}
             />
-          </div>
-        )}
+          ))}
 
-        {messages.map((message) => (
-          <EnhancedChatMessage
-            key={message.id}
-            message={message}
-            onDeleteAllBelow={deleteAllBelow}
-            onDeleteMessage={deleteMessage}
-            onEditMessage={editMessage}
-            onForkFrom={forkFromMessage}
-            onRegenerateMessage={(messageId) =>
-              void regenerateMessage(messageId)
-            }
-            onTextSelect={handleTextSelect}
-          />
-        ))}
+          {isLoading && (
+            <div className="flex items-center space-x-2 text-muted-foreground mb-4">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Getting responses...</span>
+            </div>
+          )}
 
-        {isLoading && (
-          <div className="flex items-center space-x-2 text-muted-foreground mb-4">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Getting responses...</span>
-          </div>
-        )}
+          <div ref={messagesEndRef} />
+        </div>
 
-        <div ref={messagesEndRef} />
-      </div>
+        {/* Input Area */}
+        <div className="p-4 border-t bg-card flex-shrink-0">
+          {/* Image Grid - Show uploaded images */}
+          {uploadedImages.length > 0 && (
+            <div className="mb-4">
+              <ImageGrid
+                items={uploadedImages.map((item) => ({
+                  error: item.error,
+                  image: item.image,
+                  isLoading: item.isLoading,
+                  src: item.src,
+                }))}
+                onRemove={removeImage}
+                onReorder={reorderImages}
+                onRetry={(imageId) => {
+                  void retryImage(imageId);
+                }}
+                size="sm"
+              />
+            </div>
+          )}
 
-      {/* Input Area */}
-      <div className="p-4 border-t bg-card flex-shrink-0">
-        {isLoading ? (
-          <div className="flex items-center justify-center">
-            <Button onClick={handleCancel} variant="outline">
-              <Square className="w-4 h-4 mr-2" />
-              Stop generating
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-end space-x-2">
-            <Textarea
-              className="flex-1 min-h-[40px] max-h-[120px]"
-              data-testid="message-input"
-              disabled={isLoading}
-              onChange={(e) => {
-                setInputMessage(e.target.value);
-              }}
-              onKeyDown={handleKeyPress}
-              placeholder={`Type in ${targetLanguage} or your native language...`}
-              ref={textareaRef}
-              rows={1}
-              value={inputMessage}
-            />
-            {isMobile && onEditorMatePanelOpen && (
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <Button onClick={handleCancel} variant="outline">
+                <Square className="w-4 h-4 mr-2" />
+                Stop generating
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-end space-x-2">
+              <Textarea
+                className="flex-1 min-h-[40px] max-h-[120px]"
+                data-testid="message-input"
+                disabled={isLoading}
+                onChange={(e) => {
+                  setInputMessage(e.target.value);
+                }}
+                onKeyDown={handleKeyPress}
+                onPaste={handlePaste}
+                placeholder={`Type in ${targetLanguage} or your native language...`}
+                ref={textareaRef}
+                rows={1}
+                value={inputMessage}
+              />
+              <ImageUploadButton
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- isUploading can be true during upload process
+                disabled={isLoading || isUploading}
+                onFilesSelected={(files) => {
+                  void uploadImages(files);
+                }}
+                size="icon"
+              />
+              {isMobile && onEditorMatePanelOpen && (
+                <Button
+                  className="h-10 w-10 flex-shrink-0"
+                  onClick={onEditorMatePanelOpen}
+                  size="icon"
+                  title="Open Ask Interface"
+                  variant="outline"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </Button>
+              )}
               <Button
                 className="h-10 w-10 flex-shrink-0"
-                onClick={onEditorMatePanelOpen}
+                data-testid="send-user-editor-button"
+                disabled={!inputMessage.trim() || isLoading}
+                onClick={() => void handleSendUserOnly()}
                 size="icon"
-                title="Open Ask Interface"
+                title="Send as user and get editor feedback only"
                 variant="outline"
               >
-                <MessageSquare className="w-4 h-4" />
+                <User className="w-4 h-4" />
               </Button>
-            )}
-            <Button
-              className="h-10 w-10 flex-shrink-0"
-              data-testid="send-user-editor-button"
-              disabled={!inputMessage.trim() || isLoading}
-              onClick={() => void handleSendUserOnly()}
-              size="icon"
-              title="Send as user and get editor feedback only"
-              variant="outline"
-            >
-              <User className="w-4 h-4" />
-            </Button>
-            <Button
-              className="h-10 w-10 flex-shrink-0"
-              data-testid="send-chatmate-editor-button"
-              disabled={!inputMessage.trim() || isLoading}
-              onClick={() => void handleSendChatMateOnly()}
-              size="icon"
-              title="Send as chat mate and get editor feedback"
-              variant="outline"
-            >
-              <Bot className="w-4 h-4" />
-            </Button>
-            <Button
-              className="h-10 w-10 flex-shrink-0"
-              data-testid="send-button"
-              disabled={!inputMessage.trim() || isLoading}
-              onClick={() => void handleSendMessage()}
-              size="icon"
-              title="Send message and get full conversation flow"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
+              <Button
+                className="h-10 w-10 flex-shrink-0"
+                data-testid="send-chatmate-editor-button"
+                disabled={!inputMessage.trim() || isLoading}
+                onClick={() => void handleSendChatMateOnly()}
+                size="icon"
+                title="Send as chat mate and get editor feedback"
+                variant="outline"
+              >
+                <Bot className="w-4 h-4" />
+              </Button>
+              <Button
+                className="h-10 w-10 flex-shrink-0"
+                data-testid="send-button"
+                disabled={!inputMessage.trim() || isLoading}
+                onClick={() => void handleSendMessage()}
+                size="icon"
+                title="Send message and get full conversation flow"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </ImageDropZone>
   );
 };
 
