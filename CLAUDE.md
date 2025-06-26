@@ -154,7 +154,7 @@ Frontend (`.env`):
 
 - Prefer named import/export over default import/export.
 - Early return, early throw.
-- In frontend Vitest test files, import explicitly the test helpers e.g. `import { describe, it, expect, beforeEach } from 'vitest';`.
+- In frontend Vitest test files, import explicitly the test helpers e.g. `import { beforeEach, describe, expect, test, vi } from 'vitest';`.
 - Use Zod to validate and cast type as early as possible, this includes but not limit to handling the following scenarios: `any`, `unknown`, `DefaultBodyType`.
 - Always assign unknown type to `const x: unknown = JSON.parse()`, `cosnt x: unknown = await request.json()`, `cosnt x: unknown = await response.json()`, then validate with Zod.
 - Zod schemas are shared between frontend and backend.
