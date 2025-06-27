@@ -159,7 +159,7 @@ Frontend (`.env`):
 - Always assign unknown type to `const x: unknown = JSON.parse()`, `cosnt x: unknown = await request.json()`, `cosnt x: unknown = await response.json()`, then validate with Zod.
 - Zod schemas are shared between frontend and backend.
 - Zod schemas are in `src/schemas/`, you should find in there first to see if there's a schema you can reuse. You should not create Zod schemas outside of `src/schemas/`.
-- Never use `any`, `as` type assertion or `!` non-null assertion operator, you should instead use type narrowing, for example in test you can use `expectToBeInstanceOf`, `expectToNotBeNull`, `expectToNotBeUndefined`, and outside of test `instanceof` or do a proper object validation with Zod.
+- Never use `any`, `as` type assertion or `!` non-null assertion operator, you should instead use type narrowing, for example in test you can use `expectToBe`, `expectToBeInstanceOf`, `expectToNotBeNull`, `expectToNotBeUndefined`, and outside of test `instanceof` or do a proper object validation with Zod. See `src/__tests__/typedExpectHelpers.ts` for all expect alternatives when you run into lint error.
 - If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
 - Avoid optional function parameter, optional property, and default values. If you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it. Default values should only be used when it's absolutely necessary.
 - Throw if a logic not really optional:

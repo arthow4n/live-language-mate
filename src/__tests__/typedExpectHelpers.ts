@@ -1,6 +1,15 @@
 import { expect } from 'vitest';
 
 /**
+ * Type narrowing version of `.toBe()`.
+ * @param value
+ * @param expected
+ */
+export function expectToBe<T>(value: unknown, expected: T): asserts value is T {
+  expect(value).toBe(expected);
+}
+
+/**
  * Type narrowing version of `.toBeInstanceOf()`.
  * Prefer this over `.toBeTruthy()`, `.toBeInstanceOf()`. or `instanceof` operator.
  * @param value
