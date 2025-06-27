@@ -1,5 +1,10 @@
 import { z } from 'zod/v4';
 
+import {
+  imageAttachmentInputSchema,
+  imageAttachmentSchema,
+} from './imageAttachment.js';
+
 // Message types for AI chat API requests
 export const apiMessageTypeSchema = z.enum([
   'chat-mate-response',
@@ -58,6 +63,7 @@ export const openRouterChatMessageSchema = z.strictObject({
 export const aiChatRequestSchema = z
   .object({
     apiKey: z.string().optional(),
+    attachments: z.array(imageAttachmentSchema).optional(),
     chatMateBackground: z.string(),
     chatMatePrompt: z.string(),
     conversationHistory: z.array(chatMessageSchema),
@@ -70,6 +76,33 @@ export const aiChatRequestSchema = z
     message: z.string().min(1),
     messageType: apiMessageTypeSchema,
     model: z.string().min(1),
+    multimodalMessage: z.array(openRouterContentSchema).optional(),
+    progressiveComplexity: z.boolean(),
+    streaming: z.boolean(),
+    systemPrompt: z.string().nullable(),
+    targetLanguage: z.string().min(1),
+    userTimezone: z.string().nullable(),
+  })
+  .strict();
+
+// AI Chat Request Wire Format Schema - for actual API calls with serialized dates
+export const aiChatRequestWireSchema = z
+  .object({
+    apiKey: z.string().optional(),
+    attachments: z.array(imageAttachmentInputSchema).optional(),
+    chatMateBackground: z.string(),
+    chatMatePrompt: z.string(),
+    conversationHistory: z.array(chatMessageSchema),
+    culturalContext: z.boolean(),
+    currentDateTime: z.string().nullable(),
+    editorMateExpertise: z.string(),
+    editorMatePrompt: z.string(),
+    enableReasoning: z.boolean(),
+    feedbackStyle: feedbackStyleSchema,
+    message: z.string().min(1),
+    messageType: apiMessageTypeSchema,
+    model: z.string().min(1),
+    multimodalMessage: z.array(openRouterContentSchema).optional(),
     progressiveComplexity: z.boolean(),
     streaming: z.boolean(),
     systemPrompt: z.string().nullable(),
@@ -225,7 +258,9 @@ export type OpenRouterContent = z.infer<typeof openRouterContentSchema>;
 /**
  *
  */
-export type OpenRouterImageContent = z.infer<typeof openRouterImageContentSchema>;
+export type OpenRouterImageContent = z.infer<
+  typeof openRouterImageContentSchema
+>;
 /**
  *
  */
@@ -234,7 +269,9 @@ export type OpenRouterMessage = z.infer<typeof openRouterMessageSchema>;
 /**
  *
  */
-export type OpenRouterMessageContent = z.infer<typeof openRouterMessageContentSchema>;
+export type OpenRouterMessageContent = z.infer<
+  typeof openRouterMessageContentSchema
+>;
 /**
  *
  */

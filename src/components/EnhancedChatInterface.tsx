@@ -2,6 +2,7 @@ import { Bot, Loader2, MessageSquare, Send, Square, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod/v4';
 
+import type { ImageAttachment } from '@/schemas/imageAttachment';
 import type { Message, MessageMetadata } from '@/schemas/messages';
 import type {
   MessageType as PromptMessageType,
@@ -505,6 +506,7 @@ const EnhancedChatInterface = ({
   };
 
   const callAI = async (options: {
+    attachments?: ImageAttachment[];
     currentConversationId?: string;
     history: {
       content: string;
@@ -522,6 +524,7 @@ const EnhancedChatInterface = ({
     reasoning: string | undefined;
   }> => {
     const {
+      attachments,
       currentConversationId,
       history,
       message,
@@ -569,6 +572,7 @@ const EnhancedChatInterface = ({
     const response = await apiClient.aiChat(
       {
         apiKey: effectiveApiKey,
+        attachments,
         chatMateBackground:
           promptVariables.chatMateBackground ?? 'A friendly local',
         chatMatePrompt:
@@ -773,6 +777,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, editorUserMessage]);
 
       const editorUserResult = await callAI({
+        attachments: getValidImages(),
         currentConversationId,
         history: fullHistory,
         message: currentInput,
@@ -1028,6 +1033,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, editorUserMessage]);
 
       const editorUserResult = await callAI({
+        attachments: getValidImages(),
         currentConversationId,
         history: fullHistory,
         message: currentInput,
