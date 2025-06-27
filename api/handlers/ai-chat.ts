@@ -18,6 +18,7 @@ export async function aiChatHandler(req: Request): Promise<Response> {
 
     const {
       message,
+      multimodalMessage,
       conversationHistory,
       systemPrompt,
       model: originalModel,
@@ -68,7 +69,13 @@ export async function aiChatHandler(req: Request): Promise<Response> {
     if (dateTimeContext) {
       messages.push({ role: 'system', content: dateTimeContext });
     }
-    messages.push({ role: 'user', content: message });
+
+    // Use multimodal content if available, otherwise fall back to simple text message
+    if (multimodalMessage && multimodalMessage.length > 0) {
+      messages.push({ role: 'user', content: multimodalMessage as any });
+    } else {
+      messages.push({ role: 'user', content: message });
+    }
 
     const payload: Record<string, unknown> = {
       model,

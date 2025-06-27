@@ -3,7 +3,7 @@ import { z } from 'zod/v4';
 import {
   imageAttachmentInputSchema,
   imageAttachmentSchema,
-} from './imageAttachment.js';
+} from './imageAttachment.ts';
 
 // Message types for AI chat API requests
 export const apiMessageTypeSchema = z.enum([
