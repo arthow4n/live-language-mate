@@ -1,6 +1,6 @@
-import type { Model, ModelsResponse } from '@/schemas/api';
+import type { Model, ModelsResponse } from '@/schemas/api.ts';
 
-import { apiClient } from './apiClient.js';
+import { apiClient } from './apiClient.ts';
 
 /**
  * Cache for model capabilities data with TTL

@@ -8,6 +8,59 @@ import {
 import { validateApiRequest } from '../../src/utils/validation.ts';
 import { systemPrompts } from '../../src/services/prompts/templates/systemPrompts.ts';
 
+/**
+ * Check if a model supports image inputs by querying the OpenRouter models API
+ */
+async function checkModelSupportsImages(
+  modelId: string,
+  apiKey: string
+): Promise<boolean> {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      // If we can't check capabilities, allow the request to proceed
+      return true;
+    }
+
+    const data: unknown = await response.json();
+
+    // Basic validation of response structure
+    if (typeof data === 'object' && data !== null && 'data' in data) {
+      const models = (data as { data: any[] }).data;
+
+      if (Array.isArray(models)) {
+        const model = models.find((m: any) => m.id === modelId);
+
+        if (model && typeof model === 'object' && 'architecture' in model) {
+          const arch = model.architecture;
+          if (
+            typeof arch === 'object' &&
+            arch !== null &&
+            'input_modalities' in arch
+          ) {
+            const modalities = arch.input_modalities;
+            if (Array.isArray(modalities)) {
+              return modalities.includes('image');
+            }
+          }
+        }
+      }
+    }
+
+    // If we can't determine capabilities, allow the request to proceed
+    return true;
+  } catch {
+    // If API call fails, allow the request to proceed
+    return true;
+  }
+}
+
 export async function aiChatHandler(req: Request): Promise<Response> {
   try {
     // Strict validation with no defaults - BREAKING CHANGE
@@ -52,6 +105,19 @@ export async function aiChatHandler(req: Request): Promise<Response> {
     }
 
     const finalSystemPrompt = systemPrompt;
+
+    // Validate model capabilities for multimodal content
+    if (multimodalMessage && multimodalMessage.length > 0) {
+      const supportsImages = await checkModelSupportsImages(
+        model,
+        openRouterApiKey
+      );
+      if (!supportsImages) {
+        throw new Error(
+          `Model ${model} does not support image inputs. Please select a model that supports multimodal content or remove the attached images.`
+        );
+      }
+    }
 
     const messages = [
       // Conversation history is less likely to change, put it at the beginning to improve implicit caching.
