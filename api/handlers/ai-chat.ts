@@ -1,6 +1,6 @@
 import {
-  aiChatRequestSchema,
-  type AiChatRequest,
+  aiChatRequestWireSchema,
+  type AiChatRequestWire,
   type AiChatStreamResponse,
   openRouterNonStreamingResponseSchema,
   openRouterStreamingResponseSchema,
@@ -66,8 +66,8 @@ export async function aiChatHandler(req: Request): Promise<Response> {
     // Strict validation with no defaults - BREAKING CHANGE
     const requestData = (await validateApiRequest(
       req,
-      aiChatRequestSchema
-    )) as AiChatRequest;
+      aiChatRequestWireSchema
+    )) as AiChatRequestWire;
 
     const {
       message,

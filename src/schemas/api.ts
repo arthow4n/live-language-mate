@@ -210,6 +210,10 @@ export type AiChatRequest = z.infer<typeof aiChatRequestSchema>;
 /**
  *
  */
+export type AiChatRequestWire = z.infer<typeof aiChatRequestWireSchema>;
+/**
+ *
+ */
 export type AiChatStreamResponse = z.infer<typeof aiChatStreamResponseSchema>;
 /**
  *
