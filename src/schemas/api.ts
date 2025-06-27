@@ -126,28 +126,56 @@ export const aiChatNonStreamResponseSchema = z
   })
   .strict();
 
-// Models API Schemas
+// Models API Schemas - Updated to match OpenRouter API format
+export const modelArchitectureSchema = z
+  .object({
+    input_modalities: z.array(z.string()),
+    instruct_type: z.string().nullable(),
+    output_modalities: z.array(z.string()),
+    tokenizer: z.string(),
+  })
+  .strict();
+
 export const modelPricingSchema = z
   .object({
     completion: z.string(),
+    image: z.string(),
+    input_cache_read: z.string(),
+    input_cache_write: z.string(),
+    internal_reasoning: z.string(),
     prompt: z.string(),
+    request: z.string(),
+    web_search: z.string(),
+  })
+  .strict();
+
+export const topProviderSchema = z
+  .object({
+    context_length: z.number(),
+    is_moderated: z.boolean(),
+    max_completion_tokens: z.number(),
   })
   .strict();
 
 export const modelSchema = z
   .object({
-    context_length: z.number().optional(),
-    description: z.string().optional(),
+    architecture: modelArchitectureSchema,
+    canonical_slug: z.string(),
+    context_length: z.number(),
+    created: z.number(),
+    description: z.string(),
     id: z.string(),
     name: z.string(),
-    pricing: modelPricingSchema.optional(),
+    per_request_limits: z.unknown().nullable(),
+    pricing: modelPricingSchema,
+    supported_parameters: z.array(z.string()),
+    top_provider: topProviderSchema,
   })
   .strict();
 
 export const modelsResponseSchema = z
   .object({
-    fallback: z.boolean().optional(),
-    models: z.array(modelSchema),
+    data: z.array(modelSchema),
   })
   .strict();
 
@@ -207,7 +235,19 @@ export type Model = z.infer<typeof modelSchema>;
 /**
  *
  */
+export type ModelArchitecture = z.infer<typeof modelArchitectureSchema>;
+/**
+ *
+ */
+export type ModelPricing = z.infer<typeof modelPricingSchema>;
+/**
+ *
+ */
 export type ModelsResponse = z.infer<typeof modelsResponseSchema>;
+/**
+ *
+ */
+export type TopProvider = z.infer<typeof topProviderSchema>;
 
 // OpenRouter API response schemas for external API validation
 export const openRouterStreamingDeltaSchema = z.looseObject({

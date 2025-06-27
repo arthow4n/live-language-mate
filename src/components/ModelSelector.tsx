@@ -32,8 +32,9 @@ interface ModelSelectorProps {
  */
 interface OpenRouterModel {
   architecture?: {
-    instruct_type?: string;
-    modality: string;
+    input_modalities: string[];
+    instruct_type?: null | string;
+    output_modalities: string[];
     tokenizer: string;
   };
   context_length?: number;
@@ -66,7 +67,7 @@ const ModelSelector = ({
         const data = await apiClient.getModels();
 
         // Filter out models that don't have required properties
-        const validModels = data.models.filter(
+        const validModels = data.data.filter(
           (model: unknown): model is OpenRouterModel =>
             typeof model === 'object' &&
             model !== null &&
