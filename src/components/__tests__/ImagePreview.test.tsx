@@ -6,6 +6,7 @@ import { expectToBeInstanceOf } from '@/__tests__/typedExpectHelpers';
 
 import type { ImageAttachment } from '../../schemas/imageAttachment';
 
+import { IMAGE_ERROR_CODES, ImageError } from '../../services/errorHandling';
 import { ImagePreview } from '../ImagePreview';
 
 describe('ImagePreview', () => {
@@ -98,7 +99,11 @@ describe('ImagePreview', () => {
   test('shows error state when error prop is provided', () => {
     render(
       <ImagePreview
-        error="Upload failed"
+        error={
+          new ImageError('Upload failed', {
+            code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
+          })
+        }
         image={mockImage}
         onRetry={mockOnRetry}
         src="data:image/jpeg;base64,test"
@@ -142,7 +147,11 @@ describe('ImagePreview', () => {
 
     render(
       <ImagePreview
-        error="Upload failed"
+        error={
+          new ImageError('Upload failed', {
+            code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
+          })
+        }
         image={mockImage}
         onRetry={mockOnRetry}
         src="invalid-src"
@@ -180,7 +189,11 @@ describe('ImagePreview', () => {
 
     render(
       <ImagePreview
-        error="Previous error"
+        error={
+          new ImageError('Previous error', {
+            code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
+          })
+        }
         image={mockImage}
         isLoading={true}
         onRemove={mockOnRemove}
@@ -281,7 +294,16 @@ describe('ImagePreview', () => {
   });
 
   test('does not show retry button when onRetry is not provided', () => {
-    render(<ImagePreview error="Some error" image={mockImage} />);
+    render(
+      <ImagePreview
+        error={
+          new ImageError('Some error', {
+            code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
+          })
+        }
+        image={mockImage}
+      />
+    );
 
     // Should show error state but no retry button
     expect(screen.getByTestId('error-state')).toBeInTheDocument();

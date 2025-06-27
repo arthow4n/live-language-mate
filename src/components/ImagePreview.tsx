@@ -4,8 +4,10 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.js';
 
 import type { ImageAttachment } from '../schemas/imageAttachment.js';
+import type { ImageError } from '../services/errorHandling.js';
 
 import { formatFileSize } from '../services/imageUtils.js';
+import { LazyImage } from './LazyImage.js';
 import { Button } from './ui/button.js';
 
 /**
@@ -13,7 +15,7 @@ import { Button } from './ui/button.js';
  */
 export interface ImagePreviewProps {
   className?: string;
-  error?: string;
+  error?: ImageError;
   image: ImageAttachment;
   isLoading?: boolean;
   onRemove?: (imageId: string) => void;
@@ -148,14 +150,13 @@ export function ImagePreview({
 
       {/* Image */}
       {src && !hasError && (
-        <img
+        <LazyImage
           alt={image.filename}
           className={cn(
             'object-cover rounded-md',
             sizeClasses.image,
             showLoader && 'opacity-0'
           )}
-          draggable={false}
           onError={handleImageError}
           onLoad={handleImageLoad}
           src={src}

@@ -72,7 +72,8 @@ describe('ImageMessage', () => {
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
-    const image = screen.getByRole('button');
+    const button = screen.getByRole('button');
+    const image = button.querySelector('img');
     expect(image).toHaveAttribute('src', 'blob:test-url');
     expect(image).toHaveAttribute('alt', 'test.jpg');
 

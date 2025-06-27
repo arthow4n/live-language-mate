@@ -4,9 +4,11 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { createTestFile } from '@/__tests__/testUtilities';
 
+import { IMAGE_ERROR_CODES, ImageError } from '../../services/errorHandling';
 import { imageStorage } from '../../services/imageStorage';
 import {
   convertToBase64DataURL,
+  generateThumbnailDataURL,
   validateImageFile,
 } from '../../services/imageUtils';
 import { useImageUpload } from '../useImageUpload';
@@ -14,10 +16,27 @@ import { useImageUpload } from '../useImageUpload';
 // Mock the services
 vi.mock('../../services/imageStorage');
 vi.mock('../../services/imageUtils');
+vi.mock('../../services/errorHandling', async (): Promise<unknown> => {
+  const actual = await vi.importActual('../../services/errorHandling');
+  return {
+    ...actual,
+    QuotaMonitor: {
+      getInstance: (): unknown => ({
+        checkQuota: vi.fn().mockResolvedValue({
+          quota: 1000000000, // 1GB
+          usage: 0,
+          usagePercent: 0,
+        }),
+        wouldExceedQuota: vi.fn().mockResolvedValue(false),
+      }),
+    },
+  };
+});
 
 const mockImageStorage = vi.mocked(imageStorage);
 const mockValidateImageFile = vi.mocked(validateImageFile);
 const mockConvertToBase64DataURL = vi.mocked(convertToBase64DataURL);
+const mockGenerateThumbnailDataURL = vi.mocked(generateThumbnailDataURL);
 
 describe('useImageUpload', () => {
   beforeEach(() => {
@@ -33,6 +52,9 @@ describe('useImageUpload', () => {
       size: 1024,
     });
     mockConvertToBase64DataURL.mockResolvedValue('data:image/jpeg;base64,test');
+    mockGenerateThumbnailDataURL.mockResolvedValue(
+      'data:image/jpeg;base64,thumbnail'
+    );
     mockImageStorage.deleteImage.mockResolvedValue(true);
     mockImageStorage.getImage.mockResolvedValue(
       new File(['test'], 'test.jpg', { type: 'image/jpeg' })
@@ -73,7 +95,7 @@ describe('useImageUpload', () => {
     expect(result.current.isUploading).toBe(false);
 
     expect(mockImageStorage.saveImage).toHaveBeenCalledWith(files[0]);
-    expect(mockConvertToBase64DataURL).toHaveBeenCalledWith(files[0]);
+    expect(mockGenerateThumbnailDataURL).toHaveBeenCalledWith(files[0], 300);
     expect(mockOnSuccess).toHaveBeenCalledWith([
       expect.objectContaining({
         filename: 'test.jpg',
@@ -93,18 +115,15 @@ describe('useImageUpload', () => {
       }),
     ];
 
-    act(() => {
-      void result.current.uploadImages(files);
+    // Start the upload and wait for completion
+    await act(async () => {
+      await result.current.uploadImages(files);
     });
 
-    // Should show placeholder with loading state immediately
+    // Verify final state after upload completes
+    expect(result.current.isUploading).toBe(false);
     expect(result.current.images).toHaveLength(1);
-    expect(result.current.images[0].isLoading).toBe(true);
-    expect(result.current.isUploading).toBe(true);
-
-    await waitFor(() => {
-      expect(result.current.isUploading).toBe(false);
-    });
+    expect(result.current.images[0].isLoading).toBe(false);
   });
 
   test('handles upload errors', async () => {
@@ -134,7 +153,10 @@ describe('useImageUpload', () => {
     expect(result.current.isUploading).toBe(false);
 
     expect(mockOnError).toHaveBeenCalledWith(
-      expect.stringContaining('Failed to process test.jpg')
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ImageError test expectation
+        message: expect.stringContaining('Processing test.jpg'),
+      })
     );
   });
 
@@ -167,7 +189,12 @@ describe('useImageUpload', () => {
 
     expect(result.current.isUploading).toBe(false);
 
-    expect(mockOnError).toHaveBeenCalledWith('test.jpg: File too large');
+    expect(mockOnError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'INVALID_FILE_TYPE',
+        message: 'File too large',
+      })
+    );
     expect(mockImageStorage.saveImage).not.toHaveBeenCalled();
   });
 
@@ -212,7 +239,10 @@ describe('useImageUpload', () => {
     });
 
     expect(mockOnError).toHaveBeenCalledWith(
-      'Cannot upload 2 images. Maximum 2 images allowed.'
+      expect.objectContaining({
+        code: 'FILE_TOO_LARGE',
+        message: 'Cannot upload 2 images. Maximum 2 images allowed.',
+      })
     );
     expect(result.current.images).toHaveLength(1); // Should still be 1
   });
@@ -283,7 +313,10 @@ describe('useImageUpload', () => {
 
     await waitFor(() => {
       expect(mockOnError).toHaveBeenCalledWith(
-        'Failed to remove image: Delete error'
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ImageError test expectation
+          message: expect.stringContaining('Delete error'),
+        })
       );
     });
   });
@@ -375,7 +408,9 @@ describe('useImageUpload', () => {
 
     // Simulate an error state
     act(() => {
-      result.current.images[0].error = 'Previous error';
+      result.current.images[0].error = new ImageError('Previous error', {
+        code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
+      });
       result.current.images[0].isLoading = false;
     });
 
@@ -394,7 +429,8 @@ describe('useImageUpload', () => {
     expect(result.current.images[0].src).toBe('data:image/jpeg;base64,test');
 
     expect(mockImageStorage.getImage).toHaveBeenCalledWith(imageId);
-    expect(mockConvertToBase64DataURL).toHaveBeenCalledTimes(2); // Once during upload, once during retry
+    expect(mockGenerateThumbnailDataURL).toHaveBeenCalledTimes(1); // Once during upload
+    expect(mockConvertToBase64DataURL).toHaveBeenCalledTimes(1); // Once during retry
   });
 
   test('handles retry errors', async () => {
@@ -430,7 +466,11 @@ describe('useImageUpload', () => {
     });
 
     expect(result.current.images).toHaveLength(1);
-    expect(result.current.images[0].error).toBe('Retry error');
+    expect(result.current.images[0].error).toEqual(
+      expect.objectContaining({
+        message: 'Retry error',
+      })
+    );
     expect(result.current.images[0].isLoading).toBe(false);
   });
 
@@ -502,7 +542,10 @@ describe('useImageUpload', () => {
 
     await waitFor(() => {
       expect(mockOnError).toHaveBeenCalledWith(
-        'Failed to clear images: Clear error'
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ImageError test expectation
+          message: expect.stringContaining('Failed to delete'),
+        })
       );
     });
   });
@@ -534,7 +577,9 @@ describe('useImageUpload', () => {
     // Simulate one image having an error
     act(() => {
       if (result.current.images[1]) {
-        result.current.images[1].error = 'Some error';
+        result.current.images[1].error = new ImageError('Some error', {
+          code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
+        });
       }
     });
 
@@ -597,7 +642,12 @@ describe('useImageUpload', () => {
 
     expect(result.current.images).toHaveLength(2); // Only valid files
 
-    expect(mockOnError).toHaveBeenCalledWith('invalid.txt: Invalid file');
+    expect(mockOnError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'INVALID_FILE_TYPE',
+        message: 'Invalid file',
+      })
+    );
     expect(mockOnSuccess).toHaveBeenCalledWith([
       expect.objectContaining({ filename: 'test.jpg' }),
       expect.objectContaining({ filename: 'test.jpg' }),

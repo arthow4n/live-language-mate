@@ -7,6 +7,7 @@ import type { ImageAttachment } from '../schemas/imageAttachment.js';
 
 import { imageStorage } from '../services/imageStorage.js';
 import { formatFileSize } from '../services/imageUtils.js';
+import { LazyImage } from './LazyImage.js';
 
 /**
  *
@@ -245,12 +246,8 @@ function ImageItem({
       {/* Image */}
       {imageUrl && !isLoading && !hasError && (
         <>
-          <img
-            alt={attachment.filename}
-            className={cn(
-              'w-full object-cover cursor-pointer transition-transform duration-200 hover:scale-105',
-              sizeClasses.image
-            )}
+          <div
+            className="cursor-pointer"
             onClick={() => {
               onImageClick(attachment);
             }}
@@ -261,9 +258,17 @@ function ImageItem({
               }
             }}
             role="button"
-            src={imageUrl}
             tabIndex={0}
-          />
+          >
+            <LazyImage
+              alt={attachment.filename}
+              className={cn(
+                'w-full object-cover transition-transform duration-200 hover:scale-105',
+                sizeClasses.image
+              )}
+              src={imageUrl}
+            />
+          </div>
 
           {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 cursor-pointer flex items-center justify-center opacity-0 group-hover:opacity-100">

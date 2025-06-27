@@ -93,7 +93,7 @@ const EnhancedChatInterface = ({
     maxImages: 5,
     onError: (error) => {
       toast({
-        description: error,
+        description: error.getUserMessage(),
         title: 'Image Upload Error',
         variant: 'destructive',
       });

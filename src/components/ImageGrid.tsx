@@ -4,6 +4,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.js';
 
 import type { ImageAttachment } from '../schemas/imageAttachment.js';
+import type { ImageError } from '../services/errorHandling.js';
 
 import { ImagePreview } from './ImagePreview.js';
 
@@ -11,7 +12,7 @@ import { ImagePreview } from './ImagePreview.js';
  *
  */
 export interface ImageGridItem {
-  error?: string;
+  error?: ImageError;
   image: ImageAttachment;
   isLoading?: boolean;
   src?: string;
@@ -61,11 +62,11 @@ export function ImageGrid({
 
   const handleDragStart = (event: React.DragEvent, index: number): void => {
     if (!allowReorder || !onReorder) return;
-    
+
     setDraggedIndex(index);
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', index.toString());
-    
+
     // Create a custom drag image
     const dragImage = event.currentTarget.cloneNode(true);
     if (!(dragImage instanceof HTMLElement)) return;
@@ -81,7 +82,7 @@ export function ImageGrid({
 
   const handleDragOver = (event: React.DragEvent, index: number): void => {
     if (!allowReorder || !onReorder || draggedIndex === null) return;
-    
+
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     setDragOverIndex(index);
@@ -93,35 +94,39 @@ export function ImageGrid({
 
   const handleDrop = (event: React.DragEvent, index: number): void => {
     if (!allowReorder || !onReorder || draggedIndex === null) return;
-    
+
     event.preventDefault();
-    
+
     if (draggedIndex !== index) {
       onReorder(draggedIndex, index);
     }
-    
+
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
 
   const getGridCols = (): string => {
     const cols = Math.min(items.length, maxColumns);
-    return {
-      1: 'grid-cols-1',
-      2: 'grid-cols-2',
-      3: 'grid-cols-3',
-      4: 'grid-cols-4',
-      5: 'grid-cols-5',
-      6: 'grid-cols-6',
-    }[cols] ?? 'grid-cols-4';
+    return (
+      {
+        1: 'grid-cols-1',
+        2: 'grid-cols-2',
+        3: 'grid-cols-3',
+        4: 'grid-cols-4',
+        5: 'grid-cols-5',
+        6: 'grid-cols-6',
+      }[cols] ?? 'grid-cols-4'
+    );
   };
 
   if (items.length === 0) {
     return (
-      <div className={cn(
-        'flex items-center justify-center p-8 text-center text-muted-foreground border-2 border-dashed border-muted rounded-lg',
-        className
-      )}>
+      <div
+        className={cn(
+          'flex items-center justify-center p-8 text-center text-muted-foreground border-2 border-dashed border-muted rounded-lg',
+          className
+        )}
+      >
         <div>
           <div className="text-lg font-medium mb-2">No images</div>
           <div className="text-sm">Upload or drag images to get started</div>
@@ -131,13 +136,7 @@ export function ImageGrid({
   }
 
   return (
-    <div
-      className={cn(
-        'grid gap-4',
-        getGridCols(),
-        className
-      )}
-    >
+    <div className={cn('grid gap-4', getGridCols(), className)}>
       {items.map((item, index) => (
         <div
           className={cn(
@@ -145,15 +144,23 @@ export function ImageGrid({
             allowReorder && onReorder && 'cursor-move',
             draggedIndex === index && 'opacity-50 scale-95',
             dragOverIndex === index && draggedIndex !== null && 'scale-105',
-            dragOverIndex === index && draggedIndex !== index && 'ring-2 ring-primary'
+            dragOverIndex === index &&
+              draggedIndex !== index &&
+              'ring-2 ring-primary'
           )}
           draggable={!!(allowReorder && onReorder)}
           key={item.image.id}
           onDragEnd={handleDragEnd}
           onDragLeave={handleDragLeave}
-          onDragOver={(e) => { handleDragOver(e, index); }}
-          onDragStart={(e) => { handleDragStart(e, index); }}
-          onDrop={(e) => { handleDrop(e, index); }}
+          onDragOver={(e) => {
+            handleDragOver(e, index);
+          }}
+          onDragStart={(e) => {
+            handleDragStart(e, index);
+          }}
+          onDrop={(e) => {
+            handleDrop(e, index);
+          }}
         >
           {/* Drag Handle */}
           {allowReorder && onReorder && (
@@ -177,9 +184,11 @@ export function ImageGrid({
           />
 
           {/* Drop Indicator */}
-          {dragOverIndex === index && draggedIndex !== null && draggedIndex !== index && (
-            <div className="absolute inset-0 border-2 border-primary rounded-lg pointer-events-none" />
-          )}
+          {dragOverIndex === index &&
+            draggedIndex !== null &&
+            draggedIndex !== index && (
+              <div className="absolute inset-0 border-2 border-primary rounded-lg pointer-events-none" />
+            )}
         </div>
       ))}
     </div>
