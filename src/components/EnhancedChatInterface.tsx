@@ -719,8 +719,6 @@ const EnhancedChatInterface = ({
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = inputMessage.trim();
     setInputMessage('');
-    // Clear uploaded images after adding to message
-    clearImages();
     setIsLoading(true);
 
     if (!currentConversationId) {
@@ -777,7 +775,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, editorUserMessage]);
 
       const editorUserResult = await callAI({
-        attachments: getValidImages(),
+        attachments,
         currentConversationId,
         history: fullHistory,
         message: currentInput,
@@ -939,6 +937,8 @@ const EnhancedChatInterface = ({
       setIsLoading(false);
       setIsCreatingNewConversation(false);
       setAbortController(null);
+      // Clear uploaded images after all AI operations complete
+      clearImages();
     }
   };
 
@@ -985,8 +985,6 @@ const EnhancedChatInterface = ({
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = inputMessage.trim();
     setInputMessage('');
-    // Clear uploaded images after adding to message
-    clearImages();
     setIsLoading(true);
 
     if (!currentConversationId) {
@@ -1033,7 +1031,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, editorUserMessage]);
 
       const editorUserResult = await callAI({
-        attachments: getValidImages(),
+        attachments,
         currentConversationId,
         history: fullHistory,
         message: currentInput,
@@ -1095,6 +1093,8 @@ const EnhancedChatInterface = ({
       setIsLoading(false);
       setIsCreatingNewConversation(false);
       setAbortController(null);
+      // Clear uploaded images after all AI operations complete
+      clearImages();
     }
   };
 
