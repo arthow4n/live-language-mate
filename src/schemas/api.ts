@@ -127,55 +127,47 @@ export const aiChatNonStreamResponseSchema = z
   .strict();
 
 // Models API Schemas - Updated to match OpenRouter API format
-export const modelArchitectureSchema = z
-  .object({
-    input_modalities: z.array(z.string()),
-    instruct_type: z.string().nullable(),
-    output_modalities: z.array(z.string()),
-    tokenizer: z.string(),
-  })
-  .strict();
+export const modelArchitectureSchema = z.looseObject({
+  input_modalities: z.array(z.string()),
+  instruct_type: z.string().nullable(),
+  output_modalities: z.array(z.string()),
+  tokenizer: z.string(),
+});
 
-export const modelPricingSchema = z
-  .object({
-    completion: z.string(),
-    image: z.string(),
-    input_cache_read: z.string(),
-    input_cache_write: z.string(),
-    internal_reasoning: z.string(),
-    prompt: z.string(),
-    request: z.string(),
-    web_search: z.string(),
-  })
-  .strict();
+export const modelPricingSchema = z.looseObject({
+  completion: z.string().nullish(),
+  image: z.string().nullish(),
+  input_cache_read: z.string().nullish(),
+  input_cache_write: z.string().nullish(),
+  internal_reasoning: z.string().nullish(),
+  prompt: z.string().nullish(),
+  request: z.string().nullish(),
+  web_search: z.string().nullish(),
+});
 
-export const topProviderSchema = z
-  .object({
-    context_length: z.number(),
-    is_moderated: z.boolean(),
-    max_completion_tokens: z.number(),
-  })
-  .strict();
+export const topProviderSchema = z.looseObject({
+  context_length: z.number().nullish(),
+  is_moderated: z.boolean().nullish(),
+  max_completion_tokens: z.number().nullish(),
+});
 
-export const modelSchema = z
-  .object({
-    architecture: modelArchitectureSchema,
-    canonical_slug: z.string(),
-    context_length: z.number(),
-    created: z.number(),
-    description: z.string(),
-    id: z.string(),
-    name: z.string(),
-    per_request_limits: z.unknown().nullable(),
-    pricing: modelPricingSchema,
-    supported_parameters: z.array(z.string()),
-    top_provider: topProviderSchema,
-  })
-  .strict();
+export const modelSchema = z.looseObject({
+  architecture: modelArchitectureSchema,
+  canonical_slug: z.string(),
+  context_length: z.number(),
+  created: z.number(),
+  description: z.string(),
+  id: z.string(),
+  name: z.string(),
+  per_request_limits: z.unknown().nullable(),
+  pricing: modelPricingSchema,
+  supported_parameters: z.array(z.string()),
+  top_provider: topProviderSchema,
+});
 
 export const modelsResponseSchema = z
   .object({
-    data: z.array(modelSchema),
+    models: z.array(modelSchema),
   })
   .strict();
 

@@ -75,7 +75,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
 
     // Mock models API to return image-capable model
     const mockModelsResponse: ModelsResponse = {
-      data: [
+      models: [
         {
           architecture: {
             input_modalities: ['text', 'image'],
@@ -200,7 +200,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
   test('handles model capability validation failure', async () => {
     // Mock models API to return text-only model
     const mockModelsResponse: ModelsResponse = {
-      data: [
+      models: [
         {
           architecture: {
             input_modalities: ['text'], // No image support
@@ -274,7 +274,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
     server.use(
       http.get('http://*/models', () => {
         return HttpResponse.json({
-          data: [
+          models: [
             {
               architecture: { input_modalities: ['text', 'image'] },
               id: 'google/gemini-2.5-flash',
@@ -362,7 +362,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
 
   test('integrates caching behavior across multiple requests', async () => {
     const mockModelsResponse: ModelsResponse = {
-      data: [
+      models: [
         {
           architecture: {
             input_modalities: ['text', 'image'],
@@ -498,7 +498,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
     server.use(
       http.get('http://*/models', () => {
         return HttpResponse.json({
-          data: [
+          models: [
             {
               architecture: { input_modalities: ['text', 'image'] },
               id: 'google/gemini-2.5-flash',

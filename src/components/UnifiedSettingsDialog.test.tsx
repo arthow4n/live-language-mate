@@ -514,7 +514,7 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Mock the apiClient.getModels() function
     const mockApiClient = await import('@/services/apiClient');
     vi.spyOn(mockApiClient.apiClient, 'getModels').mockResolvedValue({
-      data: [
+      models: [
         {
           architecture: {
             input_modalities: ['text'],

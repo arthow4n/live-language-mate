@@ -80,7 +80,7 @@ describe('ModelCapabilities Service', () => {
   };
 
   const mockModelsResponse: ModelsResponse = {
-    data: [mockModelWithImages, mockModelTextOnly],
+    models: [mockModelWithImages, mockModelTextOnly],
   };
 
   beforeEach(() => {

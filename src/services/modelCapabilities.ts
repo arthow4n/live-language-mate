@@ -55,7 +55,7 @@ class ModelCapabilitiesService {
 
     try {
       const response: ModelsResponse = await apiClient.getModels();
-      this.cache.data = response.data;
+      this.cache.data = response.models;
       this.cache.timestamp = now;
       return this.cache.data;
     } catch (error) {

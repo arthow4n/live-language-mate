@@ -31,24 +31,9 @@ interface ModelSelectorProps {
  *
  */
 interface OpenRouterModel {
-  architecture?: {
-    input_modalities: string[];
-    instruct_type?: null | string;
-    output_modalities: string[];
-    tokenizer: string;
-  };
-  context_length?: number;
   description?: string;
   id: string;
   name: string;
-  pricing?: {
-    completion: string;
-    prompt: string;
-  };
-  top_provider?: {
-    context_length: number;
-    max_completion_tokens?: number;
-  };
 }
 
 const ModelSelector = ({
@@ -65,19 +50,7 @@ const ModelSelector = ({
       setLoading(true);
       try {
         const data = await apiClient.getModels();
-
-        // Filter out models that don't have required properties
-        const validModels = data.data.filter(
-          (model: unknown): model is OpenRouterModel =>
-            typeof model === 'object' &&
-            model !== null &&
-            'id' in model &&
-            'name' in model &&
-            'id' in model &&
-            typeof model.id === 'string' &&
-            typeof model.name === 'string'
-        );
-        setModels(validModels);
+        setModels(data.models);
       } catch (error) {
         logError('Failed to load models:', error);
         // Set fallback models on error
