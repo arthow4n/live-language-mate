@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { z } from 'zod/v4';
 
 import { Toaster } from '@/components/ui/toaster';
@@ -9,6 +9,11 @@ import { UnifiedStorageProvider } from '@/contexts/UnifiedStorageContext';
 
 import { server } from '../__tests__/setup';
 import EnhancedChatInterface from './EnhancedChatInterface';
+
+// Mock the useImageUpload hook at module level
+vi.mock('../hooks/useImageUpload', () => ({
+  useImageUpload: vi.fn(),
+}));
 
 const TestWrapper = ({
   children,
@@ -22,9 +27,23 @@ const TestWrapper = ({
 );
 
 describe('EnhancedChatInterface Integration Tests', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear();
     server.resetHandlers();
+
+    // Set up default mock for useImageUpload
+    const { useImageUpload } = await import('../hooks/useImageUpload');
+    vi.mocked(useImageUpload).mockReturnValue({
+      cleanup: vi.fn(),
+      clearImages: vi.fn(),
+      getValidImages: vi.fn(() => []),
+      images: [],
+      isUploading: false,
+      removeImage: vi.fn(),
+      reorderImages: vi.fn(),
+      retryImage: vi.fn(),
+      uploadImages: vi.fn(),
+    });
 
     // Mock ResizeObserver for ModelSelector component
     global.ResizeObserver = class ResizeObserver {
@@ -625,6 +644,223 @@ describe('EnhancedChatInterface Integration Tests', () => {
     expect(screen.getByText('Hej! Jag mår bra, tack.')).toBeInTheDocument();
     expect(
       screen.getByText('Editor feedback on chat mate response.')
+    ).toBeInTheDocument();
+  });
+
+  test('sends image attachments to both editor mate and chat mate in full conversation flow', async () => {
+    const user = userEvent.setup();
+
+    // Track API calls and their attachments
+    const apiCalls: {
+      attachments?: unknown;
+      messageType: string;
+    }[] = [];
+
+    // Mock image attachments for testing - using correct ImageAttachment schema
+    const mockImageAttachment = {
+      filename: 'test-image.jpg',
+      id: 'test-image-1',
+      mimeType: 'image/jpeg' as const,
+      savedAt: new Date('2024-01-01T00:00:00.000Z'),
+      size: 1024,
+    };
+
+    // Mock ImageUploadItem for the images array
+    const mockImageUploadItem = {
+      error: undefined,
+      image: mockImageAttachment,
+      isLoading: false,
+      retryCount: 0,
+      src: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDAREAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDX/9k=',
+    };
+
+    // Mock useImageUpload hook to provide test image attachments
+    const mockUseImageUpload = {
+      cleanup: vi.fn(),
+      clearImages: vi.fn(),
+      getValidImages: vi.fn(() => [mockImageAttachment]),
+      images: [mockImageUploadItem],
+      isUploading: false,
+      removeImage: vi.fn(),
+      reorderImages: vi.fn(),
+      retryImage: vi.fn(),
+      uploadImages: vi.fn(),
+    };
+
+    // Set up the mock implementation
+    const { useImageUpload } = await import('../hooks/useImageUpload');
+    vi.mocked(useImageUpload).mockReturnValue(mockUseImageUpload);
+
+    // Create a test conversation first to avoid new conversation flow
+    const testData = {
+      conversations: [
+        {
+          created_at: new Date('2024-01-01T00:00:00.000Z'),
+          id: 'test-conv-with-images',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Chat with Images',
+          updated_at: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {},
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional',
+        chatMatePersonality: 'friendly',
+        culturalContext: true,
+        editorMateExpertise: '10+ years',
+        editorMatePersonality: 'patient teacher',
+        enableReasoning: true,
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: true,
+        streaming: true,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    };
+
+    localStorage.setItem('language-mate-data', JSON.stringify(testData));
+
+    // Mock API to capture attachments parameter from all three AI actor calls
+    server.use(
+      http.post('http://*/ai-chat', async ({ request }) => {
+        const rawBody = await request.json();
+        const requestBodySchema = z.looseObject({
+          attachments: z.array(z.unknown()).optional(),
+          chatMateBackground: z.string().optional(),
+          chatMatePrompt: z.string().optional(),
+          editorMatePrompt: z.string().optional(),
+          messageType: z.string().optional(),
+        });
+        const body = requestBodySchema.parse(rawBody);
+
+        // Validate required fields like other tests
+        const hasRequiredFields = [
+          'chatMatePrompt',
+          'editorMatePrompt',
+          'chatMateBackground',
+        ].every((field) => field in body && body[field]);
+
+        if (!hasRequiredFields) {
+          return HttpResponse.json(
+            { error: 'Missing required fields' },
+            { status: 400 }
+          );
+        }
+
+        // Track the API call and its attachments
+        if (body.messageType) {
+          apiCalls.push({
+            attachments: body.attachments,
+            messageType: body.messageType,
+          });
+        }
+
+        // Return appropriate responses for each message type
+        switch (body.messageType) {
+          case 'chat-mate-response':
+            return HttpResponse.json({
+              reasoning: undefined,
+              response: 'Chat mate response to user message with image.',
+            });
+          case 'editor-mate-chatmate-comment':
+            return HttpResponse.json({
+              reasoning: undefined,
+              response: 'Editor feedback on chat mate response (no image).',
+            });
+          case 'editor-mate-user-comment':
+            return HttpResponse.json({
+              reasoning: undefined,
+              response: 'Editor feedback on user message with image.',
+            });
+          case undefined:
+          default:
+            return HttpResponse.json({
+              reasoning: undefined,
+              response: 'Default response',
+            });
+        }
+      })
+    );
+
+    const mockOnConversationCreated = (): void => {
+      // Mock function for test
+    };
+    const mockOnConversationUpdate = (): void => {
+      // Mock function for test
+    };
+    const mockOnTextSelect = (): void => {
+      // Mock function for test
+    };
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId="test-conv-with-images"
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    // Type and send a message (this will trigger the full conversation flow)
+    const messageInput = screen.getByTestId('message-input');
+    await user.type(messageInput, 'Here is an image to discuss!');
+
+    const sendButton = screen.getByTestId('send-button');
+    await user.click(sendButton);
+
+    // Wait for all three AI actor calls to complete
+    await waitFor(
+      () => {
+        expect(apiCalls).toHaveLength(3);
+      },
+      { timeout: 10000 }
+    );
+
+    // Verify the sequence and attachments for each AI actor call
+    expect(apiCalls).toHaveLength(3);
+
+    // 1. Editor Mate commenting on user message - should have attachments
+    const editorMateUserCall = apiCalls.find(
+      (call) => call.messageType === 'editor-mate-user-comment'
+    );
+    expect(editorMateUserCall).toBeDefined();
+    expect(editorMateUserCall?.attachments).toBeDefined();
+    expect(editorMateUserCall?.attachments).toHaveLength(1);
+
+    // 2. Chat Mate responding to user - should have attachments (this was the bug!)
+    const chatMateCall = apiCalls.find(
+      (call) => call.messageType === 'chat-mate-response'
+    );
+    expect(chatMateCall).toBeDefined();
+    expect(chatMateCall?.attachments).toBeDefined();
+    expect(chatMateCall?.attachments).toHaveLength(1);
+
+    // 3. Editor Mate commenting on Chat Mate - should NOT have attachments (correct behavior)
+    const editorMateChatMateCall = apiCalls.find(
+      (call) => call.messageType === 'editor-mate-chatmate-comment'
+    );
+    expect(editorMateChatMateCall).toBeDefined();
+    expect(editorMateChatMateCall?.attachments).toBeUndefined();
+
+    // Verify the responses appear in the UI
+    expect(
+      screen.getByText('Here is an image to discuss!')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Editor feedback on user message with image.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Chat mate response to user message with image.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Editor feedback on chat mate response (no image).')
     ).toBeInTheDocument();
   });
 });
