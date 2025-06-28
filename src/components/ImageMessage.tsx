@@ -28,7 +28,7 @@ interface ImageItemProps {
   errorImages: Set<string>;
   imageUrls: Map<string, string>;
   loadingImages: Set<string>;
-  onImageClick: (attachment: ImageAttachment) => void;
+  onImageClick: (attachment: ImageAttachment, imageUrl: string) => void;
   showMetadata: boolean;
   sizeClasses: {
     container: string;
@@ -124,10 +124,12 @@ export function ImageMessage({
   }, [imageUrls]);
 
   // Handle image click
-  const handleImageClick = (attachment: ImageAttachment): void => {
-    const url = imageUrls.get(attachment.id);
-    if (url && onImageClick) {
-      onImageClick(attachment, url);
+  const handleImageClick = (
+    attachment: ImageAttachment,
+    imageUrl: string
+  ): void => {
+    if (onImageClick) {
+      onImageClick(attachment, imageUrl);
     }
   };
 
@@ -249,12 +251,16 @@ function ImageItem({
           <div
             className="cursor-pointer"
             onClick={() => {
-              onImageClick(attachment);
+              if (imageUrl) {
+                onImageClick(attachment, imageUrl);
+              }
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onImageClick(attachment);
+                if (imageUrl) {
+                  onImageClick(attachment, imageUrl);
+                }
               }
             }}
             role="button"
