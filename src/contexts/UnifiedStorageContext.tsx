@@ -11,6 +11,7 @@ import {
 import type { LocalConversation, LocalMessage } from '@/schemas/messages';
 
 import { logError } from '@/lib/utils';
+import { parseImageAttachmentInput } from '@/schemas/imageAttachment';
 import {
   type ConversationSettings,
   conversationSettingsSchema,
@@ -160,6 +161,20 @@ export const UnifiedStorageProvider = ({
 
                       return {
                         ...msgValidation.data,
+                        // Convert attachment savedAt fields from string to Date objects
+                        attachments: Array.isArray(
+                          msgValidation.data.attachments
+                        )
+                          ? msgValidation.data.attachments
+                              .map((att: unknown) => {
+                                try {
+                                  return parseImageAttachmentInput(att);
+                                } catch {
+                                  return null;
+                                }
+                              })
+                              .filter((att: unknown) => att !== null)
+                          : undefined,
                         timestamp: new Date(msgValidation.data.timestamp),
                       };
                     }) ?? [],
