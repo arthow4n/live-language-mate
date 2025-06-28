@@ -162,17 +162,12 @@ export function ImageDropZone({
 
   return (
     <div
-      className={cn(
-        'relative',
-        'h-full',
-        disabled && 'pointer-events-none',
-        className
-      )}
+      className={cn('relative', 'h-full', className)}
       data-testid="image-drop-zone"
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
+      onDragEnter={disabled ? undefined : handleDragEnter}
+      onDragLeave={disabled ? undefined : handleDragLeave}
+      onDragOver={disabled ? undefined : handleDragOver}
+      onDrop={disabled ? undefined : handleDrop}
       ref={dropZoneRef}
     >
       {children}
