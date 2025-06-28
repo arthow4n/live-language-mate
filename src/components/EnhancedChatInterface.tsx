@@ -826,6 +826,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, chatMateMessage]);
 
       const chatMateResult = await callAI({
+        attachments,
         currentConversationId,
         history: chatMateHistory,
         message: currentInput,
