@@ -21,6 +21,7 @@ import { logError } from '@/lib/utils';
 import { apiMessageTypeSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts/promptBuilder';
+import { convertMessagesToApiFormat } from '@/utils/messageRoleMapper';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { ImageDropZone } from './ImageDropZone';
@@ -351,11 +352,7 @@ const EnhancedChatInterface = ({
       }
 
       const historyMessages = messages.slice(0, messageIndex);
-      const conversationHistory = historyMessages.map((msg) => ({
-        content: `[${msg.type}]: ${msg.content}`,
-        // Always send as user to prevent the assistant from misunderstanding its role.
-        role: 'user' as const,
-      }));
+      const conversationHistory = convertMessagesToApiFormat(historyMessages);
 
       let messageType = '';
       if (message.type === 'chat-mate') {
@@ -744,19 +741,13 @@ const EnhancedChatInterface = ({
         );
       }
 
-      const chatMateHistory = messages
-        .filter((msg) => msg.type === 'user' || msg.type === 'chat-mate')
-        .map((msg) => ({
-          content: `[${msg.type}]: ${msg.content}`,
-          // Always send as user to prevent the assistant from misunderstanding its role.
-          role: 'user' as const,
-        }));
+      const chatMateHistory = convertMessagesToApiFormat(
+        messages.filter(
+          (msg) => msg.type === 'user' || msg.type === 'chat-mate'
+        )
+      );
 
-      const fullHistory = messages.map((msg) => ({
-        content: `[${msg.type}]: ${msg.content}`,
-        // Always send as user to prevent the assistant from misunderstanding its role.
-        role: 'user' as const,
-      }));
+      const fullHistory = convertMessagesToApiFormat(messages);
 
       const editorUserTempId = `temp-${(Date.now() + 1).toString()}`;
       const chatMateTempId = `temp-${(Date.now() + 2).toString()}`;

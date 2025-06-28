@@ -22,6 +22,7 @@ import { useAIStreaming } from '@/hooks/useAIStreaming';
 import { aiChatNonStreamResponseSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts/promptBuilder';
+import { convertMessagesToApiFormat } from '@/utils/messageRoleMapper';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 
@@ -153,11 +154,7 @@ const AskInterface = ({
     response: Response | string;
     startTime?: number;
   }> => {
-    const conversationHistory = conversation.map((msg) => ({
-      content: `[${msg.type}]: ${msg.content}`,
-      // Always send as user to prevent the assistant from misunderstanding its role.
-      role: 'user' as const,
-    }));
+    const conversationHistory = convertMessagesToApiFormat(conversation);
 
     const contextMessage = editableSelectedText
       ? `The user has selected this text: "${editableSelectedText}". Answer their question about it: ${question}`
