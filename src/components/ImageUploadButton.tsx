@@ -1,4 +1,4 @@
-import { ImageIcon, Upload } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils.js';
@@ -112,7 +112,6 @@ export function ImageUploadButton({
         {children ?? (
           <>
             <ImageIcon className="h-4 w-4" />
-            <Upload className="h-4 w-4" />
             {size !== 'icon' && 'Upload Images'}
           </>
         )}
