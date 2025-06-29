@@ -3,7 +3,10 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils.js';
 
-import type { ImageAttachment } from '../schemas/imageAttachment.js';
+import type {
+  Attachment,
+  ImageAttachment,
+} from '../schemas/imageAttachment.js';
 
 import { imageStorage } from '../services/imageStorage.js';
 import { formatFileSize } from '../services/imageUtils.js';
@@ -13,7 +16,7 @@ import { LazyImage } from './LazyImage.js';
  *
  */
 export interface ImageMessageProps {
-  attachments: ImageAttachment[];
+  attachments: Attachment[];
   className?: string;
   maxPreviewSize?: 'lg' | 'md' | 'sm';
   onImageClick?: (attachment: ImageAttachment, imageUrl: string) => void;
@@ -24,11 +27,11 @@ export interface ImageMessageProps {
  *
  */
 interface ImageItemProps {
-  attachment: ImageAttachment;
+  attachment: Attachment;
   errorImages: Set<string>;
   imageUrls: Map<string, string>;
   loadingImages: Set<string>;
-  onImageClick: (attachment: ImageAttachment, imageUrl: string) => void;
+  onImageClick: (attachment: Attachment, imageUrl: string) => void;
   showMetadata: boolean;
   sizeClasses: {
     container: string;
@@ -81,7 +84,7 @@ export function ImageMessage({
 
   const sizeClasses = sizeVariants[maxPreviewSize];
 
-  // Load images from OPFS storage
+  // Load images from OPFS storage or use URL directly
   React.useEffect(() => {
     const loadImages = async (): Promise<void> => {
       for (const attachment of attachments) {
@@ -92,12 +95,20 @@ export function ImageMessage({
         setLoadingImages((prev) => new Set(prev).add(attachment.id));
 
         try {
-          const file = await imageStorage.getImage(attachment.id);
-          if (file) {
-            const url = URL.createObjectURL(file);
-            setImageUrls((prev) => new Map(prev).set(attachment.id, url));
+          if (attachment.type === 'url') {
+            // For URL attachments, use the URL directly
+            setImageUrls((prev) =>
+              new Map(prev).set(attachment.id, attachment.url)
+            );
           } else {
-            setErrorImages((prev) => new Set(prev).add(attachment.id));
+            // For file attachments, load from OPFS storage
+            const file = await imageStorage.getImage(attachment.id);
+            if (file) {
+              const url = URL.createObjectURL(file);
+              setImageUrls((prev) => new Map(prev).set(attachment.id, url));
+            } else {
+              setErrorImages((prev) => new Set(prev).add(attachment.id));
+            }
           }
         } catch {
           setErrorImages((prev) => new Set(prev).add(attachment.id));
@@ -112,6 +123,7 @@ export function ImageMessage({
     };
 
     void loadImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- imageUrls and loadingImages are intentionally excluded to avoid infinite loop
   }, [attachments]);
 
   // Cleanup object URLs on unmount
@@ -124,12 +136,24 @@ export function ImageMessage({
   }, [imageUrls]);
 
   // Handle image click
-  const handleImageClick = (
-    attachment: ImageAttachment,
-    imageUrl: string
-  ): void => {
+  const handleImageClick = (attachment: Attachment, imageUrl: string): void => {
     if (onImageClick) {
-      onImageClick(attachment, imageUrl);
+      // For URL attachments, we still pass them to onImageClick but as ImageAttachment-like objects
+      if (attachment.type === 'file') {
+        onImageClick(attachment, imageUrl);
+      } else {
+        // For URL attachments, create a compatible object for the callback
+        // This might not be ideal but maintains backward compatibility
+        const fakeImageAttachment: ImageAttachment = {
+          filename: 'url-image',
+          id: attachment.id,
+          mimeType: 'image/jpeg', // Default MIME type for URL images
+          savedAt: attachment.addedAt,
+          size: 0, // Unknown size for URL images
+          type: 'file',
+        };
+        onImageClick(fakeImageAttachment, imageUrl);
+      }
     }
   };
 
@@ -239,7 +263,7 @@ function ImageItem({
               Failed to load
             </div>
             <div className={cn('opacity-75', sizeClasses.text)}>
-              {attachment.filename}
+              {attachment.type === 'file' ? attachment.filename : 'URL Image'}
             </div>
           </div>
         </div>
@@ -250,6 +274,7 @@ function ImageItem({
         <>
           <div
             className="cursor-pointer"
+            data-testid="image-clickable"
             onClick={() => {
               if (imageUrl) {
                 onImageClick(attachment, imageUrl);
@@ -267,7 +292,9 @@ function ImageItem({
             tabIndex={0}
           >
             <LazyImage
-              alt={attachment.filename}
+              alt={
+                attachment.type === 'file' ? attachment.filename : 'URL image'
+              }
               className={cn(
                 'w-full object-cover transition-transform duration-200 hover:scale-105',
                 sizeClasses.image
@@ -277,7 +304,24 @@ function ImageItem({
           </div>
 
           {/* Hover Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 cursor-pointer flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <div
+            className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 cursor-pointer flex items-center justify-center opacity-0 group-hover:opacity-100"
+            onClick={() => {
+              if (imageUrl) {
+                onImageClick(attachment, imageUrl);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (imageUrl) {
+                  onImageClick(attachment, imageUrl);
+                }
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
             <div className="bg-white/90 rounded-full p-2">
               <Eye className="w-4 h-4 text-gray-800" />
             </div>
@@ -289,10 +333,12 @@ function ImageItem({
       {showMetadata && imageUrl && !isLoading && !hasError && (
         <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <div className={cn('truncate font-medium', sizeClasses.text)}>
-            {attachment.filename}
+            {attachment.type === 'file' ? attachment.filename : 'URL Image'}
           </div>
           <div className={cn('text-white/80', sizeClasses.text)}>
-            {formatFileSize(attachment.size)}
+            {attachment.type === 'file'
+              ? formatFileSize(attachment.size)
+              : 'External URL'}
           </div>
         </div>
       )}

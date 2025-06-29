@@ -240,6 +240,7 @@ export function useImageUpload(
             mimeType: 'image/png', // placeholder - will be updated after processing
             savedAt: new Date(),
             size: file.size,
+            type: 'file',
           },
           isLoading: true,
         }));

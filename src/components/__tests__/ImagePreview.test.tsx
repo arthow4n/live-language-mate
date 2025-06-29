@@ -19,6 +19,7 @@ describe('ImagePreview', () => {
     mimeType: 'image/jpeg',
     savedAt: new Date(),
     size: 1024 * 1024, // 1MB
+    type: 'file',
   };
 
   beforeEach(() => {

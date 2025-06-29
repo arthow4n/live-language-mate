@@ -1,9 +1,9 @@
 import type { AiChatRequest, ModelsResponse } from '@/schemas/api';
 import type { OpenRouterContent } from '@/schemas/api';
-import type { ImageAttachment } from '@/schemas/imageAttachment';
+import type { Attachment } from '@/schemas/imageAttachment';
 
 import { apiErrorResponseSchema, modelsResponseSchema } from '@/schemas/api';
-import { serializeImageAttachment } from '@/schemas/imageAttachment';
+import { serializeAttachment } from '@/schemas/imageAttachment';
 
 import {
   ErrorHandler,
@@ -40,42 +40,53 @@ async function aiChat(
 }
 
 /**
- * Converts image attachments to OpenRouter's content format with base64 data URLs
- * @param attachments - Array of image attachments to convert
+ * Converts attachments to OpenRouter's content format
+ * @param attachments - Array of attachments (files or URLs) to convert
  * @returns Promise that resolves to array of OpenRouter image content objects
  */
 async function convertAttachmentsToOpenRouterFormat(
-  attachments: ImageAttachment[]
+  attachments: Attachment[]
 ): Promise<OpenRouterContent[]> {
   const imageContents: OpenRouterContent[] = [];
   const errors: ImageError[] = [];
 
   for (const attachment of attachments) {
     try {
-      // Get the image file from OPFS storage
-      const file = await imageStorage.getImage(attachment.id);
+      if (attachment.type === 'url') {
+        // URL attachment: direct passthrough
+        const imageContent: OpenRouterContent = {
+          image_url: {
+            url: attachment.url,
+          },
+          type: 'image_url',
+        };
+        imageContents.push(imageContent);
+      } else {
+        // File attachment: get from OPFS storage and convert to base64
+        const file = await imageStorage.getImage(attachment.id);
 
-      if (!file) {
-        throw new ImageError(`Image not found in storage: ${attachment.id}`, {
-          cause: null,
-          code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
-          details: { attachmentId: attachment.id },
-          recoverable: false,
-        });
+        if (!file) {
+          throw new ImageError(`Image not found in storage: ${attachment.id}`, {
+            cause: null,
+            code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
+            details: { attachmentId: attachment.id },
+            recoverable: false,
+          });
+        }
+
+        // Convert to base64 data URL
+        const base64DataUrl = await convertToBase64DataURL(file);
+
+        // Create OpenRouter image content format
+        const imageContent: OpenRouterContent = {
+          image_url: {
+            url: base64DataUrl,
+          },
+          type: 'image_url',
+        };
+
+        imageContents.push(imageContent);
       }
-
-      // Convert to base64 data URL
-      const base64DataUrl = await convertToBase64DataURL(file);
-
-      // Create OpenRouter image content format
-      const imageContent: OpenRouterContent = {
-        image_url: {
-          url: base64DataUrl,
-        },
-        type: 'image_url',
-      };
-
-      imageContents.push(imageContent);
     } catch (error) {
       const imageError = ErrorHandler.normalizeError(
         error,
@@ -210,7 +221,7 @@ async function performAiChatRequest(
   let processedRequest = {
     ...request,
     // Always serialize attachments to match API schema
-    attachments: request.attachments?.map(serializeImageAttachment),
+    attachments: request.attachments?.map(serializeAttachment),
   };
 
   if (request.attachments && request.attachments.length > 0) {

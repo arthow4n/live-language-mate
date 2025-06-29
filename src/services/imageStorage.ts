@@ -236,6 +236,7 @@ class ImageStorageService {
         mimeType: file.type as (typeof supportedImageMimeTypes)[number],
         savedAt: new Date(),
         size: file.size,
+        type: 'file',
       };
 
       this.metadataCache.set(id, metadata);

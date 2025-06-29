@@ -68,6 +68,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
       mimeType: 'image/png',
       savedAt: new Date(),
       size: 2048,
+      type: 'file',
     };
 
     // Mock OPFS storage
@@ -265,6 +266,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
       mimeType: 'image/jpeg',
       savedAt: new Date(),
       size: 1024,
+      type: 'file',
     };
 
     // Mock image storage failure
@@ -463,6 +465,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
         mimeType: 'image/png',
         savedAt: new Date(),
         size: 1024,
+        type: 'file',
       },
       {
         filename: 'image2.jpg',
@@ -470,6 +473,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 2048,
+        type: 'file',
       },
       {
         filename: 'image3.webp',
@@ -477,6 +481,7 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
         mimeType: 'image/webp',
         savedAt: new Date(),
         size: 1536,
+        type: 'file',
       },
     ];
 

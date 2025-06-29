@@ -13,7 +13,20 @@ export const imageAttachmentSchema = z.strictObject({
   mimeType: z.enum(supportedImageMimeTypes),
   savedAt: z.date(),
   size: z.number().positive(),
+  type: z.literal('file'),
 });
+
+export const urlAttachmentSchema = z.strictObject({
+  addedAt: z.date(),
+  id: z.string().min(1),
+  type: z.literal('url'),
+  url: z.url(),
+});
+
+export const attachmentSchema = z.union([
+  imageAttachmentSchema,
+  urlAttachmentSchema,
+]);
 
 export const imageAttachmentInputSchema = z.strictObject({
   filename: z.string().min(1),
@@ -21,7 +34,20 @@ export const imageAttachmentInputSchema = z.strictObject({
   mimeType: z.enum(supportedImageMimeTypes),
   savedAt: z.iso.datetime(),
   size: z.number().positive(),
+  type: z.literal('file'),
 });
+
+export const urlAttachmentInputSchema = z.strictObject({
+  addedAt: z.iso.datetime(),
+  id: z.string().min(1),
+  type: z.literal('url'),
+  url: z.url(),
+});
+
+export const attachmentInputSchema = z.union([
+  imageAttachmentInputSchema,
+  urlAttachmentInputSchema,
+]);
 
 export const imageValidationOptionsSchema = z.strictObject({
   allowedTypes: z.array(z.string()).optional(),
@@ -53,6 +79,14 @@ export const storageStatsSchema = z.strictObject({
 /**
  *
  */
+export type Attachment = z.infer<typeof attachmentSchema>;
+/**
+ *
+ */
+export type AttachmentInput = z.infer<typeof attachmentInputSchema>;
+/**
+ *
+ */
 export type ImageAttachment = z.infer<typeof imageAttachmentSchema>;
 /**
  *
@@ -61,7 +95,9 @@ export type ImageAttachmentInput = z.infer<typeof imageAttachmentInputSchema>;
 /**
  *
  */
-export type ImageCompressionOptions = z.infer<typeof imageCompressionOptionsSchema>;
+export type ImageCompressionOptions = z.infer<
+  typeof imageCompressionOptionsSchema
+>;
 /**
  *
  */
@@ -69,7 +105,9 @@ export type ImageMetadata = z.infer<typeof imageMetadataSchema>;
 /**
  *
  */
-export type ImageValidationOptions = z.infer<typeof imageValidationOptionsSchema>;
+export type ImageValidationOptions = z.infer<
+  typeof imageValidationOptionsSchema
+>;
 /**
  *
  */
@@ -77,7 +115,15 @@ export type StorageStats = z.infer<typeof storageStatsSchema>;
 /**
  *
  */
-export type SupportedImageMimeType = typeof supportedImageMimeTypes[number];
+export type SupportedImageMimeType = (typeof supportedImageMimeTypes)[number];
+/**
+ *
+ */
+export type URLAttachment = z.infer<typeof urlAttachmentSchema>;
+/**
+ *
+ */
+export type URLAttachmentInput = z.infer<typeof urlAttachmentInputSchema>;
 
 /**
  *
@@ -93,11 +139,50 @@ export function parseImageAttachmentInput(input: unknown): ImageAttachment {
 
 /**
  *
+ * @param input
+ */
+export function parseURLAttachmentInput(input: unknown): URLAttachment {
+  const parsed = urlAttachmentInputSchema.parse(input);
+  return {
+    ...parsed,
+    addedAt: new Date(parsed.addedAt),
+  };
+}
+
+/**
+ *
  * @param attachment
  */
-export function serializeImageAttachment(attachment: ImageAttachment): ImageAttachmentInput {
+export function serializeAttachment(attachment: Attachment): AttachmentInput {
+  if (attachment.type === 'file') {
+    return serializeImageAttachment(attachment);
+  } else {
+    return serializeURLAttachment(attachment);
+  }
+}
+
+/**
+ *
+ * @param attachment
+ */
+export function serializeImageAttachment(
+  attachment: ImageAttachment
+): ImageAttachmentInput {
   return {
     ...attachment,
     savedAt: attachment.savedAt.toISOString(),
+  };
+}
+
+/**
+ *
+ * @param attachment
+ */
+export function serializeURLAttachment(
+  attachment: URLAttachment
+): URLAttachmentInput {
+  return {
+    ...attachment,
+    addedAt: attachment.addedAt.toISOString(),
   };
 }

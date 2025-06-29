@@ -1,7 +1,11 @@
 import { http, HttpResponse } from 'msw';
 import { describe, expect, test, vi } from 'vitest';
 
-import type { ImageAttachment } from '@/schemas/imageAttachment';
+import type {
+  Attachment,
+  ImageAttachment,
+  URLAttachment,
+} from '@/schemas/imageAttachment';
 
 import { aiChatRequestWireSchema } from '@/schemas/api';
 
@@ -141,6 +145,7 @@ describe('API Client Integration Tests', () => {
       mimeType: 'image/png',
       savedAt: new Date(),
       size: 1024,
+      type: 'file',
     };
 
     // Mock imageStorage.getImage to return our test file
@@ -200,6 +205,7 @@ describe('API Client Integration Tests', () => {
     expectToNotBeUndefined(validatedRequest.attachments);
     expect(validatedRequest.attachments).toHaveLength(1);
     const attachment = validatedRequest.attachments[0];
+    expectToBe(attachment.type, 'file');
     expect(attachment.filename).toBe('test-image.png');
     expect(attachment.id).toBe('test-image-id');
     expect(attachment.mimeType).toBe('image/png');
@@ -217,6 +223,186 @@ describe('API Client Integration Tests', () => {
     expectToBe(imageContent.type, 'image_url');
     const imageUrl = imageContent.image_url.url;
     expect(imageUrl).toMatch(/^data:image\/png;base64,/);
+
+    // Restore the mock
+    vi.restoreAllMocks();
+  });
+
+  test('aiChat processes URL attachments and creates multimodal content', async () => {
+    // Create URL attachments
+    const urlAttachment: URLAttachment = {
+      addedAt: new Date(),
+      id: 'url-attachment-id',
+      type: 'url',
+      url: 'https://example.com/test-image.jpg',
+    };
+
+    // Mock server to capture the request body and validate using the wire schema
+    let capturedRequestBody: unknown = null;
+    server.use(
+      http.post('http://*/ai-chat', async ({ request }) => {
+        const requestData: unknown = await request.json();
+        const parseResult = aiChatRequestWireSchema.safeParse(requestData);
+        if (parseResult.success) {
+          capturedRequestBody = parseResult.data;
+        }
+        return HttpResponse.json({
+          response: 'Test response with URL image',
+        });
+      })
+    );
+
+    const requestWithUrlAttachments: AiChatRequest = {
+      apiKey: 'test-key',
+      attachments: [urlAttachment],
+      chatMateBackground: 'Friendly Swedish native speaker',
+      chatMatePrompt: 'Respond naturally in Swedish',
+      conversationHistory: [],
+      culturalContext: true,
+      currentDateTime: '2023-01-01T00:00:00Z',
+      editorMateExpertise: 'Swedish language teacher',
+      editorMatePrompt: 'Help with Swedish language learning',
+      enableReasoning: false,
+      feedbackStyle: 'encouraging',
+      message: 'What do you see in this image?',
+      messageType: 'chat-mate-response',
+      model: 'gpt-4-vision-preview',
+      progressiveComplexity: false,
+      streaming: false,
+      systemPrompt: null,
+      targetLanguage: 'Swedish',
+      userTimezone: 'UTC',
+    };
+
+    const response = await apiClient.aiChat(requestWithUrlAttachments);
+
+    expect(response.status).toBe(200);
+
+    // Verify that the request was captured and properly validated by the schema
+    expectToNotBeNull(capturedRequestBody);
+
+    // Parse and validate the captured request with our wire schema
+    const validatedRequest = aiChatRequestWireSchema.parse(capturedRequestBody);
+
+    // Verify that the request includes the expected fields
+    expect(validatedRequest.message).toBe('What do you see in this image?');
+
+    // Type-safe verification of attachments
+    expectToNotBeUndefined(validatedRequest.attachments);
+    expect(validatedRequest.attachments).toHaveLength(1);
+    const attachment = validatedRequest.attachments[0];
+    expect(attachment.id).toBe('url-attachment-id');
+
+    // Type-safe verification of multimodal message
+    expectToNotBeUndefined(validatedRequest.multimodalMessage);
+    expect(validatedRequest.multimodalMessage).toHaveLength(2);
+    expect(validatedRequest.multimodalMessage[0]).toEqual({
+      text: 'What do you see in this image?',
+      type: 'text',
+    });
+    const imageContent = validatedRequest.multimodalMessage[1];
+    expectToBe(imageContent.type, 'image_url');
+    const imageUrl = imageContent.image_url.url;
+    expect(imageUrl).toBe('https://example.com/test-image.jpg');
+  });
+
+  test('aiChat processes mixed file and URL attachments', async () => {
+    // Create both file and URL attachments
+    const testFile = createTestFile({
+      mimeType: 'image/png',
+      name: 'test-file.png',
+      size: 1024,
+    });
+
+    const fileAttachment: ImageAttachment = {
+      filename: 'test-file.png',
+      id: 'file-attachment-id',
+      mimeType: 'image/png',
+      savedAt: new Date(),
+      size: 1024,
+      type: 'file',
+    };
+
+    const urlAttachment: URLAttachment = {
+      addedAt: new Date(),
+      id: 'url-attachment-id',
+      type: 'url',
+      url: 'https://example.com/test-image.jpg',
+    };
+
+    // Mock imageStorage.getImage to return our test file
+    vi.spyOn(imageStorage, 'getImage').mockResolvedValue(testFile);
+
+    // Mock server to capture the request body
+    let capturedRequestBody: unknown = null;
+    server.use(
+      http.post('http://*/ai-chat', async ({ request }) => {
+        const requestData: unknown = await request.json();
+        const parseResult = aiChatRequestWireSchema.safeParse(requestData);
+        if (parseResult.success) {
+          capturedRequestBody = parseResult.data;
+        }
+        return HttpResponse.json({
+          response: 'Test response with mixed attachments',
+        });
+      })
+    );
+
+    const mixedAttachments: Attachment[] = [fileAttachment, urlAttachment];
+
+    const requestWithMixedAttachments: AiChatRequest = {
+      apiKey: 'test-key',
+      attachments: mixedAttachments,
+      chatMateBackground: 'Friendly Swedish native speaker',
+      chatMatePrompt: 'Respond naturally in Swedish',
+      conversationHistory: [],
+      culturalContext: true,
+      currentDateTime: '2023-01-01T00:00:00Z',
+      editorMateExpertise: 'Swedish language teacher',
+      editorMatePrompt: 'Help with Swedish language learning',
+      enableReasoning: false,
+      feedbackStyle: 'encouraging',
+      message: 'Compare these two images',
+      messageType: 'chat-mate-response',
+      model: 'gpt-4-vision-preview',
+      progressiveComplexity: false,
+      streaming: false,
+      systemPrompt: null,
+      targetLanguage: 'Swedish',
+      userTimezone: 'UTC',
+    };
+
+    const response = await apiClient.aiChat(requestWithMixedAttachments);
+
+    expect(response.status).toBe(200);
+
+    // Verify that the request was captured and properly validated by the schema
+    expectToNotBeNull(capturedRequestBody);
+
+    // Parse and validate the captured request with our wire schema
+    const validatedRequest = aiChatRequestWireSchema.parse(capturedRequestBody);
+
+    // Type-safe verification of multimodal message
+    expectToNotBeUndefined(validatedRequest.multimodalMessage);
+    expect(validatedRequest.multimodalMessage).toHaveLength(3); // text + 2 images
+
+    // First should be text
+    expect(validatedRequest.multimodalMessage[0]).toEqual({
+      text: 'Compare these two images',
+      type: 'text',
+    });
+
+    // Second should be file attachment (base64)
+    const fileImageContent = validatedRequest.multimodalMessage[1];
+    expectToBe(fileImageContent.type, 'image_url');
+    expect(fileImageContent.image_url.url).toMatch(/^data:image\/png;base64,/);
+
+    // Third should be URL attachment (direct URL)
+    const urlImageContent = validatedRequest.multimodalMessage[2];
+    expectToBe(urlImageContent.type, 'image_url');
+    expect(urlImageContent.image_url.url).toBe(
+      'https://example.com/test-image.jpg'
+    );
 
     // Restore the mock
     vi.restoreAllMocks();

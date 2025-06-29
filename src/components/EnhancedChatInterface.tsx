@@ -2,7 +2,7 @@ import { Bot, Loader2, MessageSquare, Send, Square, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod/v4';
 
-import type { ImageAttachment } from '@/schemas/imageAttachment';
+import type { Attachment } from '@/schemas/imageAttachment';
 import type { Message, MessageMetadata } from '@/schemas/messages';
 import type {
   MessageType as PromptMessageType,
@@ -22,6 +22,7 @@ import { apiMessageTypeSchema } from '@/schemas/api';
 import { apiClient } from '@/services/apiClient';
 import { buildPrompt } from '@/services/prompts/promptBuilder';
 import { convertMessagesToApiFormat } from '@/utils/messageRoleMapper';
+import { extractImageUrls } from '@/utils/urlDetection';
 
 import EnhancedChatMessage from './EnhancedChatMessage';
 import { ImageDropZone } from './ImageDropZone';
@@ -502,7 +503,7 @@ const EnhancedChatInterface = ({
   };
 
   const callAI = async (options: {
-    attachments?: ImageAttachment[];
+    attachments?: Attachment[];
     currentConversationId?: string;
     history: {
       content: string;
@@ -703,17 +704,28 @@ const EnhancedChatInterface = ({
       }
     }
 
-    const attachments = getValidImages();
+    // Extract URLs from input text and get file attachments
+    const { cleanedText, urlAttachments } = extractImageUrls(
+      inputMessage.trim()
+    );
+    const fileAttachments = getValidImages();
+
+    // Combine all attachments
+    const allAttachments: Attachment[] = [
+      ...fileAttachments,
+      ...urlAttachments,
+    ];
+
     const userMessage: Message = {
-      attachments: attachments.length > 0 ? attachments : undefined,
-      content: inputMessage.trim(),
+      attachments: allAttachments.length > 0 ? allAttachments : undefined,
+      content: cleanedText,
       id: `temp-${Date.now().toString()}`,
       timestamp: new Date(),
       type: 'user',
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    const currentInput = inputMessage.trim();
+    const currentInput = cleanedText;
     setInputMessage('');
     setIsLoading(true);
 
@@ -768,7 +780,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, editorUserMessage]);
 
       const editorUserResult = await callAI({
-        attachments,
+        attachments: allAttachments,
         currentConversationId,
         history: fullHistory,
         message: currentInput,
@@ -819,7 +831,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, chatMateMessage]);
 
       const chatMateResult = await callAI({
-        attachments,
+        attachments: allAttachments,
         currentConversationId,
         history: chatMateHistory,
         message: currentInput,
@@ -967,17 +979,28 @@ const EnhancedChatInterface = ({
       }
     }
 
-    const attachments = getValidImages();
+    // Extract URLs from input text and get file attachments
+    const { cleanedText, urlAttachments } = extractImageUrls(
+      inputMessage.trim()
+    );
+    const fileAttachments = getValidImages();
+
+    // Combine all attachments
+    const allAttachments: Attachment[] = [
+      ...fileAttachments,
+      ...urlAttachments,
+    ];
+
     const userMessage: Message = {
-      attachments: attachments.length > 0 ? attachments : undefined,
-      content: inputMessage.trim(),
+      attachments: allAttachments.length > 0 ? allAttachments : undefined,
+      content: cleanedText,
       id: `temp-${Date.now().toString()}`,
       timestamp: new Date(),
       type: 'user',
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    const currentInput = inputMessage.trim();
+    const currentInput = cleanedText;
     setInputMessage('');
     setIsLoading(true);
 
@@ -1028,7 +1051,7 @@ const EnhancedChatInterface = ({
       setMessages((prev) => [...prev, editorUserMessage]);
 
       const editorUserResult = await callAI({
-        attachments,
+        attachments: allAttachments,
         currentConversationId,
         history: fullHistory,
         message: currentInput,
@@ -1126,15 +1149,18 @@ const EnhancedChatInterface = ({
       }
     }
 
+    // Extract URLs from input text (chat-mate messages don't have attachments, but we clean the text)
+    const { cleanedText } = extractImageUrls(inputMessage.trim());
+
     const chatMateMessage: Message = {
-      content: inputMessage.trim(),
+      content: cleanedText,
       id: `temp-${Date.now().toString()}`,
       timestamp: new Date(),
       type: 'chat-mate',
     };
 
     setMessages((prev) => [...prev, chatMateMessage]);
-    const currentInput = inputMessage.trim();
+    const currentInput = cleanedText;
     setInputMessage('');
     // Clear uploaded images after adding to message
     clearImages();

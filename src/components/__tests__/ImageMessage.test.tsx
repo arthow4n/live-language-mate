@@ -27,6 +27,7 @@ describe('ImageMessage', () => {
     mimeType: 'image/jpeg',
     savedAt: new Date('2024-01-01T00:00:00Z'),
     size: 1024 * 1024,
+    type: 'file',
     ...overrides,
   });
 
@@ -69,10 +70,10 @@ describe('ImageMessage', () => {
 
     // Wait for image to load
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
-    const button = screen.getByRole('button');
+    const button = screen.getByTestId('image-clickable');
     const image = button.querySelector('img');
     expect(image).toHaveAttribute('src', 'blob:test-url');
     expect(image).toHaveAttribute('alt', 'test.jpg');
@@ -118,7 +119,7 @@ describe('ImageMessage', () => {
 
     // Wait for all images to load
     await waitFor(() => {
-      expect(screen.getAllByRole('button')).toHaveLength(3);
+      expect(screen.getAllByTestId('image-clickable')).toHaveLength(3);
     });
 
     // Verify grid layout container
@@ -141,10 +142,10 @@ describe('ImageMessage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
-    const image = screen.getByRole('button');
+    const image = screen.getByTestId('image-clickable');
     await userEvent.click(image);
 
     expect(mockOnImageClick).toHaveBeenCalledWith(attachment, 'blob:test-url');
@@ -161,10 +162,10 @@ describe('ImageMessage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
-    const image = screen.getByRole('button');
+    const image = screen.getByTestId('image-clickable');
 
     // Test Enter key
     image.focus();
@@ -234,7 +235,7 @@ describe('ImageMessage', () => {
     render(<ImageMessage attachments={[attachment]} showMetadata={true} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
     // Metadata should be in the DOM but hidden initially
@@ -248,7 +249,7 @@ describe('ImageMessage', () => {
     render(<ImageMessage attachments={[attachment]} showMetadata={false} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
     // Metadata should not be in the DOM
@@ -264,22 +265,22 @@ describe('ImageMessage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
-    let container = screen.getByRole('button').closest('.max-w-xs');
+    let container = screen.getByTestId('image-clickable').closest('.max-w-xs');
     expect(container).toBeInTheDocument();
 
     // Test medium size
     rerender(<ImageMessage attachments={[attachment]} maxPreviewSize="md" />);
 
-    container = screen.getByRole('button').closest('.max-w-sm');
+    container = screen.getByTestId('image-clickable').closest('.max-w-sm');
     expect(container).toBeInTheDocument();
 
     // Test large size
     rerender(<ImageMessage attachments={[attachment]} maxPreviewSize="lg" />);
 
-    container = screen.getByRole('button').closest('.max-w-md');
+    container = screen.getByTestId('image-clickable').closest('.max-w-md');
     expect(container).toBeInTheDocument();
   });
 
@@ -289,7 +290,7 @@ describe('ImageMessage', () => {
     const { unmount } = render(<ImageMessage attachments={[attachment]} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
     expect(global.URL.createObjectURL).toHaveBeenCalled();
@@ -331,7 +332,7 @@ describe('ImageMessage', () => {
 
     // Wait for both to finish loading (success and error)
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument(); // success image
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument(); // success image
     });
 
     await waitFor(() => {
@@ -339,7 +340,7 @@ describe('ImageMessage', () => {
     });
 
     // Should have one successful image and one error
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     expect(screen.getByText('error.jpg')).toBeInTheDocument();
   });
 
@@ -354,11 +355,11 @@ describe('ImageMessage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTestId('image-clickable')).toBeInTheDocument();
     });
 
     const container = screen
-      .getByRole('button')
+      .getByTestId('image-clickable')
       .closest('.custom-image-message');
     expect(container).toBeInTheDocument();
   });

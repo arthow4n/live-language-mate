@@ -50,6 +50,7 @@ describe('useImageUpload', () => {
       mimeType: 'image/jpeg',
       savedAt: new Date(),
       size: 1024,
+      type: 'file',
     });
     mockConvertToBase64DataURL.mockResolvedValue('data:image/jpeg;base64,test');
     mockGenerateThumbnailDataURL.mockResolvedValue(
@@ -351,6 +352,7 @@ describe('useImageUpload', () => {
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
+        type: 'file',
       })
       .mockResolvedValueOnce({
         filename: 'second.jpg',
@@ -358,6 +360,7 @@ describe('useImageUpload', () => {
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
+        type: 'file',
       })
       .mockResolvedValueOnce({
         filename: 'third.jpg',
@@ -365,6 +368,7 @@ describe('useImageUpload', () => {
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
+        type: 'file',
       });
 
     await act(async () => {

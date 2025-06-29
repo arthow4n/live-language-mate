@@ -1,9 +1,6 @@
 import { z } from 'zod/v4';
 
-import {
-  imageAttachmentInputSchema,
-  imageAttachmentSchema,
-} from './imageAttachment.ts';
+import { attachmentInputSchema, attachmentSchema } from './imageAttachment.ts';
 
 // Message types for AI chat API requests
 export const apiMessageTypeSchema = z.enum([
@@ -63,7 +60,7 @@ export const openRouterChatMessageSchema = z.strictObject({
 export const aiChatRequestSchema = z
   .object({
     apiKey: z.string().optional(),
-    attachments: z.array(imageAttachmentSchema).optional(),
+    attachments: z.array(attachmentSchema).optional(),
     chatMateBackground: z.string(),
     chatMatePrompt: z.string(),
     conversationHistory: z.array(chatMessageSchema),
@@ -89,7 +86,7 @@ export const aiChatRequestSchema = z
 export const aiChatRequestWireSchema = z
   .object({
     apiKey: z.string().optional(),
-    attachments: z.array(imageAttachmentInputSchema).optional(),
+    attachments: z.array(attachmentInputSchema).optional(),
     chatMateBackground: z.string(),
     chatMatePrompt: z.string(),
     conversationHistory: z.array(chatMessageSchema),
