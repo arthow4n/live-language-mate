@@ -144,6 +144,7 @@ Frontend (`.env`):
 - You should follow the existing code style, if you are about to implement something new or write a new test, search for existing files to understand the current style and convention.
 - You should actively look for reusing shared function/component/hook etc, and search for another potentially extractable/sharable code to move to shared code.
 - Avoid over-engineering. Keep thinking and reviewing whether if your solution is over-engineered, step back, look around and see if you can simplify your solution and its related code paths and only make the absolutely necessary changes.
+- Don't add unnecessary safety mechanism such as retry and timeout, it's over-engineering and overcomplication.
 - For asynchronous logic flow, no matter in test, code or UI, make sure to implement them in a way where the cause and effect can be logically followed, for example by using async-await, event handler, or callback. Avoid using timeout/polling to handle asynchronous logic flow, if timeout/polling is really the only way to implement the logic, make sure to comment why timeout/polling is used instead of the other better approaches.
 - Don't leave unnecessary comment, unmaintained comment can become stale and adds confusion. You should only leave comment for explaining the motivation behind the code, not to repeat what the code is doing.
 - Make sure your code can be logically followed, there should not be implicit flow.
