@@ -155,11 +155,21 @@ async function getModels(
       maxAttempts: retries + 1,
       shouldRetry: (error) => {
         if (error instanceof ImageError) {
-          return (
+          // Always retry network and timeout errors
+          if (
             error.code === IMAGE_ERROR_CODES.NETWORK_ERROR ||
-            error.code === IMAGE_ERROR_CODES.TIMEOUT_ERROR ||
-            error.code === IMAGE_ERROR_CODES.API_ERROR
-          );
+            error.code === IMAGE_ERROR_CODES.TIMEOUT_ERROR
+          ) {
+            return true;
+          }
+
+          // For API errors, check the specific status code
+          if (error.code === IMAGE_ERROR_CODES.API_ERROR) {
+            const status = error.details?.status;
+            // Retry server errors except 503 Service Unavailable
+            // 503 should fail fast for testing failure scenarios
+            return status === 500 || status === 502 || status === 504;
+          }
         }
         return false;
       },
