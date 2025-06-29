@@ -114,8 +114,10 @@ class ImageStorageService {
         return null;
       }
 
-      const extension = this.getFileExtension(metadata.filename);
+      // Use mimeType to determine extension for consistency with save logic
+      const extension = this.getExtensionFromMimeType(metadata.mimeType);
       const filename = `${id}${extension}`;
+
       const fileHandle = await this.imagesDir.getFileHandle(filename);
       const file = await fileHandle.getFile();
 
@@ -214,7 +216,9 @@ class ImageStorageService {
     }
 
     const id = crypto.randomUUID();
-    const extension = this.getFileExtension(file.name);
+    // Use mimeType to determine extension instead of original filename
+    // This ensures consistency when files are compressed/converted
+    const extension = this.getExtensionFromMimeType(file.type);
     const filename = `${id}${extension}`;
 
     try {
@@ -268,6 +272,21 @@ class ImageStorageService {
   private async ensureInitialized(): Promise<void> {
     if (!this.imagesDir) {
       await this.initializeOPFS();
+    }
+  }
+
+  private getExtensionFromMimeType(mimeType: string): string {
+    switch (mimeType) {
+      case 'image/gif':
+        return '.gif';
+      case 'image/jpeg':
+        return '.jpg';
+      case 'image/png':
+        return '.png';
+      case 'image/webp':
+        return '.webp';
+      default:
+        return '.png'; // fallback
     }
   }
 
