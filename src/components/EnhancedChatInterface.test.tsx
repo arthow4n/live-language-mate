@@ -41,7 +41,6 @@ describe('EnhancedChatInterface Integration Tests', () => {
       isUploading: false,
       removeImage: vi.fn(),
       reorderImages: vi.fn(),
-      retryImage: vi.fn(),
       uploadImages: vi.fn(),
     });
 

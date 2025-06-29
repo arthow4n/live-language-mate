@@ -9,7 +9,6 @@ import {
   ErrorHandler,
   IMAGE_ERROR_CODES,
   ImageError,
-  RetryHandler,
 } from './errorHandling.js';
 import { imageStorage } from './imageStorage.js';
 import { convertToBase64DataURL } from './imageUtils.js';
@@ -23,9 +22,7 @@ const API_BASE_URL = ((): string => {
  * Configuration for API requests
  */
 interface ApiRequestOptions {
-  retries?: number;
   signal?: AbortSignal;
-  timeout?: number;
 }
 
 /**
@@ -37,29 +34,9 @@ async function aiChat(
   request: AiChatRequest,
   options: ApiRequestOptions = {}
 ): Promise<Response> {
-  const { retries = 2, signal, timeout = 30000 } = options;
+  const { signal } = options;
 
-  return RetryHandler.withRetry(
-    async () => {
-      return RetryHandler.withTimeout(
-        () => performAiChatRequest(request, { signal }),
-        { operationName: 'AI chat request', timeoutMs: timeout }
-      );
-    },
-    {
-      baseDelay: 1000,
-      maxAttempts: retries + 1,
-      shouldRetry: (error) => {
-        if (error instanceof ImageError) {
-          return (
-            error.code === IMAGE_ERROR_CODES.NETWORK_ERROR ||
-            error.code === IMAGE_ERROR_CODES.TIMEOUT_ERROR
-          );
-        }
-        return false;
-      },
-    }
-  );
+  return performAiChatRequest(request, { signal });
 }
 
 /**
@@ -75,11 +52,8 @@ async function convertAttachmentsToOpenRouterFormat(
 
   for (const attachment of attachments) {
     try {
-      // Get the image file from OPFS storage with timeout
-      const file = await RetryHandler.withTimeout(
-        () => imageStorage.getImage(attachment.id),
-        { operationName: 'Loading image from storage', timeoutMs: 5000 }
-      );
+      // Get the image file from OPFS storage
+      const file = await imageStorage.getImage(attachment.id);
 
       if (!file) {
         throw new ImageError(`Image not found in storage: ${attachment.id}`, {
@@ -90,11 +64,8 @@ async function convertAttachmentsToOpenRouterFormat(
         });
       }
 
-      // Convert to base64 data URL with timeout
-      const base64DataUrl = await RetryHandler.withTimeout(
-        () => convertToBase64DataURL(file),
-        { operationName: 'Converting image to base64', timeoutMs: 10000 }
-      );
+      // Convert to base64 data URL
+      const base64DataUrl = await convertToBase64DataURL(file);
 
       // Create OpenRouter image content format
       const imageContent: OpenRouterContent = {
@@ -141,40 +112,9 @@ async function convertAttachmentsToOpenRouterFormat(
 async function getModels(
   options: ApiRequestOptions = {}
 ): Promise<ModelsResponse> {
-  const { retries = 2, signal, timeout = 15000 } = options;
+  const { signal } = options;
 
-  return RetryHandler.withRetry(
-    async () => {
-      return RetryHandler.withTimeout(
-        () => performGetModelsRequest({ signal }),
-        { operationName: 'Models request', timeoutMs: timeout }
-      );
-    },
-    {
-      baseDelay: 1000,
-      maxAttempts: retries + 1,
-      shouldRetry: (error) => {
-        if (error instanceof ImageError) {
-          // Always retry network and timeout errors
-          if (
-            error.code === IMAGE_ERROR_CODES.NETWORK_ERROR ||
-            error.code === IMAGE_ERROR_CODES.TIMEOUT_ERROR
-          ) {
-            return true;
-          }
-
-          // For API errors, check the specific status code
-          if (error.code === IMAGE_ERROR_CODES.API_ERROR) {
-            const status = error.details?.status;
-            // Retry server errors except 503 Service Unavailable
-            // 503 should fail fast for testing failure scenarios
-            return status === 500 || status === 502 || status === 504;
-          }
-        }
-        return false;
-      },
-    }
-  );
+  return performGetModelsRequest({ signal });
 }
 
 /**

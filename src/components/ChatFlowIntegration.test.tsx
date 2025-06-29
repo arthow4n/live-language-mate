@@ -364,7 +364,7 @@ describe('Chat Flow Integration Tests', () => {
 
     // Should show cancellation message
     await waitFor(() => {
-      expect(screen.getByText(/cancel/i)).toBeInTheDocument();
+      expect(screen.getByText('Request was cancelled')).toBeInTheDocument();
     });
 
     // The delayed response should not appear

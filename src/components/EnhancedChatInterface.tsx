@@ -88,7 +88,6 @@ const EnhancedChatInterface = ({
     isUploading,
     removeImage,
     reorderImages,
-    retryImage,
     uploadImages,
   } = useImageUpload({
     maxImages: 5,
@@ -1389,9 +1388,6 @@ const EnhancedChatInterface = ({
                 }))}
                 onRemove={removeImage}
                 onReorder={reorderImages}
-                onRetry={(imageId) => {
-                  void retryImage(imageId);
-                }}
                 size="sm"
               />
             </div>

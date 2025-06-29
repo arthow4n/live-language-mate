@@ -10,7 +10,6 @@ import {
   IMAGE_ERROR_CODES,
   ImageError,
   QuotaMonitor,
-  RetryHandler,
 } from '../services/errorHandling.js';
 import { imageStorage } from '../services/imageStorage.js';
 import {
@@ -36,10 +35,8 @@ export interface ImageUploadItem {
  */
 export interface UseImageUploadOptions {
   enableCompression?: boolean;
-  enableRetry?: boolean;
   enableThumbnails?: boolean;
   maxImages?: number;
-  maxRetries?: number;
   onError?: (error: ImageError) => void;
   onQuotaWarning?: (warning: string, critical: boolean) => void;
   onSuccess?: (images: ImageAttachment[]) => void;
@@ -57,7 +54,6 @@ export interface UseImageUploadReturn {
   isUploading: boolean;
   removeImage: (imageId: string) => void;
   reorderImages: (fromIndex: number, toIndex: number) => void;
-  retryImage: (imageId: string) => Promise<void>;
   uploadImages: (files: File[]) => Promise<void>;
 }
 
@@ -70,10 +66,8 @@ export function useImageUpload(
 ): UseImageUploadReturn {
   const {
     enableCompression = true,
-    enableRetry = true,
     enableThumbnails = true,
     maxImages,
-    maxRetries = 2,
     onError,
     onQuotaWarning,
     onSuccess,
@@ -84,17 +78,6 @@ export function useImageUpload(
 
   const [images, setImages] = React.useState<ImageUploadItem[]>([]);
   const [isUploading, setIsUploading] = React.useState(false);
-
-  const updateImageItem = React.useCallback(
-    (imageId: string, updates: Partial<ImageUploadItem>) => {
-      setImages((prev) =>
-        prev.map((item) =>
-          item.image.id === imageId ? { ...item, ...updates } : item
-        )
-      );
-    },
-    []
-  );
 
   const processImageFile = React.useCallback(
     async (file: File): Promise<ImageUploadItem | null> => {
@@ -132,51 +115,46 @@ export function useImageUpload(
           return null;
         }
 
-        // Process with retry and timeout
-        const result = await RetryHandler.withTimeout(
-          async () => {
-            let processedFile = file;
+        // Process the image
+        let processedFile = file;
 
-            // Apply compression if enabled and file is large
-            if (enableCompression && file.size > 500 * 1024) {
-              // Only compress files > 500KB
-              try {
-                processedFile = await compressImage(file, {
-                  maxHeight: 1920,
-                  maxWidth: 1920,
-                  quality: 0.8,
-                });
-              } catch {
-                // If compression fails, continue with original file
-              }
-            }
+        // Apply compression if enabled and file is large
+        if (enableCompression && file.size > 500 * 1024) {
+          // Only compress files > 500KB
+          try {
+            processedFile = await compressImage(file, {
+              maxHeight: 1920,
+              maxWidth: 1920,
+              quality: 0.8,
+            });
+          } catch {
+            // If compression fails, continue with original file
+          }
+        }
 
-            // Save to OPFS storage
-            const imageMetadata = await imageStorage.saveImage(processedFile);
+        // Save to OPFS storage
+        const imageMetadata = await imageStorage.saveImage(processedFile);
 
-            // Generate preview URL (thumbnail for better performance)
-            let src: string;
-            if (enableThumbnails) {
-              try {
-                src = await generateThumbnailDataURL(processedFile, 300);
-              } catch {
-                // Fallback to full image if thumbnail generation fails
-                src = await convertToBase64DataURL(processedFile);
-              }
-            } else {
-              src = await convertToBase64DataURL(processedFile);
-            }
+        // Generate preview URL (thumbnail for better performance)
+        let src: string;
+        if (enableThumbnails) {
+          try {
+            src = await generateThumbnailDataURL(processedFile, 300);
+          } catch {
+            // Fallback to full image if thumbnail generation fails
+            src = await convertToBase64DataURL(processedFile);
+          }
+        } else {
+          src = await convertToBase64DataURL(processedFile);
+        }
 
-            return {
-              error: undefined,
-              image: imageMetadata,
-              isLoading: false,
-              retryCount: 0,
-              src,
-            };
-          },
-          { operationName: 'Image processing', timeoutMs: 20000 }
-        );
+        const result = {
+          error: undefined,
+          image: imageMetadata,
+          isLoading: false,
+          retryCount: 0,
+          src,
+        };
 
         // Check quota after successful upload and warn if needed
         const quotaStatus = await quotaMonitor.checkQuota();
@@ -196,7 +174,14 @@ export function useImageUpload(
         return null;
       }
     },
-    [validationOptions, onError, onQuotaWarning, quotaMonitor]
+    [
+      validationOptions,
+      onError,
+      onQuotaWarning,
+      quotaMonitor,
+      enableCompression,
+      enableThumbnails,
+    ]
   );
 
   const uploadImages = React.useCallback(
@@ -316,10 +301,8 @@ export function useImageUpload(
   const removeImage = React.useCallback(
     async (imageId: string) => {
       try {
-        // Remove from OPFS storage with retry
-        await RetryHandler.withRetry(() => imageStorage.deleteImage(imageId), {
-          maxAttempts: 2,
-        });
+        // Remove from OPFS storage
+        await imageStorage.deleteImage(imageId);
 
         // Remove from state
         setImages((prev) => prev.filter((item) => item.image.id !== imageId));
@@ -345,61 +328,6 @@ export function useImageUpload(
     []
   );
 
-  const retryImage = React.useCallback(
-    async (imageId: string) => {
-      const imageItem = images.find((item) => item.image.id === imageId);
-      if (!imageItem) return;
-
-      const currentRetryCount = imageItem.retryCount ?? 0;
-      if (!enableRetry || currentRetryCount >= maxRetries) {
-        return;
-      }
-
-      updateImageItem(imageId, {
-        error: undefined,
-        isLoading: true,
-        retryCount: currentRetryCount + 1,
-      });
-
-      try {
-        // Try to retrieve the image from storage with retry logic
-        const result = await RetryHandler.withRetry(
-          async () => {
-            const file = await imageStorage.getImage(imageId);
-            if (!file) {
-              throw new ImageError('Image not found in storage', {
-                cause: null,
-                code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
-                details: { imageId },
-                recoverable: false,
-              });
-            }
-
-            // Generate new preview URL
-            const src = await convertToBase64DataURL(file);
-            return { src };
-          },
-          { baseDelay: 500, maxAttempts: 2 }
-        );
-
-        updateImageItem(imageId, {
-          error: undefined,
-          isLoading: false,
-          retryCount: currentRetryCount + 1,
-          src: result.src,
-        });
-      } catch (error) {
-        const imageError = ErrorHandler.normalizeError(error, 'Retrying image');
-        updateImageItem(imageId, {
-          error: imageError,
-          isLoading: false,
-          retryCount: currentRetryCount + 1,
-        });
-      }
-    },
-    [images, updateImageItem, enableRetry, maxRetries]
-  );
-
   const cleanup = React.useCallback(() => {
     // Cleanup all object URLs to prevent memory leaks
     images.forEach((item) => {
@@ -416,12 +344,7 @@ export function useImageUpload(
 
       // Remove all images from storage with error handling per image
       const results = await Promise.allSettled(
-        images.map((item) =>
-          RetryHandler.withRetry(
-            () => imageStorage.deleteImage(item.image.id),
-            { maxAttempts: 2 }
-          )
-        )
+        images.map((item) => imageStorage.deleteImage(item.image.id))
       );
 
       // Log any failures but don't block the clear operation
@@ -511,7 +434,6 @@ export function useImageUpload(
       void removeImage(imageId);
     },
     reorderImages,
-    retryImage,
     uploadImages,
   };
 }
