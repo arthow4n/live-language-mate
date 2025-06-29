@@ -148,7 +148,6 @@ Frontend (`.env`):
 - Don't leave unnecessary comment, unmaintained comment can become stale and adds confusion. You should only leave comment for explaining the motivation behind the code, not to repeat what the code is doing.
 - Make sure your code can be logically followed, there should not be implicit flow.
 - Make sure the cause and effect in the code flow is deterministic, you should not cause race condition.
-- If you belive something might be caused by a race condition or a timing issue, you should default to step back and read through all the related code paths from beginning to end, and then make a comprehensive argument about why it's really a race condition or timing issue. This is to make sure you don't just blindly guess and fix the wrong problem.
 
 ## TypeScript coding style and conventions
 
@@ -205,7 +204,14 @@ x?.Y(); // Y is optional because ...
 - Do not spawn subagents unless the user asked you to do so.
 - Don't skip anything in your todo.
 - You should keep working until your todo is empty.
+- You should review your plan by double checking with the actual code flow and CLAUDE.md before you present it to the user and before you start working.
 - Before you start working, make sure to step back and break down the plan into smaller todo items.
+- You should express your plan's code flow in a sequence diagram.
+
+## Debugging
+
+- Always create a sequence diagram to explain in which exact sequence can a bug happen.
+- If you belive something might be caused by a race condition or a timing issue, you should default to step back and read through all the related code paths from beginning to end, and then make a comprehensive argument and a concrete sequence diagram to explain why it's really a race condition or timing issue. This is to make sure you don't just blindly guess and fix the wrong problem.
 
 ## Development process
 
@@ -221,11 +227,11 @@ x?.Y(); // Y is optional because ...
 ## Git
 
 - When making progress in your task, be proactive to make small git commit with descriptive messages, and then git push.
-- When you make commit, there's a pre-commit hook which will lint and test staged files.
-- YOU SHOULD NEVER RUN `git commit --no-verify`. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
-- All the lint, type, test errors from pre-commit hook are caused by you and related to what you are doing, you must fix them.
 - When `git commit`, wrap commit message with single quote instead of double quote, prefix you commit message title with `(Claude Code) ` and add a footer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>`.
-- Never amend commit, change git history or force push.
+- When you make commit, there's a pre-commit hook which will lint and test staged files.
+- IMPORTANT: YOU SHOULD NEVER RUN `git commit --no-verify`. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
+- IMPORTANT: All the lint, type, test errors from pre-commit hook are caused by you and related to your task, you must fix them.
+- IMPORTANT: Never amend commit, change git history or force push.
 
 ## Test
 
