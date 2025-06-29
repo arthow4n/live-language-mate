@@ -103,6 +103,7 @@ export function useImageUpload(
         const wouldExceedQuota = await quotaMonitor.wouldExceedQuota(file.size);
         if (wouldExceedQuota) {
           const quotaError = new ImageError('Storage quota would be exceeded', {
+            cause: null,
             code: IMAGE_ERROR_CODES.QUOTA_EXCEEDED,
             details: { fileName: file.name, fileSize: file.size },
             recoverable: true,
@@ -119,6 +120,7 @@ export function useImageUpload(
           const validationError = new ImageError(
             validation.error ?? 'File validation failed',
             {
+              cause: null,
               code: IMAGE_ERROR_CODES.INVALID_FILE_TYPE,
               details: { fileName: file.name, ...validation.details },
               recoverable: false,
@@ -207,6 +209,7 @@ export function useImageUpload(
           const limitError = new ImageError(
             `Cannot upload ${String(files.length)} images. Maximum ${String(maxImages)} images allowed.`,
             {
+              cause: null,
               code: IMAGE_ERROR_CODES.FILE_TOO_LARGE,
               details: {
                 attemptedCount: files.length,
@@ -229,6 +232,7 @@ export function useImageUpload(
           const quotaError = new ImageError(
             'Uploading these files would exceed storage quota',
             {
+              cause: null,
               code: IMAGE_ERROR_CODES.QUOTA_EXCEEDED,
               details: { fileCount: files.length, totalSize },
               recoverable: true,
@@ -364,6 +368,7 @@ export function useImageUpload(
             const file = await imageStorage.getImage(imageId);
             if (!file) {
               throw new ImageError('Image not found in storage', {
+                cause: null,
                 code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
                 details: { imageId },
                 recoverable: false,
@@ -429,6 +434,7 @@ export function useImageUpload(
         const clearError = new ImageError(
           `Failed to delete ${String(failures.length)} of ${String(images.length)} images`,
           {
+            cause: null,
             code: IMAGE_ERROR_CODES.STORAGE_UNAVAILABLE,
             details: {
               failureCount: failures.length,

@@ -409,6 +409,7 @@ describe('useImageUpload', () => {
     // Simulate an error state
     act(() => {
       result.current.images[0].error = new ImageError('Previous error', {
+        cause: null,
         code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
       });
       result.current.images[0].isLoading = false;
@@ -578,6 +579,7 @@ describe('useImageUpload', () => {
     act(() => {
       if (result.current.images[1]) {
         result.current.images[1].error = new ImageError('Some error', {
+          cause: null,
           code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
         });
       }

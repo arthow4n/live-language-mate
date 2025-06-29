@@ -101,6 +101,7 @@ describe('ImagePreview', () => {
       <ImagePreview
         error={
           new ImageError('Upload failed', {
+            cause: null,
             code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
           })
         }
@@ -149,6 +150,7 @@ describe('ImagePreview', () => {
       <ImagePreview
         error={
           new ImageError('Upload failed', {
+            cause: null,
             code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
           })
         }
@@ -191,6 +193,7 @@ describe('ImagePreview', () => {
       <ImagePreview
         error={
           new ImageError('Previous error', {
+            cause: null,
             code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
           })
         }
@@ -298,6 +301,7 @@ describe('ImagePreview', () => {
       <ImagePreview
         error={
           new ImageError('Some error', {
+            cause: null,
             code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
           })
         }

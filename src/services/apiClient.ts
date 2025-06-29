@@ -83,6 +83,7 @@ async function convertAttachmentsToOpenRouterFormat(
 
       if (!file) {
         throw new ImageError(`Image not found in storage: ${attachment.id}`, {
+          cause: null,
           code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
           details: { attachmentId: attachment.id },
           recoverable: false,
@@ -120,6 +121,7 @@ async function convertAttachmentsToOpenRouterFormat(
   // If all images failed to convert, throw an error
   if (imageContents.length === 0 && attachments.length > 0) {
     throw new ImageError('All image attachments failed to process', {
+      cause: null,
       code: IMAGE_ERROR_CODES.CONVERSION_FAILED,
       details: {
         errorCount: errors.length,
@@ -237,6 +239,7 @@ async function handleApiError(response: Response): Promise<never> {
 
   const recoverable = status >= 500 || status === 429 || status === 408;
   throw new ImageError(errorMessage, {
+    cause: null,
     code: IMAGE_ERROR_CODES[errorCode],
     details,
     recoverable,
@@ -314,6 +317,7 @@ async function performAiChatRequest(
     }
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ImageError('Request was cancelled', {
+        cause: error,
         code: IMAGE_ERROR_CODES.TIMEOUT_ERROR,
         recoverable: true,
       });
@@ -353,6 +357,7 @@ async function performGetModelsRequest(options?: {
     }
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ImageError('Request was cancelled', {
+        cause: error,
         code: IMAGE_ERROR_CODES.TIMEOUT_ERROR,
         recoverable: true,
       });
@@ -369,6 +374,7 @@ async function performGetModelsRequest(options?: {
     data = await response.json();
   } catch (error) {
     throw new ImageError('Failed to parse API response', {
+      cause: error instanceof Error ? error : null,
       code: IMAGE_ERROR_CODES.API_ERROR,
       details: {
         parseError: error instanceof Error ? error.message : String(error),
@@ -381,6 +387,7 @@ async function performGetModelsRequest(options?: {
     return modelsResponseSchema.parse(data);
   } catch (error) {
     throw new ImageError('Invalid API response format', {
+      cause: error instanceof Error ? error : null,
       code: IMAGE_ERROR_CODES.API_ERROR,
       details: {
         validationError: error instanceof Error ? error.message : String(error),

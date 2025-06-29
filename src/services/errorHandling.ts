@@ -58,6 +58,7 @@ export const ErrorHandler = {
       : 'Network connection failed';
 
     return new ImageError(message, {
+      cause: null,
       code: IMAGE_ERROR_CODES.NETWORK_ERROR,
       details,
       recoverable: true,
@@ -72,6 +73,7 @@ export const ErrorHandler = {
     return new ImageError(
       'Too many requests. Please wait before trying again.',
       {
+        cause: null,
         code: IMAGE_ERROR_CODES.RATE_LIMITED,
         details: { retryAfter },
         recoverable: true,
@@ -88,6 +90,7 @@ export const ErrorHandler = {
     return new ImageError(
       `${operation} timed out after ${String(timeoutMs)}ms`,
       {
+        cause: null,
         code: IMAGE_ERROR_CODES.TIMEOUT_ERROR,
         details: { operation, timeoutMs },
         recoverable: true,
@@ -103,32 +106,38 @@ export const ErrorHandler = {
     switch (error.name) {
       case 'AbortError':
         return new ImageError('Operation was cancelled', {
+          cause: error,
           code: IMAGE_ERROR_CODES.TIMEOUT_ERROR,
           recoverable: true,
         });
       case 'NotFoundError':
         return new ImageError('File not found', {
+          cause: error,
           code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
           recoverable: false,
         });
       case 'NotSupportedError':
         return new ImageError('Operation not supported by browser', {
+          cause: error,
           code: IMAGE_ERROR_CODES.STORAGE_UNAVAILABLE,
           recoverable: false,
         });
       case 'QuotaExceededError':
         return new ImageError('Storage quota exceeded', {
+          cause: error,
           code: IMAGE_ERROR_CODES.QUOTA_EXCEEDED,
           details: { quota: 'exceeded' },
           recoverable: true,
         });
       case 'SecurityError':
         return new ImageError('Security error - storage access denied', {
+          cause: error,
           code: IMAGE_ERROR_CODES.PERMISSION_DENIED,
           recoverable: true,
         });
       default:
         return new ImageError(`Browser error: ${error.message}`, {
+          cause: error,
           code: IMAGE_ERROR_CODES.STORAGE_UNAVAILABLE,
           details: { domException: error.name },
           recoverable: true,
@@ -144,26 +153,31 @@ export const ErrorHandler = {
     switch (error.code) {
       case 'COMPRESSION_FAILED':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.COMPRESSION_FAILED,
           recoverable: true,
         });
       case 'CONVERSION_FAILED':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.CONVERSION_FAILED,
           recoverable: true,
         });
       case 'INVALID_FILE':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
           recoverable: false,
         });
       case 'METADATA_EXTRACTION_FAILED':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
           recoverable: false,
         });
       default:
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.COMPRESSION_FAILED,
           recoverable: true,
         });
@@ -178,26 +192,31 @@ export const ErrorHandler = {
     switch (error.code) {
       case 'FILE_NOT_FOUND':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.CORRUPTED_FILE,
           recoverable: false,
         });
       case 'INVALID_FILE':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.INVALID_FILE_TYPE,
           recoverable: false,
         });
       case 'QUOTA_EXCEEDED':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.QUOTA_EXCEEDED,
           recoverable: true,
         });
       case 'STORAGE_UNAVAILABLE':
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.STORAGE_UNAVAILABLE,
           recoverable: true,
         });
       default:
         return new ImageError(error.message, {
+          cause: error,
           code: IMAGE_ERROR_CODES.STORAGE_UNAVAILABLE,
           recoverable: true,
         });
@@ -232,6 +251,7 @@ export const ErrorHandler = {
     // Network errors
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return new ImageError('Network request failed', {
+        cause: error,
         code: IMAGE_ERROR_CODES.NETWORK_ERROR,
         details: { originalError: error.message },
         recoverable: true,
@@ -242,6 +262,7 @@ export const ErrorHandler = {
     if (error instanceof Error) {
       const message = context ? `${context}: ${error.message}` : error.message;
       return new ImageError(message, {
+        cause: error,
         code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
         details: { originalError: error.message },
       });
@@ -251,6 +272,7 @@ export const ErrorHandler = {
     return new ImageError(
       context ? `${context}: Unknown error` : 'Unknown error occurred',
       {
+        cause: null,
         code: IMAGE_ERROR_CODES.UPLOAD_FAILED,
         details: { originalError: String(error) },
       }
@@ -269,12 +291,14 @@ export class ImageError extends Error {
   constructor(
     message: string,
     options: {
+      cause: Error | null;
       code: ImageErrorCode;
       details?: Record<string, unknown>;
       recoverable?: boolean;
     }
   ) {
     super(message);
+    this.cause = options.cause;
     this.name = 'ImageError';
     this.code = options.code;
     this.details = options.details;
