@@ -8,12 +8,15 @@ export const supportedImageMimeTypes = [
 ] as const;
 
 export const imageAttachmentSchema = z.strictObject({
+  aspectRatio: z.number().positive(),
   filename: z.string().min(1),
+  height: z.number().positive(),
   id: z.string().min(1),
   mimeType: z.enum(supportedImageMimeTypes),
   savedAt: z.date(),
   size: z.number().positive(),
   type: z.literal('file'),
+  width: z.number().positive(),
 });
 
 export const urlAttachmentSchema = z.strictObject({
@@ -29,12 +32,15 @@ export const attachmentSchema = z.union([
 ]);
 
 export const imageAttachmentInputSchema = z.strictObject({
+  aspectRatio: z.number().positive(),
   filename: z.string().min(1),
+  height: z.number().positive(),
   id: z.string().min(1),
   mimeType: z.enum(supportedImageMimeTypes),
   savedAt: z.iso.datetime(),
   size: z.number().positive(),
   type: z.literal('file'),
+  width: z.number().positive(),
 });
 
 export const urlAttachmentInputSchema = z.strictObject({

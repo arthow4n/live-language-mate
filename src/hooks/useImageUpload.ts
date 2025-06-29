@@ -235,12 +235,15 @@ export function useImageUpload(
         const placeholderItems: ImageUploadItem[] = files.map((file) => ({
           error: undefined,
           image: {
+            aspectRatio: 1, // placeholder - will be updated after processing
             filename: file.name,
+            height: 100, // placeholder - will be updated after processing
             id: crypto.randomUUID(),
             mimeType: 'image/png', // placeholder - will be updated after processing
             savedAt: new Date(),
             size: file.size,
             type: 'file',
+            width: 100, // placeholder - will be updated after processing
           },
           isLoading: true,
         }));

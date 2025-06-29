@@ -24,12 +24,15 @@ describe('ImageAttachment Schema Tests', () => {
   describe('imageAttachmentSchema', () => {
     test('should validate a valid image attachment', () => {
       const validAttachment = {
+        aspectRatio: 1.5,
         filename: 'test.jpg',
+        height: 400,
         id: '123e4567-e89b-12d3-a456-426614174000',
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
         type: 'file',
+        width: 600,
       };
 
       const result = imageAttachmentSchema.parse(validAttachment);
@@ -40,12 +43,15 @@ describe('ImageAttachment Schema Tests', () => {
     test('should validate all supported MIME types', () => {
       supportedImageMimeTypes.forEach((mimeType) => {
         const attachment = {
+          aspectRatio: 1.5,
           filename: 'test-file',
+          height: 400,
           id: 'test-id',
           mimeType,
           savedAt: new Date(),
           size: 1024,
           type: 'file',
+          width: 600,
         };
 
         const result = imageAttachmentSchema.parse(attachment);
@@ -110,12 +116,15 @@ describe('ImageAttachment Schema Tests', () => {
   describe('imageAttachmentInputSchema', () => {
     test('should validate input with ISO date string', () => {
       const validInput = {
+        aspectRatio: 1.5,
         filename: 'test.jpg',
+        height: 400,
         id: 'test-id',
         mimeType: 'image/jpeg',
         savedAt: '2023-12-01T10:00:00.000Z',
         size: 1024,
         type: 'file',
+        width: 600,
       };
 
       const result = imageAttachmentInputSchema.parse(validInput);
@@ -139,12 +148,15 @@ describe('ImageAttachment Schema Tests', () => {
   describe('parseImageAttachmentInput', () => {
     test('should parse valid input and convert date string to Date object', () => {
       const input = {
+        aspectRatio: 1.5,
         filename: 'test.jpg',
+        height: 400,
         id: 'test-id',
         mimeType: 'image/jpeg',
         savedAt: '2023-12-01T10:00:00.000Z',
         size: 1024,
         type: 'file',
+        width: 600,
       };
 
       const result = parseImageAttachmentInput(input);
@@ -175,12 +187,15 @@ describe('ImageAttachment Schema Tests', () => {
   describe('serializeImageAttachment', () => {
     test('should serialize attachment and convert Date to ISO string', () => {
       const attachment = {
+        aspectRatio: 1.5,
         filename: 'test.jpg',
+        height: 400,
         id: 'test-id',
         mimeType: 'image/jpeg' as const,
         savedAt: new Date('2023-12-01T10:00:00.000Z'),
         size: 1024,
         type: 'file' as const,
+        width: 600,
       };
 
       const result = serializeImageAttachment(attachment);
@@ -197,12 +212,15 @@ describe('ImageAttachment Schema Tests', () => {
   describe('round-trip serialization', () => {
     test('should preserve data through parse->serialize->parse cycle', () => {
       const original = {
+        aspectRatio: 1.5,
         filename: 'test.jpg',
+        height: 400,
         id: 'test-id',
         mimeType: 'image/jpeg' as const,
         savedAt: new Date('2023-12-01T10:00:00.000Z'),
         size: 1024,
         type: 'file' as const,
+        width: 600,
       };
 
       const serialized = serializeImageAttachment(original);
@@ -441,12 +459,15 @@ describe('ImageAttachment Schema Tests', () => {
   describe('attachmentSchema (union)', () => {
     test('should validate file attachment', () => {
       const fileAttachment = {
+        aspectRatio: 1.5,
         filename: 'test.jpg',
+        height: 400,
         id: 'file-123456',
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
         type: 'file',
+        width: 600,
       };
 
       const result = attachmentSchema.parse(fileAttachment);
@@ -526,12 +547,15 @@ describe('ImageAttachment Schema Tests', () => {
   describe('serializeAttachment (union)', () => {
     test('should serialize file attachment', () => {
       const fileAttachment = {
+        aspectRatio: 1.5,
         filename: 'test.jpg',
+        height: 400,
         id: 'file-123456',
         mimeType: 'image/jpeg' as const,
         savedAt: new Date('2023-12-01T10:00:00.000Z'),
         size: 1024,
         type: 'file' as const,
+        width: 600,
       };
 
       const result = serializeAttachment(fileAttachment);

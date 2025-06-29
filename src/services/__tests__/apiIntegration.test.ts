@@ -63,12 +63,15 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
     });
 
     const testAttachment: ImageAttachment = {
+      aspectRatio: 1.5,
       filename: 'test-image.png',
+      height: 400,
       id: 'test-image-id',
       mimeType: 'image/png',
       savedAt: new Date(),
       size: 2048,
       type: 'file',
+      width: 600,
     };
 
     // Mock OPFS storage
@@ -261,12 +264,15 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
 
   test('handles API errors gracefully during image processing', async () => {
     const testAttachment: ImageAttachment = {
+      aspectRatio: 1.5,
       filename: 'error-test.jpg',
+      height: 400,
       id: 'error-image-id',
       mimeType: 'image/jpeg',
       savedAt: new Date(),
       size: 1024,
       type: 'file',
+      width: 600,
     };
 
     // Mock image storage failure
@@ -460,28 +466,37 @@ describe('API Integration Tests - Image Handling and Model Capabilities', () => 
 
     const testAttachments: ImageAttachment[] = [
       {
+        aspectRatio: 1.5,
         filename: 'image1.png',
+        height: 400,
         id: 'image-1',
         mimeType: 'image/png',
         savedAt: new Date(),
         size: 1024,
         type: 'file',
+        width: 600,
       },
       {
+        aspectRatio: 1.5,
         filename: 'image2.jpg',
+        height: 400,
         id: 'image-2',
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 2048,
         type: 'file',
+        width: 600,
       },
       {
+        aspectRatio: 1.5,
         filename: 'image3.webp',
+        height: 400,
         id: 'image-3',
         mimeType: 'image/webp',
         savedAt: new Date(),
         size: 1536,
         type: 'file',
+        width: 600,
       },
     ];
 

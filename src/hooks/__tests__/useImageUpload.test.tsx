@@ -45,12 +45,15 @@ describe('useImageUpload', () => {
     // Default mocks
     mockValidateImageFile.mockReturnValue({ isValid: true });
     mockImageStorage.saveImage.mockResolvedValue({
+      aspectRatio: 1.5,
       filename: 'test.jpg',
+      height: 400,
       id: 'test-id',
       mimeType: 'image/jpeg',
       savedAt: new Date(),
       size: 1024,
       type: 'file',
+      width: 600,
     });
     mockConvertToBase64DataURL.mockResolvedValue('data:image/jpeg;base64,test');
     mockGenerateThumbnailDataURL.mockResolvedValue(
@@ -347,28 +350,37 @@ describe('useImageUpload', () => {
     // Mock different IDs for each image
     mockImageStorage.saveImage
       .mockResolvedValueOnce({
+        aspectRatio: 1.5,
         filename: 'first.jpg',
+        height: 400,
         id: 'id-1',
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
         type: 'file',
+        width: 600,
       })
       .mockResolvedValueOnce({
+        aspectRatio: 1.5,
         filename: 'second.jpg',
+        height: 400,
         id: 'id-2',
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
         type: 'file',
+        width: 600,
       })
       .mockResolvedValueOnce({
+        aspectRatio: 1.5,
         filename: 'third.jpg',
+        height: 400,
         id: 'id-3',
         mimeType: 'image/jpeg',
         savedAt: new Date(),
         size: 1024,
         type: 'file',
+        width: 600,
       });
 
     await act(async () => {

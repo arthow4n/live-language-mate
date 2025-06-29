@@ -14,12 +14,15 @@ describe('ImagePreview', () => {
   const mockOnRetry = vi.fn();
 
   const mockImage: ImageAttachment = {
+    aspectRatio: 1.5,
     filename: 'test-image.jpg',
+    height: 400,
     id: 'test-id',
     mimeType: 'image/jpeg',
     savedAt: new Date(),
     size: 1024 * 1024, // 1MB
     type: 'file',
+    width: 600,
   };
 
   beforeEach(() => {

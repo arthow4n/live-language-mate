@@ -4,6 +4,7 @@ import {
   serializeImageAttachment,
   supportedImageMimeTypes,
 } from '../schemas/imageAttachment.js';
+import { extractImageMetadata } from './imageUtils.js';
 
 /**
  *
@@ -222,6 +223,9 @@ class ImageStorageService {
     const filename = `${id}${extension}`;
 
     try {
+      // Extract image metadata before saving
+      const imageMetadata = await extractImageMetadata(file);
+
       const fileHandle = await this.imagesDir.getFileHandle(filename, {
         create: true,
       });
@@ -230,13 +234,16 @@ class ImageStorageService {
       await writable.close();
 
       const metadata: ImageMetadata = {
+        aspectRatio: imageMetadata.aspectRatio,
         filename: file.name,
+        height: imageMetadata.height,
         id,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Safe after type check above
         mimeType: file.type as (typeof supportedImageMimeTypes)[number],
         savedAt: new Date(),
         size: file.size,
         type: 'file',
+        width: imageMetadata.width,
       };
 
       this.metadataCache.set(id, metadata);

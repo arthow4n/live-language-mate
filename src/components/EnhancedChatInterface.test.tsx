@@ -659,12 +659,15 @@ describe('EnhancedChatInterface Integration Tests', () => {
 
     // Mock image attachments for testing - using correct ImageAttachment schema
     const mockImageAttachment = {
+      aspectRatio: 1.5,
       filename: 'test-image.jpg',
+      height: 400,
       id: 'test-image-1',
       mimeType: 'image/jpeg' as const,
       savedAt: new Date('2024-01-01T00:00:00.000Z'),
       size: 1024,
       type: 'file' as const,
+      width: 600,
     };
 
     // Mock ImageUploadItem for the images array
@@ -1146,12 +1149,15 @@ describe('EnhancedChatInterface Integration Tests', () => {
 
     // Mock file attachment
     const mockImageAttachment = {
+      aspectRatio: 1.5,
       filename: 'test-file.jpg',
+      height: 400,
       id: 'test-file-id',
       mimeType: 'image/jpeg' as const,
       savedAt: new Date(),
       size: 1024,
       type: 'file' as const,
+      width: 600,
     };
 
     // Set up the mock implementation with file attachment

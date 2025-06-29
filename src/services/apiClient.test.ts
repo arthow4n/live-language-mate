@@ -140,12 +140,15 @@ describe('API Client Integration Tests', () => {
 
     // Mock the imageStorage.saveImage method to return an attachment
     const testAttachment: ImageAttachment = {
+      aspectRatio: 1.5,
       filename: 'test-image.png',
+      height: 400,
       id: 'test-image-id',
       mimeType: 'image/png',
       savedAt: new Date(),
       size: 1024,
       type: 'file',
+      width: 600,
     };
 
     // Mock imageStorage.getImage to return our test file
@@ -315,12 +318,15 @@ describe('API Client Integration Tests', () => {
     });
 
     const fileAttachment: ImageAttachment = {
+      aspectRatio: 1.5,
       filename: 'test-file.png',
+      height: 400,
       id: 'file-attachment-id',
       mimeType: 'image/png',
       savedAt: new Date(),
       size: 1024,
       type: 'file',
+      width: 600,
     };
 
     const urlAttachment: URLAttachment = {

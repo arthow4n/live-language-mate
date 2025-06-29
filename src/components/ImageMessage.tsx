@@ -35,7 +35,7 @@ interface ImageItemProps {
   showMetadata: boolean;
   sizeClasses: {
     container: string;
-    image: string;
+    maxHeight: number;
     text: string;
   };
 }
@@ -43,17 +43,17 @@ interface ImageItemProps {
 const sizeVariants = {
   lg: {
     container: 'max-w-md',
-    image: 'h-48',
+    maxHeight: 192, // 48 * 4px = 192px
     text: 'text-sm',
   },
   md: {
     container: 'max-w-sm',
-    image: 'h-32',
+    maxHeight: 128, // 32 * 4px = 128px
     text: 'text-sm',
   },
   sm: {
     container: 'max-w-xs',
-    image: 'h-24',
+    maxHeight: 96, // 24 * 4px = 96px
     text: 'text-xs',
   },
 };
@@ -145,12 +145,15 @@ export function ImageMessage({
         // For URL attachments, create a compatible object for the callback
         // This might not be ideal but maintains backward compatibility
         const fakeImageAttachment: ImageAttachment = {
+          aspectRatio: 1, // Default aspect ratio for URL images
           filename: 'url-image',
+          height: 100, // Default height for URL images
           id: attachment.id,
           mimeType: 'image/jpeg', // Default MIME type for URL images
           savedAt: attachment.addedAt,
           size: 0, // Unknown size for URL images
           type: 'file',
+          width: 100, // Default width for URL images
         };
         onImageClick(fakeImageAttachment, imageUrl);
       }
@@ -193,7 +196,7 @@ export function ImageMessage({
                 showMetadata={showMetadata}
                 sizeClasses={{
                   container: 'w-full',
-                  image: 'h-24',
+                  maxHeight: 96,
                   text: 'text-xs',
                 }}
               />
@@ -229,20 +232,40 @@ function ImageItem({
   const hasError = errorImages.has(attachment.id);
   const imageUrl = imageUrls.get(attachment.id);
 
+  // Calculate dimensions based on aspect ratio
+  const containerStyle = React.useMemo(() => {
+    if (attachment.type === 'file' && 'aspectRatio' in attachment) {
+      const { aspectRatio } = attachment;
+      const maxHeight = sizeClasses.maxHeight;
+
+      // Calculate width based on aspect ratio and max height
+      const calculatedWidth = maxHeight * aspectRatio;
+
+      return {
+        height: `${maxHeight.toString()}px`,
+        width: `${calculatedWidth.toString()}px`,
+      };
+    }
+
+    // Fallback for URL attachments or missing aspect ratio
+    return {
+      height: `${sizeClasses.maxHeight.toString()}px`,
+      width: 'auto',
+    };
+  }, [attachment, sizeClasses.maxHeight]);
+
   return (
     <div
       className={cn(
         'relative overflow-hidden rounded-lg border border-border',
         sizeClasses.container
       )}
+      style={containerStyle}
     >
       {/* Loading State */}
       {isLoading && (
         <div
-          className={cn(
-            'flex items-center justify-center bg-muted animate-pulse',
-            sizeClasses.image
-          )}
+          className="flex items-center justify-center bg-muted animate-pulse w-full h-full"
           data-testid="image-loading"
         >
           <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
@@ -252,10 +275,7 @@ function ImageItem({
       {/* Error State */}
       {hasError && !isLoading && (
         <div
-          className={cn(
-            'flex flex-col items-center justify-center bg-destructive/10 text-destructive',
-            sizeClasses.image
-          )}
+          className="flex flex-col items-center justify-center bg-destructive/10 text-destructive w-full h-full"
           data-testid="image-error"
         >
           <div className="text-center p-2">
@@ -295,10 +315,7 @@ function ImageItem({
               alt={
                 attachment.type === 'file' ? attachment.filename : 'URL image'
               }
-              className={cn(
-                'w-full object-cover transition-transform duration-200 hover:scale-105',
-                sizeClasses.image
-              )}
+              className="w-full h-full"
               src={imageUrl}
             />
           </div>

@@ -22,12 +22,15 @@ describe('ImageMessage', () => {
   const createTestImageAttachment = (
     overrides: Partial<ImageAttachment> = {}
   ): ImageAttachment => ({
+    aspectRatio: 1.5,
     filename: 'test.jpg',
+    height: 400,
     id: 'test-id-1',
     mimeType: 'image/jpeg',
     savedAt: new Date('2024-01-01T00:00:00Z'),
     size: 1024 * 1024,
     type: 'file',
+    width: 600,
     ...overrides,
   });
 
