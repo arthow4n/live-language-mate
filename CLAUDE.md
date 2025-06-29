@@ -202,7 +202,7 @@ x?.Y(); // Y is optional because ...
 - When planning, automatically break down the task into smaller tasks and utilise the TodoRead & TodoWrite tools.
 - When planning, plan ahead to see if you need to update any tests.
 - When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutely relevant and needed chagnes. You need to review your own plan at least review 2 times.
-- Do not spawn subagents unless the user asked you to do so.
+- Use Task tool (subagent) actively, but you should never spawn more than 1 subagent simultaneously.
 - Don't skip anything in your todo.
 - You should keep working until your todo is empty.
 - You should review your plan by double checking with the actual code flow and CLAUDE.md before you present it to the user and before you start working.
