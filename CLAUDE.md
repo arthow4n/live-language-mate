@@ -154,11 +154,26 @@ Frontend (`.env`):
 
 - Prefer named import/export over default import/export.
 - Early return, early throw.
+- Don't use untyped literal variable, you should `const x: T = {}` instead of `const x = {}`, and `response.json({} satisfies T)` instead of `response.json({})`.
 - In frontend Vitest test files, import explicitly the test helpers e.g. `import { beforeEach, describe, expect, test, vi } from 'vitest';`.
 - Use Zod to validate and cast type as early as possible, this includes but not limit to handling the following scenarios: `any`, `unknown`, `DefaultBodyType`.
 - Always assign unknown type to `const x: unknown = JSON.parse()`, `cosnt x: unknown = await request.json()`, `cosnt x: unknown = await response.json()`, then validate with Zod.
-- Zod schemas are shared between frontend and backend.
+
+```ts
+// Bad
+const x: unknown = JSON.parse();
+if (typeof x === "object" && ...)
+
+// Good
+const x: unknown = JSON.parse();
+someSchema.parse(x);
+```
+
+- Zod schemas are the source of truth shared between frontend, backend and test mock.
+- Use Zod schema even when mocking API response in test.
 - Zod schemas are in `src/schemas/`, you should find in there first to see if there's a schema you can reuse. You should not create Zod schemas outside of `src/schemas/`.
+- For third party API e.g. when parsing response from OpenRouter in the backend, the Zod schema should use `looseObject` for the objects, and for props use `nullish` unless the API spec explicitly says the prop is required.
+- For Zod schemas used in and between backend and frontend, use `strictObject` and required props.
 - Never use `any`, `as` type assertion or `!` non-null assertion operator, you should instead use type narrowing, for example in test you can use `expectToBe`, `expectToBeInstanceOf`, `expectToNotBeNull`, `expectToNotBeUndefined`, and outside of test `instanceof` or do a proper object validation with Zod. See `src/__tests__/typedExpectHelpers.ts` for all expect alternatives when you run into lint error.
 - If you would declare an untyped object, instead you should either type it with e.g. `const x: X = {}` or `{} satisfies X`.
 - Avoid optional function parameter, optional property, and default values. If you are about to add one or you see any of such usages, try to look around the related code paths and see if you can refactor to remove it. Default values should only be used when it's absolutely necessary.
@@ -189,7 +204,7 @@ x?.Y(); // Y is optional because ...
 - `console.error` -> `logError`
 - `JSX.Element` -> `React.JSX.Element`
 - `toBeTruthy`, `.not.toBeNull`, `toBeDefined`, `toBeInstanceOf` or `if (instanceof)` -> use the type narrowing expect helpers in `src/__tests__/typedExpectHelpers.ts`
-- `getAllBy*()[*]` -> `getByTestId` or `getByText`
+- `getByRole`, `getAllBy*()[*]` -> set test ID on the object `getByTestId` or `getByText`
 - `() => {}` empty mock -> `vi.fn()`
 - `JSON.stringify(x)` if x is not typed -> `const x: X = {}; JSON.stringify(x)` or `JSON.stringify({} satisfies X)`
 - `fireEvent` -> `userEvent`
@@ -198,31 +213,34 @@ x?.Y(); // Y is optional because ...
 ## Planning and task management
 
 - You are meant to work on your own unattended once the user has approved your initial work plan, you should plan ahead for working on your own.
-- When planning, the plan is always for yourself to be able to follow the plan and work on the task immediately after the plan is approved by the user.
-- When planning, automatically break down the task into smaller tasks and utilise the TodoRead & TodoWrite tools.
-- When planning, plan ahead to see if you need to update any tests.
-- When planning, think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutely relevant and needed chagnes. You need to review your own plan at least review 2 times.
+- The plan is always for yourself to be able to follow the plan and work on the task immediately after the plan is approved by the user.
+- Automatically break down the task into smaller tasks and utilise the TodoRead & TodoWrite tools.
+- Think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutely relevant and needed chagnes.
 - Don't skip anything in your todo.
 - You should keep working until your todo is empty.
 - You should review your plan by double checking with the actual code flow and CLAUDE.md before you present it to the user and before you start working.
+- During planning, ask the user activley to validate the unclarities if any.
 - Before you start working, make sure to step back and break down the plan into smaller todo items.
-- You should express your plan's code flow in a sequence diagram.
+- Discover the code base actively to understand the existing end-to-end flow and the new end-to-end flow would be implied by the requested changes.
+- Discover the code base actively to prove your plan is feasible. Don't make assumption.
+- Your plan should be based on the current code base, that is, you must find where exactly you'll be making changes and what are the existing things you can reuse, and if any test is related to the change you are about to make.
+- You should express your plan's code flow in an end-to-end sequence diagram to explain what you are about to implement and how it integrates with the rest of codeflow, what the user requested, what's existing, and what you are about to implement.
 
 ## Debugging
 
 - Always create a sequence diagram to explain in which exact sequence can a bug happen.
+- Never assume an issue is caused by race condition or a timing issue, unless you can find evidence to explain in which exactly flow there would be more than 1 way the code can be executed.
 - If you belive something might be caused by a race condition or a timing issue, you should default to step back and read through all the related code paths from beginning to end, and then make a comprehensive argument and a concrete sequence diagram to explain why it's really a race condition or timing issue. This is to make sure you don't just blindly guess and fix the wrong problem.
 
 ## Development process
 
-- You should do TDD:
+- Before you start working, read through the code base to find the existing sharable schemas, test helpers, components, functions and so on to understand the reusable code and actively use them.
+- You should do test driven development (TDD):
   1. Review the code paths that will be tested from beginning to end, then think how to write the correct test case.
   2. Write a test case that is failing, which will be fixed after correct implementation.
   3. Start implementation.
   4. Fix until test passes.
   5. Commit and push after each task is done.
-- If test is failng more than 3 times in a row, step back and read again the code path from beginning to end, think how to address the issue systematically before you rerun the test again.
-- Question yourself are your soution and test addressing what the user asked for.
 
 ## Git
 
