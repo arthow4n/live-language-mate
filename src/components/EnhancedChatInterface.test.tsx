@@ -1281,4 +1281,114 @@ describe('EnhancedChatInterface Integration Tests', () => {
     ).toBe(true); // URL attachment
     // File attachment might not be present due to mock limitations, but that's ok for this test
   });
+
+  test('should use feedbackLanguage from settings when constructing editor mate prompts', async () => {
+    const user = userEvent.setup();
+
+    // Mock API to capture requests and verify feedback language is included
+    const apiCalls: unknown[] = [];
+    server.use(
+      http.post('http://*/ai-chat', async ({ request }) => {
+        const body = await request.json();
+        apiCalls.push(body);
+        return HttpResponse.json({ response: 'Test response' });
+      })
+    );
+
+    // Create test conversation with Spanish as feedback language
+    const testData = {
+      conversations: [
+        {
+          created_at: new Date('2024-01-01T00:00:00.000Z'),
+          id: 'test-conv-feedback-lang',
+          language: 'Swedish',
+          messages: [],
+          title: 'Test Feedback Language',
+          updated_at: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ],
+      conversationSettings: {
+        'test-conv-feedback-lang': {
+          apiKey: '',
+          chatMateBackground: 'young professional',
+          chatMatePersonality: 'friendly',
+          culturalContext: true,
+          editorMateExpertise: '10+ years',
+          editorMatePersonality: 'patient teacher',
+          enableReasoning: false,
+          feedbackLanguage: 'Spanish', // User wants feedback in Spanish
+          feedbackStyle: 'encouraging' as const,
+          model: 'google/gemini-2.5-flash',
+          progressiveComplexity: true,
+          reasoningExpanded: false,
+          streaming: false,
+          targetLanguage: 'Swedish', // Learning Swedish
+          theme: 'system' as const,
+        },
+      },
+      globalSettings: {
+        apiKey: '',
+        chatMateBackground: 'young professional',
+        chatMatePersonality: 'friendly',
+        culturalContext: true,
+        editorMateExpertise: '10+ years',
+        editorMatePersonality: 'patient teacher',
+        enableReasoning: false,
+        feedbackLanguage: 'English', // Global is English, but conversation should use Spanish
+        feedbackStyle: 'encouraging' as const,
+        model: 'google/gemini-2.5-flash',
+        progressiveComplexity: true,
+        reasoningExpanded: false,
+        streaming: false,
+        targetLanguage: 'Swedish',
+        theme: 'system' as const,
+      },
+    };
+
+    localStorage.setItem('language-mate-data', JSON.stringify(testData));
+
+    const mockOnConversationCreated = vi.fn();
+    const mockOnConversationUpdate = vi.fn();
+    const mockOnTextSelect = vi.fn();
+
+    render(
+      <TestWrapper>
+        <EnhancedChatInterface
+          conversationId="test-conv-feedback-lang"
+          onConversationCreated={mockOnConversationCreated}
+          onConversationUpdate={mockOnConversationUpdate}
+          onTextSelect={mockOnTextSelect}
+          targetLanguage="Swedish"
+        />
+      </TestWrapper>
+    );
+
+    // Wait for component to load
+    await waitFor(() => {
+      expect(screen.getByRole('textbox')).toBeInTheDocument();
+    });
+
+    // Send a message to trigger editor mate prompt generation
+    const textarea = screen.getByRole('textbox');
+    await user.type(textarea, 'Jag tycker om svenska språket');
+    await user.keyboard('{Enter}');
+
+    // Wait for API calls to be made
+    await waitFor(
+      () => {
+        expect(apiCalls.length).toBeGreaterThan(0);
+      },
+      { timeout: 5000 }
+    );
+
+    // Find the editor mate API call (should be first call)
+    expect(apiCalls.length).toBeGreaterThan(0);
+    const editorMateCall = apiCalls[0];
+    const parsedCall = aiChatRequestWireSchema.parse(editorMateCall);
+
+    // Verify that the system prompt contains instructions to provide feedback in Spanish
+    expect(parsedCall.systemPrompt).toContain(
+      'Provide all feedback and explanations in Spanish'
+    );
+  });
 });

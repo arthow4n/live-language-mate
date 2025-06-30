@@ -503,6 +503,7 @@ const EnhancedChatInterface = ({
       editorMateExpertise:
         chatSettings?.editorMateExpertise ?? '10+ years teaching experience',
       editorMatePersonality: currentEditorMatePrompt,
+      feedbackLanguage: chatSettings?.feedbackLanguage ?? 'English',
       feedbackStyle: chatSettings?.feedbackStyle ?? 'encouraging',
       progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
       targetLanguage,
