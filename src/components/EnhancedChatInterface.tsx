@@ -729,9 +729,6 @@ const EnhancedChatInterface = ({
     setInputMessage('');
     setIsLoading(true);
 
-    // Clear uploaded images immediately after sending message
-    clearImages();
-
     if (!currentConversationId) {
       logError('❌ Error: No conversation ID available');
       toast({
