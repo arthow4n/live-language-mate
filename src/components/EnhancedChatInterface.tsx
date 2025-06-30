@@ -1400,7 +1400,7 @@ const EnhancedChatInterface = ({
         {/* Input Area */}
         <div className="p-4 border-t bg-card flex-shrink-0">
           {/* Image Grid - Show uploaded images */}
-          {uploadedImages.length > 0 && (
+          {uploadedImages.length > 0 && !isLoading && (
             <div className="mb-4">
               <ImageGrid
                 items={uploadedImages.map((item) => ({
