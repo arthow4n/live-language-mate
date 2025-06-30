@@ -209,6 +209,13 @@ const EnhancedChatInterface = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- To be reviewed and fixed
   }, [conversationId, isCreatingNewConversation]);
 
+  // Focus input field when AI responses complete
+  useEffect(() => {
+    if (!isLoading && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading]);
+
   const loadMessages = (): void => {
     if (!conversationId) return;
 
@@ -1416,82 +1423,86 @@ const EnhancedChatInterface = ({
             </div>
           )}
 
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <Button onClick={handleCancel} variant="outline">
-                <Square className="w-4 h-4 mr-2" />
-                Stop generating
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-end space-x-2">
-              <Textarea
-                className="flex-1 min-h-[40px] max-h-[120px]"
-                data-testid="message-input"
-                disabled={isLoading}
-                onChange={(e) => {
-                  setInputMessage(e.target.value);
-                }}
-                onKeyDown={handleKeyPress}
-                onPaste={handlePaste}
-                placeholder={`Type in ${targetLanguage} or your native language...`}
-                ref={textareaRef}
-                rows={1}
-                value={inputMessage}
-              />
-              <ImageUploadButton
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- isUploading can be true during upload process
-                disabled={isLoading || isUploading}
-                onFilesSelected={(files) => {
-                  void uploadImages(files);
-                }}
+          <div className="flex items-end space-x-2">
+            <Textarea
+              className="flex-1 min-h-[40px] max-h-[120px]"
+              data-testid="message-input"
+              onChange={(e) => {
+                setInputMessage(e.target.value);
+              }}
+              onKeyDown={handleKeyPress}
+              onPaste={handlePaste}
+              placeholder={`Type in ${targetLanguage} or your native language...`}
+              ref={textareaRef}
+              rows={1}
+              value={inputMessage}
+            />
+            <ImageUploadButton
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- isUploading can be true during upload process
+              disabled={isLoading || isUploading}
+              onFilesSelected={(files) => {
+                void uploadImages(files);
+              }}
+              size="icon"
+            />
+            {isMobile && onEditorMatePanelOpen && (
+              <Button
+                className="h-10 w-10 flex-shrink-0"
+                onClick={onEditorMatePanelOpen}
                 size="icon"
-              />
-              {isMobile && onEditorMatePanelOpen && (
+                title="Open Ask Interface"
+                variant="outline"
+              >
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            )}
+            {isLoading ? (
+              <Button
+                className="h-10 w-10 flex-shrink-0"
+                onClick={handleCancel}
+                size="icon"
+                title="Stop generating"
+                variant="outline"
+              >
+                <Square className="w-4 h-4" />
+              </Button>
+            ) : (
+              <>
                 <Button
                   className="h-10 w-10 flex-shrink-0"
-                  onClick={onEditorMatePanelOpen}
+                  data-testid="send-user-editor-button"
+                  disabled={!inputMessage.trim() || isLoading}
+                  onClick={() => void handleSendUserOnly()}
                   size="icon"
-                  title="Open Ask Interface"
+                  title="Send as user and get editor feedback only"
                   variant="outline"
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  <User className="w-4 h-4" />
                 </Button>
-              )}
-              <Button
-                className="h-10 w-10 flex-shrink-0"
-                data-testid="send-user-editor-button"
-                disabled={!inputMessage.trim() || isLoading}
-                onClick={() => void handleSendUserOnly()}
-                size="icon"
-                title="Send as user and get editor feedback only"
-                variant="outline"
-              >
-                <User className="w-4 h-4" />
-              </Button>
-              <Button
-                className="h-10 w-10 flex-shrink-0"
-                data-testid="send-chatmate-editor-button"
-                disabled={!inputMessage.trim() || isLoading}
-                onClick={() => void handleSendChatMateOnly()}
-                size="icon"
-                title="Send as chat mate and get editor feedback"
-                variant="outline"
-              >
-                <Bot className="w-4 h-4" />
-              </Button>
-              <Button
-                className="h-10 w-10 flex-shrink-0"
-                data-testid="send-button"
-                disabled={!inputMessage.trim() || isLoading}
-                onClick={() => void handleSendMessage()}
-                size="icon"
-                title="Send message and get full conversation flow"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
+                <Button
+                  className="h-10 w-10 flex-shrink-0"
+                  data-testid="send-chatmate-editor-button"
+                  disabled={!inputMessage.trim() || isLoading}
+                  onClick={() => void handleSendChatMateOnly()}
+                  size="icon"
+                  title="Send as chat mate and get editor feedback"
+                  variant="outline"
+                >
+                  <Bot className="w-4 h-4" />
+                </Button>
+                <Button
+                  className="h-10 w-10 flex-shrink-0"
+                  data-testid="send-button"
+                  disabled={!inputMessage.trim() || isLoading}
+                  onClick={() => void handleSendMessage()}
+                  size="icon"
+                  title="Send message and get full conversation flow"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </ImageDropZone>

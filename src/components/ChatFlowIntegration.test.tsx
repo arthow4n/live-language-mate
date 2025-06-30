@@ -355,11 +355,11 @@ describe('Chat Flow Integration Tests', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Stop generating')).toBeInTheDocument();
+      expect(screen.getByTitle('Stop generating')).toBeInTheDocument();
     });
 
     // Click the stop generating button
-    const cancelButton = screen.getByText('Stop generating');
+    const cancelButton = screen.getByTitle('Stop generating');
     await user.click(cancelButton);
 
     // Should show cancellation message
