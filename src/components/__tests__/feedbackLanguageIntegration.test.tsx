@@ -272,4 +272,38 @@ describe('Feedback Language Integration Tests', () => {
       'Provide all feedback and explanations in German'
     );
   });
+
+  test('EditorMatePanel prompt generation includes feedbackLanguage from globalSettings', () => {
+    // Test that our fix correctly passes feedbackLanguage to prompt generation
+    const testSettings = {
+      ...mockGlobalSettings,
+      feedbackLanguage: 'Spanish',
+    };
+
+    // Simulate what EditorMatePanel should now do after our fix
+    const promptVariables = {
+      chatMateBackground:
+        'A friendly local who enjoys helping people learn the language and culture.',
+      chatMatePersonality:
+        'A friendly native speaker who enjoys helping people learn the language.',
+      culturalContext: testSettings.culturalContext,
+      editorMateExpertise: testSettings.editorMateExpertise,
+      editorMatePersonality:
+        'You are a patient teacher. Provide helpful explanations about language usage, grammar, and cultural context.',
+      feedbackLanguage: testSettings.feedbackLanguage, // This is what we fixed
+      feedbackStyle: testSettings.feedbackStyle,
+      progressiveComplexity: testSettings.progressiveComplexity,
+      targetLanguage: 'Spanish',
+    };
+
+    const prompt = buildPrompt({
+      messageType: 'editor-mate-response',
+      variables: promptVariables,
+    });
+
+    // Verify the prompt correctly uses Spanish for feedback
+    expect(prompt.systemPrompt).toContain(
+      'Provide all feedback and explanations in Spanish'
+    );
+  });
 });

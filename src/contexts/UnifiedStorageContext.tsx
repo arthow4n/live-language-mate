@@ -100,7 +100,7 @@ export const getDefaultGlobalSettings = (): GlobalSettings => {
     feedbackStyle: 'encouraging',
     model: 'google/gemini-2.5-flash',
     progressiveComplexity: true,
-    reasoningExpanded: true,
+    reasoningExpanded: false,
     streaming: true,
     targetLanguage: 'Swedish',
     theme: 'system',

@@ -441,32 +441,32 @@ describe('EnhancedChatMessage Integration Tests', () => {
     expect(reasoningToggle).toBeInTheDocument();
     expect(screen.getByText('AI Reasoning')).toBeInTheDocument();
 
-    // The reasoning content should be visible by default (globalSettings.reasoningExpanded defaults to true)
-    expect(
-      screen.getByText(
-        'This is the AI reasoning content that should be toggleable.'
-      )
-    ).toBeInTheDocument();
-
-    // Click to collapse the reasoning section
-    await user.click(reasoningToggle);
-
-    // The reasoning content should be hidden after collapse
+    // The reasoning content should be hidden by default (globalSettings.reasoningExpanded defaults to false)
     expect(
       screen.queryByText(
         'This is the AI reasoning content that should be toggleable.'
       )
     ).not.toBeInTheDocument();
 
-    // Click to expand the reasoning section again
+    // Click to expand the reasoning section
     await user.click(reasoningToggle);
 
-    // The reasoning content should be visible again
+    // The reasoning content should be visible after expansion
     expect(
       screen.getByText(
         'This is the AI reasoning content that should be toggleable.'
       )
     ).toBeInTheDocument();
+
+    // Click to collapse the reasoning section again
+    await user.click(reasoningToggle);
+
+    // The reasoning content should be hidden again
+    expect(
+      screen.queryByText(
+        'This is the AI reasoning content that should be toggleable.'
+      )
+    ).not.toBeInTheDocument();
   });
   test('streaming indicator displays when message is streaming', () => {
     const mockOnTextSelect = vi.fn();

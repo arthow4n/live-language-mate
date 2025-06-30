@@ -169,6 +169,7 @@ const AskInterface = ({
       culturalContext: globalSettings.culturalContext,
       editorMateExpertise: globalSettings.editorMateExpertise,
       editorMatePersonality: editorMatePrompt,
+      feedbackLanguage: globalSettings.feedbackLanguage,
       feedbackStyle: globalSettings.feedbackStyle,
       progressiveComplexity: globalSettings.progressiveComplexity,
       targetLanguage,
