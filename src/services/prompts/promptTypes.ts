@@ -55,6 +55,7 @@ export interface PromptVariables {
   currentComplexityLevel?: string;
   editorMateExpertise?: string;
   editorMatePersonality?: string;
+  feedbackLanguage?: string;
   feedbackStyle: 'detailed' | 'direct' | 'encouraging' | 'gentle';
   progressiveComplexity: boolean;
   targetLanguage: string;

@@ -49,7 +49,32 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
       expect(settings.model).toBe('google/gemini-2.5-flash');
       expect(settings.culturalContext).toBe(true);
       expect(settings.enableReasoning).toBe(true);
+      expect(settings.feedbackLanguage).toBe('English');
       expect(settings.feedbackStyle).toBe('encouraging');
+    });
+
+    test('should include feedbackLanguage in default global settings', () => {
+      let capturedContext: ReturnType<typeof useUnifiedStorage> | undefined;
+
+      render(
+        <UnifiedStorageProvider>
+          <TestComponent
+            onRender={(context) => {
+              capturedContext = context;
+            }}
+          />
+        </UnifiedStorageProvider>
+      );
+
+      expectToNotBeUndefined(capturedContext);
+
+      // Test that global settings include feedbackLanguage
+      expect(capturedContext.globalSettings.feedbackLanguage).toBe('English');
+
+      // Test that default conversation settings inherit feedbackLanguage
+      const conversationSettings =
+        capturedContext.getConversationSettings('new-conversation');
+      expect(conversationSettings.feedbackLanguage).toBe('English');
     });
 
     test('should merge stored settings with global defaults for missing properties', () => {
@@ -67,6 +92,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             editorMatePersonality:
               'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
             enableReasoning: true,
+            feedbackLanguage: 'Spanish',
             feedbackStyle: 'encouraging',
             model: 'custom-model',
             progressiveComplexity: true,
@@ -86,6 +112,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           editorMatePersonality:
             'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
           enableReasoning: true,
+          feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
@@ -139,6 +166,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             editorMatePersonality:
               'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
             enableReasoning: true, // Conversation tries to override
+            feedbackLanguage: 'French',
             feedbackStyle: 'encouraging',
             model: 'google/gemini-2.5-flash',
             progressiveComplexity: true,
@@ -158,6 +186,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           editorMatePersonality:
             'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
           enableReasoning: false, // Global is false
+          feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
@@ -209,6 +238,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             editorMatePersonality:
               'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
             enableReasoning: true,
+            feedbackLanguage: 'English',
             feedbackStyle: 'encouraging',
             model: 'old-model',
             progressiveComplexity: true,
@@ -228,6 +258,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           editorMatePersonality:
             'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
           enableReasoning: true,
+          feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
@@ -277,6 +308,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             editorMateExpertise: 'custom expertise',
             editorMatePersonality: 'custom teacher',
             enableReasoning: false,
+            feedbackLanguage: 'Spanish',
             feedbackStyle: 'detailed',
             model: 'custom-model',
             progressiveComplexity: false,
@@ -296,6 +328,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           editorMatePersonality:
             'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
           enableReasoning: true,
+          feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
@@ -333,6 +366,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
       expect(settings.model).toBe('custom-model');
       expect(settings.targetLanguage).toBe('French');
       expect(settings.culturalContext).toBe(false);
+      expect(settings.feedbackLanguage).toBe('Spanish');
       expect(settings.feedbackStyle).toBe('detailed');
       expect(settings.theme).toBe('dark');
       // Reasoning should still inherit from global

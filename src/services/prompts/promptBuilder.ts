@@ -70,6 +70,7 @@ function buildTemplateVariables(
       variables.editorMateExpertise ?? promptDefaults.editorMateExpertise,
     editorMatePersonality:
       variables.editorMatePersonality ?? promptDefaults.editorMatePersonality,
+    FEEDBACK_LANGUAGE: variables.feedbackLanguage ?? 'English',
     feedbackStyleDescription:
       promptDefaults.feedbackStyleDescriptions[variables.feedbackStyle] ||
       'helpful and constructive',

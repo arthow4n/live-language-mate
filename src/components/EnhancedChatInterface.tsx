@@ -1438,7 +1438,6 @@ const EnhancedChatInterface = ({
               value={inputMessage}
             />
             <ImageUploadButton
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- isUploading can be true during upload process
               disabled={isLoading || isUploading}
               onFilesSelected={(files) => {
                 void uploadImages(files);

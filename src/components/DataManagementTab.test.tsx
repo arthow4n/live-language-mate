@@ -102,6 +102,7 @@ describe('DataManagementTab Integration Tests', () => {
         editorMatePersonality:
           'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
         enableReasoning: true,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -304,6 +305,7 @@ describe('DataManagementTab Integration Tests', () => {
         editorMatePersonality:
           'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
         enableReasoning: true,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -372,6 +374,7 @@ describe('DataManagementTab Integration Tests', () => {
         editorMatePersonality:
           'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
         enableReasoning: true,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -465,6 +468,7 @@ describe('DataManagementTab Integration Tests', () => {
         editorMatePersonality:
           'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
         enableReasoning: true,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,

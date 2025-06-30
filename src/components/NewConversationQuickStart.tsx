@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { LANGUAGE_OPTIONS } from '@/constants/languages';
 import { useUnifiedStorage } from '@/contexts/UnifiedStorageContext';
 import {
   extractRecentLanguages,
@@ -23,34 +24,6 @@ import {
 } from '@/utils/recentDetection';
 
 import ModelSelector from './ModelSelector';
-
-// Language options from UnifiedSettingsDialog
-const LANGUAGE_OPTIONS = [
-  'Burmese',
-  'Cantonese',
-  'Chinese (Simplified)',
-  'Chinese (Traditional)',
-  'Danish',
-  'Dutch',
-  'English',
-  'French',
-  'German',
-  'Hakka',
-  'Hindi',
-  'Hokkien',
-  'Italian',
-  'Japanese',
-  'Korean',
-  'Norwegian',
-  'Portuguese',
-  'Russian',
-  'Sinhala',
-  'Spanish',
-  'Swedish',
-  'Thai',
-  'Ukrainian',
-  'Vietnamese',
-];
 
 /**
  *

@@ -27,6 +27,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { LANGUAGE_OPTIONS } from '@/constants/languages';
 
 import DataManagementTab from './DataManagementTab';
 import ModelSelector from './ModelSelector';
@@ -135,36 +136,34 @@ const UnifiedSettingsDialog = ({
                         }}
                         value={settings.targetLanguage}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger id="target-language">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {[
-                            'Burmese',
-                            'Cantonese',
-                            'Chinese (Simplified)',
-                            'Chinese (Traditional)',
-                            'Danish',
-                            'Dutch',
-                            'English',
-                            'French',
-                            'German',
-                            'Hakka',
-                            'Hindi',
-                            'Hokkien',
-                            'Italian',
-                            'Japanese',
-                            'Korean',
-                            'Norwegian',
-                            'Portuguese',
-                            'Russian',
-                            'Sinhala',
-                            'Spanish',
-                            'Swedish',
-                            'Thai',
-                            'Ukrainian',
-                            'Vietnamese',
-                          ].map((lang) => (
+                          {LANGUAGE_OPTIONS.map((lang) => (
+                            <SelectItem key={lang} value={lang}>
+                              {lang}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="feedback-language">
+                        Feedback Language
+                      </Label>
+                      <Select
+                        onValueChange={(value) => {
+                          handleSettingChange('feedbackLanguage', value);
+                        }}
+                        value={settings.feedbackLanguage}
+                      >
+                        <SelectTrigger id="feedback-language">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LANGUAGE_OPTIONS.map((lang) => (
                             <SelectItem key={lang} value={lang}>
                               {lang}
                             </SelectItem>

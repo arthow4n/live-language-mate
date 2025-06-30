@@ -96,6 +96,7 @@ export const getDefaultGlobalSettings = (): GlobalSettings => {
     editorMatePersonality:
       'You are a patient language teacher. Provide helpful corrections and suggestions to improve language skills.',
     enableReasoning: true,
+    feedbackLanguage: 'English',
     feedbackStyle: 'encouraging',
     model: 'google/gemini-2.5-flash',
     progressiveComplexity: true,
@@ -251,6 +252,7 @@ export const UnifiedStorageProvider = ({
     editorMateExpertise: globalSettings.editorMateExpertise,
     editorMatePersonality: globalSettings.editorMatePersonality,
     enableReasoning: globalSettings.enableReasoning,
+    feedbackLanguage: globalSettings.feedbackLanguage,
     feedbackStyle: globalSettings.feedbackStyle,
     // Inherit from global settings
     model: globalSettings.model,

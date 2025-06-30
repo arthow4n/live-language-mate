@@ -26,6 +26,7 @@ const mockGlobalSettings = {
   editorMateExpertise: '10+ years',
   editorMatePersonality: 'patient teacher',
   enableReasoning: true,
+  feedbackLanguage: 'English',
   feedbackStyle: 'encouraging' as const,
   model: 'google/gemini-2.5-flash',
   progressiveComplexity: true,
@@ -43,6 +44,7 @@ const mockConversationSettings = {
   editorMateExpertise: '10+ years',
   editorMatePersonality: 'patient teacher',
   enableReasoning: true,
+  feedbackLanguage: 'English',
   feedbackStyle: 'encouraging' as const,
   model: 'google/gemini-2.5-flash',
   progressiveComplexity: true,
@@ -657,15 +659,18 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Should display AI Model label
     expect(screen.getByText('AI Model')).toBeInTheDocument();
 
-    // Find the model selector combobox (should be the one that's not the language selector)
+    // Find the model selector combobox (should be the one with "Select model..." text)
     const allComboboxes = screen.getAllByRole('combobox');
-    const modelSelectorButton = allComboboxes.find(
-      (combobox) =>
-        !combobox.textContent?.includes('Swedish') &&
-        combobox.textContent?.trim() !== ''
+
+    // The model selector should contain "Select model..." as placeholder text
+    const modelSelectorButton = allComboboxes.find((combobox) =>
+      combobox.textContent?.includes('Select model')
     );
-    if (!modelSelectorButton)
-      throw new Error('Model selector button not found');
+    if (!modelSelectorButton) {
+      throw new Error(
+        `Model selector button not found. Available comboboxes: ${allComboboxes.map((cb) => cb.textContent).join(', ')}`
+      );
+    }
 
     // Click to open the model selector dropdown
     await user.click(modelSelectorButton);
@@ -727,8 +732,9 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     if (!languageSelector) throw new Error('Language selector not found');
 
     await user.click(languageSelector);
-    const englishOption = screen.getByText('English');
-    await user.click(englishOption);
+    const englishOptions = screen.getAllByRole('option', { name: 'English' });
+    // Use the first English option (should be in the target language dropdown)
+    await user.click(englishOptions[0]);
 
     // Click cancel button instead of save
     const cancelButton = screen.getByText('Cancel');
@@ -763,8 +769,9 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     if (!languageSelector) throw new Error('Language selector not found');
 
     await user.click(languageSelector);
-    const englishOption = screen.getByText('English');
-    await user.click(englishOption);
+    const englishOptions = screen.getAllByRole('option', { name: 'English' });
+    // Use the first English option (should be in the target language dropdown)
+    await user.click(englishOptions[0]);
 
     // Verify the change was applied in the UI
     expect(languageSelector).toHaveTextContent('English');
@@ -885,5 +892,36 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     // Verify both toggles are never disabled (no dependency)
     expect(enableReasoningToggle).not.toBeDisabled();
     expect(reasoningExpandedToggle).not.toBeDisabled();
+  });
+
+  test('feedback language selector appears and functions correctly', () => {
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          conversationTitle="Test Chat"
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Should display feedback language label in General tab
+    expect(screen.getByText('Feedback Language')).toBeInTheDocument();
+
+    // Should display feedback language selector (it's a Select component, which renders as a combobox)
+    const allComboboxes = screen.getAllByRole('combobox');
+
+    // We should find multiple comboboxes (target language, feedback language, and model selectors)
+    expect(allComboboxes.length).toBeGreaterThanOrEqual(2);
+
+    // Verify feedback language field exists by checking for the label and that we have comboboxes
+    expect(screen.getByText('Feedback Language')).toBeInTheDocument();
+    expect(allComboboxes.length).toBeGreaterThan(0);
   });
 });

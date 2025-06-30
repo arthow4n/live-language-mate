@@ -24,6 +24,7 @@ export const conversationSettingsSchema = z
 
     enableReasoning: z.boolean(),
 
+    feedbackLanguage: z.string().min(1),
     feedbackStyle: feedbackStyleSchema,
     // Core API settings
     model: z.string().min(1),
@@ -46,6 +47,7 @@ export const globalSettingsSchema = z
     editorMateExpertise: z.string().min(1),
     editorMatePersonality: z.string().min(1),
     enableReasoning: z.boolean(),
+    feedbackLanguage: z.string().min(1),
     feedbackStyle: feedbackStyleSchema,
     model: z.string().min(1),
     progressiveComplexity: z.boolean(),

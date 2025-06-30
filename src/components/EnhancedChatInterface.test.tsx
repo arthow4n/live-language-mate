@@ -117,6 +117,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
         editorMateExpertise: '10+ years',
         editorMatePersonality: 'patient teacher',
         enableReasoning: true,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -228,6 +229,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
         editorMateExpertise: '10+ years',
         editorMatePersonality: 'patient teacher',
         enableReasoning: true,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -717,6 +719,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
         editorMateExpertise: '10+ years',
         editorMatePersonality: 'patient teacher',
         enableReasoning: true,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -921,6 +924,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
         editorMateExpertise: '10+ years',
         editorMatePersonality: 'patient teacher',
         enableReasoning: false,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -1035,7 +1039,6 @@ describe('EnhancedChatInterface Integration Tests', () => {
     ).toBeInTheDocument();
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return -- Test code with dynamic API validation
   test('processes multiple image URLs in single message', async () => {
     const user = userEvent.setup();
 
@@ -1070,6 +1073,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
         editorMateExpertise: '10+ years',
         editorMatePersonality: 'patient teacher',
         enableReasoning: false,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,
@@ -1119,7 +1123,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
     );
 
     // Check the first call (editor mate user comment)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- Test validation code
+
     const firstCall = apiCalls[0];
     const parsedFirstCall = aiChatRequestWireSchema.parse(firstCall);
     expect(parsedFirstCall.message).toBe('Compare these images: and'); // URLs removed from text
@@ -1143,7 +1147,6 @@ describe('EnhancedChatInterface Integration Tests', () => {
     });
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return -- Test code with dynamic API validation
   test('handles mixed file uploads and URL detection', async () => {
     const user = userEvent.setup();
 
@@ -1204,6 +1207,7 @@ describe('EnhancedChatInterface Integration Tests', () => {
         editorMateExpertise: '10+ years',
         editorMatePersonality: 'patient teacher',
         enableReasoning: false,
+        feedbackLanguage: 'English',
         feedbackStyle: 'encouraging' as const,
         model: 'google/gemini-2.5-flash',
         progressiveComplexity: true,

@@ -47,6 +47,29 @@ describe('Prompt Builder', () => {
       expect(result.variables).toEqual(request.variables);
     });
 
+    test('should include FEEDBACK_LANGUAGE variable in editor mate prompts', () => {
+      const request: PromptBuildRequest = {
+        messageType: 'editor-mate-user-comment',
+        variables: {
+          culturalContext: false,
+          feedbackLanguage: 'Spanish',
+          feedbackStyle: 'encouraging',
+          progressiveComplexity: false,
+          targetLanguage: 'Swedish',
+        },
+      };
+
+      const result = buildPrompt(request);
+
+      // The prompt should contain feedback language instructions
+      expect(result.systemPrompt).toContain('Spanish');
+      expect(result.systemPrompt).toContain(
+        'Provide all feedback and explanations in Spanish'
+      );
+      expect(result.templateKey).toBe('editor-mate-user-comment');
+      expect(result.variables).toEqual(request.variables);
+    });
+
     test('should build prompt with custom template', () => {
       const customTemplate =
         'Custom template with {targetLanguage} and {customVar}';

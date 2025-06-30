@@ -31,6 +31,7 @@ const createConversationSettings = (model: string): ConversationSettings => ({
   editorMateExpertise: '10+ years',
   editorMatePersonality: 'patient teacher',
   enableReasoning: true,
+  feedbackLanguage: 'English',
   feedbackStyle: 'encouraging',
   model,
   progressiveComplexity: true,
