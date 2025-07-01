@@ -5,6 +5,7 @@ import {
   conversationSettingsSchema,
   type GlobalSettings,
   globalSettingsSchema,
+  type LanguageLevel,
 } from './settings';
 
 const createValidGlobalSettings = (): GlobalSettings => ({
@@ -19,6 +20,7 @@ const createValidGlobalSettings = (): GlobalSettings => ({
   enableReasoning: true,
   feedbackLanguage: 'English',
   feedbackStyle: 'encouraging',
+  languageLevel: 'intermediate',
   model: 'google/gemini-2.5-flash',
   progressiveComplexity: true,
   reasoningExpanded: true,
@@ -39,6 +41,7 @@ const createValidConversationSettings = (): ConversationSettings => ({
   enableReasoning: true,
   feedbackLanguage: 'Spanish',
   feedbackStyle: 'encouraging',
+  languageLevel: 'advanced',
   model: 'google/gemini-2.5-flash',
   progressiveComplexity: true,
   reasoningExpanded: true,
@@ -167,6 +170,88 @@ describe('Settings Schema Tests', () => {
           conversationSettingsSchema.parse(conversationSettings)
         ).not.toThrow();
       });
+    });
+  });
+
+  describe('LanguageLevel Validation', () => {
+    test('should validate valid language levels for global settings', () => {
+      const validLevels: LanguageLevel[] = [
+        'beginner',
+        'intermediate',
+        'advanced',
+      ];
+
+      validLevels.forEach((level) => {
+        const settings = {
+          ...createValidGlobalSettings(),
+          languageLevel: level,
+        };
+
+        expect(() => globalSettingsSchema.parse(settings)).not.toThrow();
+      });
+    });
+
+    test('should validate valid language levels for conversation settings', () => {
+      const validLevels: LanguageLevel[] = [
+        'beginner',
+        'intermediate',
+        'advanced',
+      ];
+
+      validLevels.forEach((level) => {
+        const settings = {
+          ...createValidConversationSettings(),
+          languageLevel: level,
+        };
+
+        expect(() => conversationSettingsSchema.parse(settings)).not.toThrow();
+      });
+    });
+
+    test('should reject invalid language levels for global settings', () => {
+      const invalidLevels = ['expert', 'novice', 'fluent', 'basic'];
+
+      invalidLevels.forEach((level) => {
+        const settings = {
+          ...createValidGlobalSettings(),
+          languageLevel: level,
+        };
+
+        expect(() => globalSettingsSchema.parse(settings)).toThrow();
+      });
+    });
+
+    test('should reject invalid language levels for conversation settings', () => {
+      const invalidLevels = ['expert', 'novice', 'fluent', 'basic'];
+
+      invalidLevels.forEach((level) => {
+        const settings = {
+          ...createValidConversationSettings(),
+          languageLevel: level,
+        };
+
+        expect(() => conversationSettingsSchema.parse(settings)).toThrow();
+      });
+    });
+
+    test('should require languageLevel field for global settings', () => {
+      const validSettings = createValidGlobalSettings();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Destructuring to remove languageLevel
+      const { languageLevel, ...settingsWithoutLanguageLevel } = validSettings;
+
+      expect(() =>
+        globalSettingsSchema.parse(settingsWithoutLanguageLevel)
+      ).toThrow(/languageLevel/);
+    });
+
+    test('should require languageLevel field for conversation settings', () => {
+      const validSettings = createValidConversationSettings();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Destructuring to remove languageLevel
+      const { languageLevel, ...settingsWithoutLanguageLevel } = validSettings;
+
+      expect(() =>
+        conversationSettingsSchema.parse(settingsWithoutLanguageLevel)
+      ).toThrow(/languageLevel/);
     });
   });
 });

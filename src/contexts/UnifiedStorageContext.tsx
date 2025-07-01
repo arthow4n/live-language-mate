@@ -98,6 +98,7 @@ export const getDefaultGlobalSettings = (): GlobalSettings => {
     enableReasoning: true,
     feedbackLanguage: 'English',
     feedbackStyle: 'encouraging',
+    languageLevel: 'intermediate',
     model: 'google/gemini-2.5-flash',
     progressiveComplexity: true,
     reasoningExpanded: false,
@@ -254,6 +255,7 @@ export const UnifiedStorageProvider = ({
     enableReasoning: globalSettings.enableReasoning,
     feedbackLanguage: globalSettings.feedbackLanguage,
     feedbackStyle: globalSettings.feedbackStyle,
+    languageLevel: globalSettings.languageLevel,
     // Inherit from global settings
     model: globalSettings.model,
     progressiveComplexity: globalSettings.progressiveComplexity,

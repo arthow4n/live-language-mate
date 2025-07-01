@@ -57,6 +57,7 @@ export interface PromptVariables {
   editorMatePersonality?: string;
   feedbackLanguage?: string;
   feedbackStyle: 'detailed' | 'direct' | 'encouraging' | 'gentle';
+  languageLevel?: 'advanced' | 'beginner' | 'intermediate';
   progressiveComplexity: boolean;
   targetLanguage: string;
 }

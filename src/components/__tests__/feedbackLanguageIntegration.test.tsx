@@ -37,6 +37,7 @@ const mockGlobalSettings = {
   enableReasoning: true,
   feedbackLanguage: 'English',
   feedbackStyle: 'encouraging' as const,
+  languageLevel: 'intermediate' as const,
   model: 'google/gemini-2.5-flash',
   progressiveComplexity: true,
   reasoningExpanded: true,

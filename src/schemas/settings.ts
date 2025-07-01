@@ -11,6 +11,13 @@ export const feedbackStyleSchema = z.enum([
   'detailed',
 ]);
 
+// Language proficiency levels
+export const languageLevelSchema = z.enum([
+  'beginner',
+  'intermediate',
+  'advanced',
+]);
+
 // Unified Settings Schema - contains all settings for a conversation
 export const conversationSettingsSchema = z
   .object({
@@ -26,6 +33,7 @@ export const conversationSettingsSchema = z
 
     feedbackLanguage: z.string().min(1),
     feedbackStyle: feedbackStyleSchema,
+    languageLevel: languageLevelSchema,
     // Core API settings
     model: z.string().min(1),
     progressiveComplexity: z.boolean(),
@@ -49,6 +57,7 @@ export const globalSettingsSchema = z
     enableReasoning: z.boolean(),
     feedbackLanguage: z.string().min(1),
     feedbackStyle: feedbackStyleSchema,
+    languageLevel: languageLevelSchema,
     model: z.string().min(1),
     progressiveComplexity: z.boolean(),
     reasoningExpanded: z.boolean(),
@@ -110,6 +119,10 @@ export type GlobalSettings = z.infer<typeof globalSettingsSchema>;
  *
  */
 export type GlobalSettingsUpdate = z.infer<typeof globalSettingsUpdateSchema>;
+/**
+ *
+ */
+export type LanguageLevel = z.infer<typeof languageLevelSchema>;
 /**
  *
  */

@@ -51,6 +51,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
       expect(settings.enableReasoning).toBe(true);
       expect(settings.feedbackLanguage).toBe('English');
       expect(settings.feedbackStyle).toBe('encouraging');
+      expect(settings.languageLevel).toBe('intermediate');
     });
 
     test('should include feedbackLanguage in default global settings', () => {
@@ -77,6 +78,30 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
       expect(conversationSettings.feedbackLanguage).toBe('English');
     });
 
+    test('should include languageLevel in default global settings', () => {
+      let capturedContext: ReturnType<typeof useUnifiedStorage> | undefined;
+
+      render(
+        <UnifiedStorageProvider>
+          <TestComponent
+            onRender={(context) => {
+              capturedContext = context;
+            }}
+          />
+        </UnifiedStorageProvider>
+      );
+
+      expectToNotBeUndefined(capturedContext);
+
+      // Test that global settings include languageLevel
+      expect(capturedContext.globalSettings.languageLevel).toBe('intermediate');
+
+      // Test that default conversation settings inherit languageLevel
+      const conversationSettings =
+        capturedContext.getConversationSettings('new-conversation');
+      expect(conversationSettings.languageLevel).toBe('intermediate');
+    });
+
     test('should merge stored settings with global defaults for missing properties', () => {
       // Set up localStorage with partial conversation settings
       const partialStoredData = {
@@ -94,6 +119,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             enableReasoning: true,
             feedbackLanguage: 'Spanish',
             feedbackStyle: 'encouraging',
+            languageLevel: 'advanced',
             model: 'custom-model',
             progressiveComplexity: true,
             reasoningExpanded: true,
@@ -114,6 +140,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           enableReasoning: true,
           feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
+          languageLevel: 'intermediate',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
           reasoningExpanded: true,
@@ -168,6 +195,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             enableReasoning: true, // Conversation tries to override
             feedbackLanguage: 'French',
             feedbackStyle: 'encouraging',
+            languageLevel: 'beginner',
             model: 'google/gemini-2.5-flash',
             progressiveComplexity: true,
             reasoningExpanded: true, // Conversation tries to override
@@ -188,6 +216,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           enableReasoning: false, // Global is false
           feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
+          languageLevel: 'intermediate',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
           reasoningExpanded: false, // Global is false
@@ -240,6 +269,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             enableReasoning: true,
             feedbackLanguage: 'English',
             feedbackStyle: 'encouraging',
+            languageLevel: 'advanced',
             model: 'old-model',
             progressiveComplexity: true,
             reasoningExpanded: true,
@@ -260,6 +290,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           enableReasoning: true,
           feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
+          languageLevel: 'intermediate',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
           reasoningExpanded: true,
@@ -310,6 +341,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
             enableReasoning: false,
             feedbackLanguage: 'Spanish',
             feedbackStyle: 'detailed',
+            languageLevel: 'beginner',
             model: 'custom-model',
             progressiveComplexity: false,
             reasoningExpanded: false,
@@ -330,6 +362,7 @@ describe('UnifiedStorageContext - Settings Inheritance', () => {
           enableReasoning: true,
           feedbackLanguage: 'English',
           feedbackStyle: 'encouraging',
+          languageLevel: 'intermediate',
           model: 'google/gemini-2.5-flash',
           progressiveComplexity: true,
           reasoningExpanded: true,

@@ -43,6 +43,15 @@ describe('Type-Safe Prompt Templates', () => {
       ]);
     });
 
+    test('should extract languageLevel variable correctly', () => {
+      const template =
+        `Adjust explanations for {languageLevel} learners using {targetLanguage}` as const;
+      const result = createPromptTemplate(template);
+
+      expect(result.template).toBe(template);
+      expect(result.variables).toEqual(['languageLevel', 'targetLanguage']);
+    });
+
     test('should handle templates with variables in different contexts', () => {
       const template = `Start {intro}
 

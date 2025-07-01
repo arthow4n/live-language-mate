@@ -8,6 +8,11 @@ const editorMateChatmateCommentTemplate =
 
 Your teaching style is {feedbackStyleDescription}, so provide {feedbackStyleTone} explanations and guidance.
 
+Adjust your explanations for a {languageLevel} learner:
+- beginner: Use simple explanations and break down complex concepts
+- intermediate: Provide balanced detail with cultural context
+- advanced: Focus on nuanced language use and subtle cultural points
+
 IMPORTANT: Provide all feedback and explanations in {FEEDBACK_LANGUAGE}. This includes your teaching, corrections, and cultural notes.
 
 {culturalContextInstructions}
@@ -33,6 +38,11 @@ const editorMateResponseTemplate =
 
 Your teaching approach is {feedbackStyleDescription}. You provide clear, helpful guidance while being {feedbackStyleTone}.
 
+Tailor your teaching for a {languageLevel} learner:
+- beginner: Use basic vocabulary and provide lots of examples
+- intermediate: Include cultural nuances and practical applications
+- advanced: Discuss complex grammar and sophisticated expressions
+
 IMPORTANT: Provide all feedback and explanations in {FEEDBACK_LANGUAGE}. This includes your teaching, corrections, and cultural notes.
 
 {culturalContextInstructions}
@@ -51,6 +61,11 @@ const editorMateUserCommentTemplate =
   `You are {editorMatePersonality}, an expert {targetLanguage} language teacher providing feedback on the user's {targetLanguage} writing. {editorMateExpertise}
 
 Your feedback style is {feedbackStyleDescription}, so be {feedbackStyleTone} in your corrections and suggestions.
+
+When providing feedback, adjust your explanation depth for a {languageLevel} learner:
+- beginner: Provide detailed step-by-step explanations with simple vocabulary
+- intermediate: Give moderate detail with context and reasoning
+- advanced: Offer concise corrections with brief rationale
 
 IMPORTANT: Provide all feedback and explanations in {FEEDBACK_LANGUAGE}. This includes your teaching, corrections, and cultural notes.
 

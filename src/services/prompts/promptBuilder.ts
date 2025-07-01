@@ -77,6 +77,7 @@ function buildTemplateVariables(
     feedbackStyleTone:
       promptDefaults.feedbackStyleTones[variables.feedbackStyle] ||
       'supportive and clear',
+    languageLevel: variables.languageLevel ?? 'intermediate',
     progressiveComplexityInstructions: variables.progressiveComplexity
       ? getProgressiveComplexityInstructions(variables.currentComplexityLevel)
       : '',

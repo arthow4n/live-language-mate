@@ -33,6 +33,7 @@ const createConversationSettings = (model: string): ConversationSettings => ({
   enableReasoning: true,
   feedbackLanguage: 'English',
   feedbackStyle: 'encouraging',
+  languageLevel: 'intermediate',
   model,
   progressiveComplexity: true,
   reasoningExpanded: true,
