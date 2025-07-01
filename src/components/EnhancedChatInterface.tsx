@@ -506,6 +506,8 @@ const EnhancedChatInterface = ({
       feedbackLanguage:
         chatSettings?.feedbackLanguage ?? globalSettings.feedbackLanguage,
       feedbackStyle: chatSettings?.feedbackStyle ?? 'encouraging',
+      languageLevel:
+        chatSettings?.languageLevel ?? globalSettings.languageLevel,
       progressiveComplexity: chatSettings?.progressiveComplexity ?? true,
       targetLanguage,
     };

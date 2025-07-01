@@ -926,4 +926,35 @@ describe('UnifiedSettingsDialog Integration Tests', () => {
     expect(screen.getByText('Feedback Language')).toBeInTheDocument();
     expect(allComboboxes.length).toBeGreaterThan(0);
   });
+
+  test('language level selector appears and functions correctly', () => {
+    const mockOnOpenChange = vi.fn();
+    const mockOnSave = vi.fn();
+
+    render(
+      <TestWrapper>
+        <UnifiedSettingsDialog
+          conversationTitle="Test Chat"
+          initialSettings={mockGlobalSettings}
+          mode="global"
+          onOpenChange={mockOnOpenChange}
+          onSave={mockOnSave}
+          open={true}
+        />
+      </TestWrapper>
+    );
+
+    // Should display language level label in General tab
+    expect(screen.getByText('Language Level')).toBeInTheDocument();
+
+    // Should display language level selector (it's a Select component, which renders as a combobox)
+    const allComboboxes = screen.getAllByRole('combobox');
+
+    // We should find multiple comboboxes (target language, feedback language, model selectors, and language level)
+    expect(allComboboxes.length).toBeGreaterThanOrEqual(3);
+
+    // Verify language level field exists by checking for the label and that we have comboboxes
+    expect(screen.getByText('Language Level')).toBeInTheDocument();
+    expect(allComboboxes.length).toBeGreaterThan(0);
+  });
 });

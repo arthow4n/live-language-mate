@@ -173,6 +173,31 @@ const UnifiedSettingsDialog = ({
                     </div>
 
                     <div>
+                      <Label htmlFor="language-level">Language Level</Label>
+                      <Select
+                        onValueChange={(value) => {
+                          handleSettingChange('languageLevel', value);
+                        }}
+                        value={settings.languageLevel}
+                      >
+                        <SelectTrigger id="language-level">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">
+                            Beginner - Detailed explanations
+                          </SelectItem>
+                          <SelectItem value="intermediate">
+                            Intermediate - Moderate detail
+                          </SelectItem>
+                          <SelectItem value="advanced">
+                            Advanced - Concise corrections
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
                       <Label htmlFor="api-key">OpenRouter API Key</Label>
                       <Input
                         id="api-key"
