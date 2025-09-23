@@ -2,7 +2,8 @@ import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import js from '@eslint/js';
 import vitest from '@vitest/eslint-plugin';
 import prettierConfig from 'eslint-config-prettier';
-import jsdoc from 'eslint-plugin-jsdoc';
+// 2025-09-23 eslint-plugin-jsdoc doesn't work on Google Jules in pre-commit hook for strange reason
+// import jsdoc from 'eslint-plugin-jsdoc';
 import perfectionist from 'eslint-plugin-perfectionist';
 import reactHooks from 'eslint-plugin-react-hooks';
 import testingLibrary from 'eslint-plugin-testing-library';
@@ -20,7 +21,8 @@ export default tseslint.config(
     extends: [
       tseslint.configs.strictTypeChecked,
       tseslint.configs.stylisticTypeChecked,
-      jsdoc.configs['flat/recommended-typescript-error'],
+      // 2025-09-23 eslint-plugin-jsdoc doesn't work on Google Jules in pre-commit hook for strange reason
+      // jsdoc.configs['flat/recommended-typescript-error'],
     ],
     files: ['**/*.{ts,tsx}'],
     // Leave Deno for Deno lint
@@ -56,29 +58,29 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'error', // Helps to clarify type for LLM processing
       '@typescript-eslint/no-import-type-side-effects': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
-      // Configure JSDoc to be less strict for UI components
-      'jsdoc/require-jsdoc': [
-        'error',
-        {
-          contexts: [
-            'TSInterfaceDeclaration',
-            'TSTypeAliasDeclaration',
-            'TSEnumDeclaration',
-          ],
-          require: {
-            ArrowFunctionExpression: false,
-            ClassDeclaration: true,
-            ClassExpression: false,
-            FunctionDeclaration: true,
-            FunctionExpression: false,
-            MethodDefinition: false,
-          },
-        },
-      ],
-
-      'jsdoc/require-param-description': 'off',
-      'jsdoc/require-returns': 'off', // TypeScript provides return type info
-      'jsdoc/require-returns-description': 'off',
+      // 2025-09-23 eslint-plugin-jsdoc doesn't work on Google Jules in pre-commit hook for strange reason
+      // // Configure JSDoc to be less strict for UI components
+      // 'jsdoc/require-jsdoc': [
+      //   'error',
+      //   {
+      //     contexts: [
+      //       'TSInterfaceDeclaration',
+      //       'TSTypeAliasDeclaration',
+      //       'TSEnumDeclaration',
+      //     ],
+      //     require: {
+      //       ArrowFunctionExpression: false,
+      //       ClassDeclaration: true,
+      //       ClassExpression: false,
+      //       FunctionDeclaration: true,
+      //       FunctionExpression: false,
+      //       MethodDefinition: false,
+      //     },
+      //   },
+      // ],
+      // 'jsdoc/require-param-description': 'off',
+      // 'jsdoc/require-returns': 'off', // TypeScript provides return type info
+      // 'jsdoc/require-returns-description': 'off',
       'max-params': ['error', { max: 2 }],
       'no-console': ['error', { allow: ['error'] }],
       'no-restricted-imports': [
