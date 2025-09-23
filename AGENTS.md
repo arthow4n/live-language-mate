@@ -239,8 +239,9 @@ x?.Y(); // Y is optional because ...
   1. Review the code paths that will be tested from beginning to end, then think how to write the correct test case.
   2. Write a test case that is failing, which will be fixed after correct implementation.
   3. Start implementation.
-  4. Fix until test passes.
-  5. Commit and push after each task is done.
+  4. Run `npm run check:all` and fix all the lint and type check issues before running test.
+  5. Run test and fix until test passes.
+  6. Commit and push after each task is done.
 
 ## Git
 
