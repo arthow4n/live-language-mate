@@ -1,0 +1,32 @@
+{
+  "tools": {
+    "allowed": [
+      "run_shell_command(git add)",
+      "run_shell_command(git checkout)",
+      "run_shell_command(git commit)",
+      "run_shell_command(git diff)",
+      "run_shell_command(git fetch)",
+      "run_shell_command(git log)",
+      "run_shell_command(git reflog)",
+      "run_shell_command(git reset)",
+      "run_shell_command(git revert)",
+      "run_shell_command(git rm)",
+      "run_shell_command(git stash)",
+      "run_shell_command(git status)",
+      "run_shell_command(grep)",
+      "run_shell_command(head)",
+      "run_shell_command(mkdir)",
+      "run_shell_command(npm run check)",
+      "run_shell_command(npm run lint)",
+      "run_shell_command(npm run lint:fix)",
+      "run_shell_command(npm run prettier)",
+      "run_shell_command(npm run test:backend)",
+      "run_shell_command(npm run test:frontend)",
+      "run_shell_command(npm run test)",
+      "run_shell_command(npm run typecheck)",
+      "run_shell_command(npm test)",
+      "run_shell_command(rg)",
+      "run_shell_command(sg)"
+    ]
+  }
+}
