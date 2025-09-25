@@ -1,6 +1,4 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# Coding Agent Instructions
 
 ## Development Commands
 
@@ -218,7 +216,7 @@ x?.Y(); // Y is optional because ...
 - Think and review the plan yourself to see if you are over-engineering, you should focus on only making the absolutely relevant and needed chagnes.
 - Don't skip anything in your todo.
 - You should keep working until your todo is empty.
-- You should review your plan by double checking with the actual code flow and CLAUDE.md before you present it to the user and before you start working.
+- You should review your plan by double checking with the actual code flow and AGENTS.md before you present it to the user and before you start working.
 - During planning, ask the user activley to validate the unclarities if any.
 - Before you start working, make sure to step back and break down the plan into smaller todo items.
 - Discover the code base actively to understand the existing end-to-end flow and the new end-to-end flow would be implied by the requested changes.
@@ -245,11 +243,12 @@ x?.Y(); // Y is optional because ...
 ## Git
 
 - When making progress in your task, be proactive to make small git commit with descriptive messages, and then git push.
-- When `git commit`, wrap commit message with single quote instead of double quote, prefix you commit message title with `(Claude Code) ` and add a footer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>`.
+- If you are Claude Code, when `git commit`, prefix you commit message title with `(Claude Code) ` and add a trailer in commit message saying `Co-Authored-By: Claude <noreply@anthropic.com>`.
+- If you are Gemini CLI, when `git commit`, prefix you commit message title with `(Gemini CLI) ` and add a trailer in commit message saying `Co-Authored-By: gemini-cli <gemini-cli@dummy.mail.invalid>`.
 - When you make commit, there's a pre-commit hook which will lint and test staged files.
-- IMPORTANT: YOU SHOULD NEVER RUN `git commit --no-verify`. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
-- IMPORTANT: All the lint, type, test errors from pre-commit hook are caused by you and related to your task, you must fix them.
-- IMPORTANT: Never amend commit, change git history or force push.
+- IMPORTANT: YOU SHOULD NEVER RUN `git commit --no-verify` or move/delete the `.husky` commit hooks. The pre-commit hook is for you, you should address the issue you caused. If you repeatly get errors from the pre-commit hook and can't solve it on your own, ask the user for help.
+- All the lint, type, test errors from pre-commit hook are caused by you and related to your task, you must fix them.
+- Never amend commit, change git history or force push.
 
 ## Test
 
@@ -282,10 +281,8 @@ event.dataTransfer?.items.add('hello world', 'text/plain');
 
 ## Tool
 
-- USE YOUR OWN Search TOOL.
-- Use Task tool (subagent) when possible. You should never spawn more than 1 subagent simultaneously. You should never use Task tool (subagent) in the planning mode.
+- Read your own settings file and use allowed tools as much as possible to be as non-interactive as possible.
 - Batch your tool calls, use many tools at once.
-- Use tools allowed in `.claude/settings.local.json` to be non-interactive and work as autonomously as possible.
 - Never run dev server or build commands like `npm run dev`, `npm run build`, `npm run build:dev`, `npm run preview`.
 
 ## Bash command
@@ -293,11 +290,10 @@ event.dataTransfer?.items.add('hello world', 'text/plain');
 - Don't `grep` the lint result or test result or count errors, if you need to run a focused check, just use the focused commands.
 - Use your own search tool instead of `rg` or `grep`, add more context lines.
 
-### Instead of command X, use Y
+### Instead of command X, use Y if available
 
 - `rg`, `grep` -> use Search tool
 - `find` -> `git ls-files` or your own List tool
 - `rm` -> try `git rm` first, if fail then try `git clean`
 - `head`/`tail`/`cat` -> read the file with tool instead
 - `npx tsc` -> `npm run typecheck`
-- Don't chain or pipe commands, chained and piped commands will be denied.
